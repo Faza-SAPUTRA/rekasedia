@@ -1,4 +1,4 @@
-<![CDATA[# 📦 RekaSedia — Sistem Manajemen Inventaris Sekolah
+# 📦 RekaSedia — Sistem Manajemen Inventaris Sekolah
 
 ![React](https://img.shields.io/badge/React-19.x-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6.x-3178C6?logo=typescript&logoColor=white)
@@ -176,4 +176,3 @@ Dikembangkan sebagai bagian dari tugas mata kuliah **Dasar UI/UX** — Desain an
 ## 📄 Lisensi
 
 Proyek ini dibuat untuk keperluan akademis.
-]]>
