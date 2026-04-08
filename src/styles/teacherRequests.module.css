@@ -1,0 +1,211 @@
+/* ============================================
+   RekaSedia — Teacher Requests (Pesanan) Page
+   ============================================ */
+
+/* --- Horizontal Filter Tabs --- */
+.tabsContainer {
+  display: flex;
+  gap: 12px;
+  background: var(--white);
+  padding: 16px 24px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-color);
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+
+.tab {
+  padding: 8px 16px;
+  border-radius: var(--radius-xl);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--medium-text);
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab:hover {
+  color: var(--dark-text);
+  background: var(--cream);
+}
+
+.tab.active {
+  background: var(--sage-green);
+  color: var(--white);
+}
+
+.tabCount {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+.tab.active .tabCount {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.tab:not(.active) .tabCount {
+  background: var(--cream-dark);
+  color: var(--gray-text);
+}
+
+/* --- Request Cards List --- */
+.requestsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.requestCard {
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  transition: box-shadow var(--transition-normal);
+}
+
+.requestCard:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--cream-dark);
+  padding-bottom: 16px;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reqCode {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sage-dark);
+}
+
+.reqDate {
+  font-size: 12px;
+  color: var(--gray-text);
+}
+
+/* Base pill styles */
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-xl);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statusPill.pending {
+  background: #FEF3C7; /* yellow-100 */
+  color: #D97706; /* amber-600 */
+}
+.statusPill.pending::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #D97706;
+}
+
+.statusPill.ready {
+  background: var(--badge-green-bg);
+  color: var(--sage-dark);
+}
+.statusPill.ready::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sage-dark);
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.itemList {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--dark-text);
+}
+
+.destination {
+  font-size: 13px;
+  color: var(--gray-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* --- CTA Container --- */
+.newRequestCta {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  transition: all var(--transition-fast);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.newRequestCta:hover {
+  background: var(--white);
+  border-color: var(--sage-green);
+}
+
+.ctaIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--sage-green);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.newRequestCta:hover .ctaIcon {
+  transform: scale(1.1);
+}
+
+.ctaText h4 {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--dark-text);
+  margin-bottom: 4px;
+}
+
+.ctaText p {
+  font-size: 13px;
+  color: var(--gray-text);
+}

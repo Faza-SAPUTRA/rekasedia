@@ -1,0 +1,140 @@
+/* ============================================
+   Shared Components — CSS Module
+   ============================================ */
+
+/* --- Form Group --- */
+.formGroup {
+  margin-bottom: var(--space-lg);
+}
+
+.formGroup label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--dark-text);
+  margin-bottom: var(--space-sm);
+}
+
+/* --- Input Wrapper --- */
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputWrapper input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  padding-right: 3rem;
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  color: var(--dark-text);
+  background-color: var(--white);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.inputWrapper input::placeholder {
+  color: var(--gray-text);
+  font-weight: 400;
+}
+
+.inputWrapper input:focus {
+  border-color: var(--sage-green);
+  box-shadow: 0 0 0 3px rgba(138, 158, 138, 0.15);
+}
+
+.inputIcon {
+  position: absolute;
+  right: 1rem;
+  color: var(--gray-text);
+  font-size: 1rem;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.inputIconClickable {
+  position: absolute;
+  right: 1rem;
+  color: var(--gray-text);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.inputIconClickable:hover {
+  color: var(--sage-green);
+}
+
+.inputError {
+  border-color: var(--error-red) !important;
+}
+
+.errorMessage {
+  display: block;
+  color: var(--error-red);
+  font-size: 0.8rem;
+  margin-top: 0.35rem;
+}
+
+.shaking {
+  animation: shake 0.4s ease;
+}
+
+/* --- Buttons --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: 0.9rem 1.5rem;
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-normal), transform var(--transition-fast), box-shadow var(--transition-normal);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.btnPrimary {
+  background-color: var(--sage-green);
+  color: var(--white);
+  box-shadow: 0 4px 14px rgba(138, 158, 138, 0.3);
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background-color: var(--sage-green-hover);
+  box-shadow: 0 6px 20px rgba(138, 158, 138, 0.4);
+}
+
+.btnPrimary:active:not(:disabled) {
+  background-color: var(--sage-green-active);
+}
+
+.btnSuccess {
+  background-color: #6B8F71;
+  color: var(--white);
+}
+
+.btn i {
+  font-size: 1rem;
+}

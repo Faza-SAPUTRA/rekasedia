@@ -1,0 +1,246 @@
+/* ============================================
+   Auth Layout — CSS Module
+   ============================================ */
+
+/* --- Split Container --- */
+.container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* --- Left Panel --- */
+.left {
+  flex: 0 0 45%;
+  max-width: 45%;
+  background-color: var(--cream);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xl) var(--space-xl);
+  position: relative;
+  overflow: hidden;
+  animation: fadeIn 0.5s ease both;
+}
+
+.illustration {
+  width: 320px;
+  height: 320px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.illustration img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.brandIcon {
+  width: 32px;
+  height: 32px;
+  background-color: var(--sage-green);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-size: 1rem;
+}
+
+.brandName {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--dark-text);
+}
+
+.leftHeading {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--dark-text);
+  text-align: center;
+  margin-bottom: var(--space-sm);
+}
+
+.tagline {
+  font-size: 0.9rem;
+  color: var(--gray-text);
+  text-align: center;
+  max-width: 340px;
+  line-height: 1.7;
+}
+
+/* --- Right Panel --- */
+.right {
+  flex: 1;
+  background-color: var(--white);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xl) clamp(var(--space-xl), 5vw, 6rem);
+}
+
+.formWrapper {
+  width: 100%;
+  max-width: 440px;
+}
+
+/* --- Form Heading --- */
+.formHeading {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--dark-text);
+  line-height: 1.2;
+  margin-bottom: var(--space-sm);
+}
+
+.formSubtitle {
+  font-size: 0.95rem;
+  color: var(--gray-text);
+  margin-bottom: var(--space-xl);
+  line-height: 1.6;
+}
+
+/* --- Form Footer --- */
+.formFooter {
+  text-align: center;
+  margin-top: var(--space-xl);
+  font-size: 0.9rem;
+  color: var(--medium-text);
+}
+
+.formFooter a {
+  font-weight: 600;
+  color: var(--link-color);
+}
+
+/* --- Form Options Row --- */
+.formOptions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+}
+
+.checkboxWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+}
+
+.checkboxWrapper input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--sage-green);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.checkboxWrapper label {
+  font-size: 0.875rem;
+  color: var(--medium-text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.forgotLink {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--dark-text);
+  text-decoration: none;
+}
+
+.forgotLink:hover {
+  color: var(--link-color);
+  text-decoration: underline;
+}
+
+/* --- Accessibility Badge --- */
+.accessibilityBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-2xl);
+  padding: var(--space-md) var(--space-lg);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gray-text);
+  border-top: 1px solid var(--light-gray);
+}
+
+.accessibilityBadge i {
+  font-size: 0.9rem;
+}
+
+/* --- Responsive --- */
+@media (max-width: 900px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .left {
+    flex: unset;
+    max-width: 100%;
+    padding: var(--space-xl) var(--space-lg);
+  }
+
+  .illustration {
+    width: 200px;
+    height: 200px;
+  }
+
+  .right {
+    padding: var(--space-xl) var(--space-lg);
+  }
+
+  .formHeading {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 500px) {
+  .left {
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  .illustration {
+    width: 160px;
+    height: 160px;
+  }
+
+  .brandName {
+    font-size: 1.2rem;
+  }
+
+  .right {
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  .formHeading {
+    font-size: 1.35rem;
+  }
+
+  .formOptions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+}

@@ -1,0 +1,366 @@
+/* ============================================
+   RekaSedia — Inventory Catalog Page
+   ============================================ */
+
+/* --- Search Bar --- */
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 14px 24px;
+  margin-bottom: 20px;
+  transition: border-color var(--transition-fast);
+}
+
+.searchBar:focus-within {
+  border-color: var(--sage-green);
+  box-shadow: 0 0 0 3px rgba(138, 158, 138, 0.1);
+}
+
+.searchBar i {
+  color: var(--gray-text);
+  font-size: 16px;
+}
+
+.searchBar input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  color: var(--dark-text);
+  width: 100%;
+  font-family: var(--font-primary);
+}
+
+.searchBar input::placeholder {
+  color: var(--light-text);
+}
+
+/* --- Filters Row --- */
+.filtersRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.categoryPills {
+  display: flex;
+  gap: 10px;
+}
+
+.pill {
+  padding: 8px 20px;
+  border-radius: var(--radius-xl);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1.5px solid var(--border-color);
+  background: var(--white);
+  color: var(--medium-text);
+}
+
+.pill:hover {
+  border-color: var(--sage-green);
+  color: var(--sage-green);
+}
+
+.pill.active {
+  background: var(--sage-green);
+  color: var(--white);
+  border-color: var(--sage-green);
+}
+
+.sortDropdown {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--gray-text);
+  cursor: pointer;
+}
+
+.sortDropdown i {
+  font-size: 12px;
+}
+
+/* --- Product Grid --- */
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+/* --- Product Card --- */
+.productCard {
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all var(--transition-normal);
+  position: relative;
+}
+
+.productCard:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.productCard.lowStock {
+  border-color: var(--sage-green);
+  border-width: 2px;
+}
+
+.productImage {
+  width: 100%;
+  height: 200px;
+  background: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.productImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imagePlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--light-text);
+}
+
+.imagePlaceholder i {
+  font-size: 32px;
+  opacity: 0.4;
+}
+
+.imagePlaceholder span {
+  font-size: 11px;
+  opacity: 0.5;
+}
+
+/* Alternating product card colors matching Figma */
+.bgPink {
+  background: #F2D5D0 !important;
+}
+
+.bgMint {
+  background: #D4E8E1 !important;
+}
+
+.bgBeige {
+  background: #EDE5D8 !important;
+}
+
+.bgCream {
+  background: #F0ECE3 !important;
+}
+
+.bgSage {
+  background: #D8E2D1 !important;
+}
+
+.bgPeach {
+  background: #F5DDD3 !important;
+}
+
+/* Decorative lines for placeholder images */
+.imagePlaceholder .lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 60%;
+  margin-top: 8px;
+}
+
+.imagePlaceholder .line {
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.imagePlaceholder .lineShort {
+  width: 70%;
+}
+
+.lowStockBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--error-red);
+  color: var(--white);
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  z-index: 2;
+}
+
+.productInfo {
+  padding: 16px 20px;
+}
+
+.productName {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--dark-text);
+  margin-bottom: 4px;
+}
+
+.stockInfo {
+  font-size: 13px;
+  color: var(--gray-text);
+}
+
+.stockInfo.low {
+  color: var(--error-red);
+  font-weight: 600;
+}
+
+.addToCartBtn {
+  width: calc(100% - 40px);
+  margin: 0 20px 16px;
+  padding: 10px;
+  background: var(--sage-green);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.addToCartBtn:hover {
+  background: var(--sage-green-hover);
+}
+
+.addToCartBtn:active {
+  transform: scale(0.98);
+}
+
+/* --- Pagination --- */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pageBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--white);
+  color: var(--medium-text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.pageBtn:hover {
+  border-color: var(--sage-green);
+  color: var(--sage-green);
+}
+
+.pageBtn.active {
+  background: var(--sage-green);
+  color: var(--white);
+  border-color: var(--sage-green);
+}
+
+.pageBtn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pageNavBtn {
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--white);
+  color: var(--medium-text);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition-fast);
+}
+
+.pageNavBtn:hover {
+  border-color: var(--sage-green);
+  color: var(--sage-green);
+}
+
+.pageEllipsis {
+  font-size: 13px;
+  color: var(--gray-text);
+  padding: 0 4px;
+}
+
+/* --- Floating Cart Button --- */
+.floatingCart {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background: var(--dark-text);
+  color: var(--white);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-fast);
+  z-index: 90;
+}
+
+.floatingCart:hover {
+  transform: scale(1.1);
+  background: #1a1a1a;
+}
+
+.cartBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background: var(--error-red);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

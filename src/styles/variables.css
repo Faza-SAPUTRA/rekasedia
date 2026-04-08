@@ -1,0 +1,90 @@
+/* ============================================
+   RekaSedia — Design Tokens
+   ============================================ */
+
+:root {
+  /* --- Core Palette --- */
+  --sage-green: #8A9E8A;
+  --sage-green-hover: #7A8E7A;
+  --sage-green-active: #6A7E6A;
+  --sage-dark: #6B8F71;
+  --teal-dark: #5B7A6A;
+  --cream: #F5F1EB;
+  --cream-dark: #EDE8E0;
+  --white: #FFFFFF;
+
+  /* --- Text --- */
+  --dark-text: #2D2D2D;
+  --medium-text: #555555;
+  --gray-text: #7A7A7A;
+  --light-text: #999999;
+
+  /* --- Borders & Surfaces --- */
+  --light-gray: #E0DDD8;
+  --border-color: #D4D0CA;
+  --card-bg: #FFFFFF;
+  --sidebar-bg: #FAFAF8;
+
+  /* --- Status Colors --- */
+  --link-color: #6B8F71;
+  --link-hover: #5A7E60;
+  --error-red: #D9534F;
+  --warning-orange: #E8946A;
+  --status-urgent: #D9534F;
+  --status-regular: #8A9E8A;
+  --status-approved: #6B8F71;
+  --low-stock-red: #D9534F;
+  --success-green: #6B8F71;
+
+  /* --- Dashboard Specific --- */
+  --table-header-bg: #8A9E8A;
+  --table-header-text: #FFFFFF;
+  --stat-card-border: #E0DDD8;
+  --alert-border: #D9534F;
+  --badge-red-bg: #FDECEA;
+  --badge-red-text: #D9534F;
+  --badge-green-bg: #EDF5EE;
+  --badge-green-text: #6B8F71;
+  --badge-orange-bg: #FEF3ED;
+  --badge-orange-text: #E8946A;
+
+  /* --- Chart Colors --- */
+  --chart-bar-1: #8A9E8A;
+  --chart-bar-2: #B8C9B8;
+  --chart-bar-3: #6B8F71;
+
+  /* --- Typography --- */
+  --font-primary: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-heading: 'Poppins', 'Segoe UI', system-ui, sans-serif;
+
+  /* --- Spacing --- */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+
+  /* --- Layout --- */
+  --sidebar-width: 240px;
+  --topbar-height: 64px;
+
+  /* --- Border Radius --- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 50%;
+
+  /* --- Shadows --- */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+  /* --- Transitions --- */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 400ms ease;
+}

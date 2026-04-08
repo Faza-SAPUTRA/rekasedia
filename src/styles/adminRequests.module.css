@@ -1,0 +1,189 @@
+/* ============================================
+   RekaSedia — Admin Requests Page
+   ============================================ */
+
+/* --- Horizontal Filter Tabs (Reused from Teacher) --- */
+.tabsContainer {
+  display: flex;
+  gap: 12px;
+  background: var(--white);
+  padding: 16px 24px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-color);
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+
+.tab {
+  padding: 8px 16px;
+  border-radius: var(--radius-xl);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--medium-text);
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab:hover {
+  color: var(--dark-text);
+  background: var(--cream);
+}
+
+.tab.active {
+  background: var(--sage-green);
+  color: var(--white);
+}
+
+.tabCount {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+.tab.active .tabCount {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.tab:not(.active) .tabCount {
+  background: var(--cream-dark);
+  color: var(--gray-text);
+}
+
+/* --- Table Styles (From Admin Dashboard) --- */
+.tableWrapper {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  margin-bottom: 32px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead th {
+  background: var(--table-header-bg);
+  color: var(--table-header-text);
+  padding: 14px 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid var(--cream-dark);
+  transition: background var(--transition-fast);
+}
+
+.table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: var(--cream);
+}
+
+.table tbody td {
+  padding: 16px 20px;
+  font-size: 13px;
+  color: var(--dark-text);
+  vertical-align: middle;
+}
+
+.reqCode {
+  color: var(--sage-dark);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.itemName {
+  font-weight: 600;
+}
+
+.requesterInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.requesterInfo span:first-child {
+  font-weight: 500;
+}
+
+.requesterInfo span:last-child {
+  font-size: 11px;
+  color: var(--gray-text);
+}
+
+/* --- Action Buttons & Badges --- */
+.actionBtns {
+  display: flex;
+  gap: 8px;
+}
+
+.btnApprove,
+.btnReject {
+  padding: 6px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1.5px solid;
+}
+
+.btnApprove {
+  background: var(--sage-green);
+  color: var(--white);
+  border-color: var(--sage-green);
+}
+
+.btnApprove:hover {
+  background: var(--sage-green-hover);
+  border-color: var(--sage-green-hover);
+}
+
+.btnReject {
+  background: var(--white);
+  color: var(--error-red);
+  border-color: var(--error-red);
+}
+
+.btnReject:hover {
+  background: var(--badge-red-bg);
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: var(--radius-xl);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge.reguler {
+  background: #FFF0E0; /* yellow-orange pending */
+  color: #D97706;
+}
+
+.badge.approved {
+  background: var(--badge-green-bg);
+  color: var(--badge-green-text);
+}
+
+.badge.rejected {
+  background: var(--badge-red-bg);
+  color: var(--badge-red-text);
+}
