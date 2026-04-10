@@ -83,6 +83,22 @@ img {
 .delay-5 { animation-delay: 0.5s; }
 .delay-6 { animation-delay: 0.6s; }
 
+@keyframes fadeOutDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
 /* --- Global Modal System --- */
 .globalModalOverlay {
   position: fixed;
@@ -95,6 +111,10 @@ img {
   animation: fadeIn var(--transition-fast) forwards;
 }
 
+.globalModalOverlay.closing {
+  animation: fadeOut var(--transition-fast) forwards;
+}
+
 .globalModal {
   background: var(--white);
   border-radius: var(--radius-xl);
@@ -104,6 +124,10 @@ img {
   text-align: center;
   box-shadow: var(--shadow-lg);
   animation: fadeInUp var(--transition-normal) forwards;
+}
+
+.globalModal.closing {
+  animation: fadeOutDown var(--transition-normal) forwards;
 }
 
 .globalModalIcon {

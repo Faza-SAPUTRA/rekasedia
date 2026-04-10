@@ -1,38 +1,72 @@
-import { useState } from 'react';
-import { loans as initialLoans } from '../../data/mockData';
-import type { Loan } from '../../data/mockData';
+import { useState, useEffect } from 'react';
+import { fetchLoans, returnLoan, getUser } from '../../services/api';
 import styles from '../../styles/loans.module.css';
 
 export default function TeacherLoansPage() {
-  // Hanya menampilkan peminjaman milik 'Ibu Sarah Putri'
-  const [loanList, setLoanList] = useState<Loan[]>(
-    initialLoans.filter((l) => l.borrower_name === 'Ibu Sarah Putri')
-  );
+  const [loanList, setLoanList] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  const [confirmModal, setConfirmModal] = useState<Loan | null>(null);
+  const [confirmModal, setConfirmModal] = useState<any | null>(null);
   const [successModal, setSuccessModal] = useState<string | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
 
-  const isDueToday = (dueDateStr: string) => {
-    return dueDateStr === '25 Okt 2023';
+  const closeModal = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setConfirmModal(null);
+      setIsClosing(false);
+    }, 300); // Wait for fadeOutDown animation
   };
 
-  const handleReturnClick = (loan: Loan) => {
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const user = getUser();
+        const allLoans = await fetchLoans();
+        // Filter peminjaman yang dimiliki oleh user yang sedang login
+        setLoanList(allLoans.filter((l: any) => l.borrower_id === user?.id));
+      } catch (err) {
+        console.error('Gagal mengambil data peminjaman', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  const isDueToday = (dueDateStr: string) => {
+    const dueDate = new Date(dueDateStr);
+    const today = new Date();
+    return dueDate.setHours(0,0,0,0) === today.setHours(0,0,0,0);
+  };
+
+  const handleReturnClick = (loan: any) => {
     setConfirmModal(loan);
   };
 
-  const handleConfirmReturn = () => {
+  const handleConfirmReturn = async () => {
     if (confirmModal) {
-      setLoanList((prev) =>
-        prev.map((l) =>
-          l.id === confirmModal.id ? { ...l, status: 'DIKEMBALIKAN' as const } : l
-        )
-      );
-      const name = confirmModal.item_name;
-      setConfirmModal(null);
-      setSuccessModal(name);
-      setTimeout(() => setSuccessModal(null), 2500);
+      try {
+        await returnLoan(confirmModal.id);
+        setLoanList((prev) =>
+          prev.map((l) =>
+            l.id === confirmModal.id ? { ...l, status: 'DIKEMBALIKAN' } : l
+          )
+        );
+        const name = confirmModal.item_name;
+        closeModal();
+        setSuccessModal(name);
+        setTimeout(() => setSuccessModal(null), 2500);
+      } catch (err) {
+        console.error('Gagal mengembalikan aset', err);
+        alert('Gagal memproses pengembalian');
+      }
     }
   };
+
+  if (isLoading) {
+      return <div style={{ padding: '24px' }}>Memuat data peminjaman...</div>;
+  }
 
   return (
     <div>
@@ -121,8 +155,8 @@ export default function TeacherLoansPage() {
 
       {/* Modals are reusing the same basic structure but modified copy */}
       {confirmModal && (
-        <div className="globalModalOverlay" onClick={() => setConfirmModal(null)}>
-          <div className="globalModal" onClick={(e) => e.stopPropagation()}>
+        <div className={`globalModalOverlay ${isClosing ? 'closing' : ''}`} onClick={closeModal}>
+          <div className={`globalModal ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
             <div className="globalModalIcon">
               <i className="fas fa-undo-alt"></i>
             </div>
@@ -131,7 +165,7 @@ export default function TeacherLoansPage() {
               Yakin mengembalikan <strong>{confirmModal.item_name}</strong> sekarang?
             </p>
             <div className="globalModalBtns">
-              <button className="globalModalBtnCancel" onClick={() => setConfirmModal(null)}>Batal</button>
+              <button className="globalModalBtnCancel" onClick={closeModal}>Batal</button>
               <button className="globalModalBtnConfirm" onClick={handleConfirmReturn}>Ya, Kembalikan</button>
             </div>
           </div>

@@ -1,12 +1,14 @@
 import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
 import InputField from '../components/InputField';
 import loginIllustration from '../assets/login-illustration.png';
 import styles from '../styles/auth.module.css';
 import cStyles from '../styles/components.module.css';
+import { login as apiLogin, saveSession } from '../services/api';
 
 const LoginPage: React.FC = () => {
+    const navigate = useNavigate();
     const [nipEmail, setNipEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -27,20 +29,31 @@ const LoginPage: React.FC = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         if (!validate() || isSubmitting) return;
 
         setIsSubmitting(true);
+        setErrors({});
 
-        // Simulate login
-        setTimeout(() => {
+        try {
+            const data = await apiLogin(nipEmail, password);
+            saveSession(data.token, data.user);
             setIsSuccess(true);
+
             setTimeout(() => {
-                setIsSubmitting(false);
-                setIsSuccess(false);
-            }, 1500);
-        }, 1500);
+                // Redirect berdasarkan role
+                if (data.user.role === 'admin') {
+                    navigate('/admin');
+                } else {
+                    navigate('/teacher');
+                }
+            }, 1000);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Login gagal';
+            setErrors({ nipEmail: message });
+            setIsSubmitting(false);
+        }
     };
 
     const getButtonContent = () => {

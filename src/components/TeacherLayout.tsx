@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import TeacherSidebar from './TeacherSidebar';
 import styles from '../styles/dashboard.module.css';
@@ -12,6 +13,7 @@ const pageTitles: Record<string, string> = {
 
 export default function TeacherLayout() {
   const location = useLocation();
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   const getTitle = () => {
     return pageTitles[location.pathname] || 'Dashboard Guru';
@@ -28,9 +30,42 @@ export default function TeacherLayout() {
               <i className="fas fa-search"></i>
               <input type="text" placeholder="Cari data..." />
             </div>
-            <button className={styles.notifBtn} aria-label="Notifikasi">
+            <button 
+              className={styles.notifBtn} 
+              aria-label="Notifikasi"
+              onClick={() => setIsNotifOpen(!isNotifOpen)}
+            >
               <i className="fas fa-bell"></i>
               <span className={styles.notifBadge}></span>
+              
+              {isNotifOpen && (
+                <div className={styles.notifDropdown} onClick={e => e.stopPropagation()}>
+                  <div className={styles.notifHeader}>
+                    Notifikasi
+                    <span>Tandai sudah dibaca</span>
+                  </div>
+                  <div className={styles.notifList}>
+                    <div className={styles.notifItem}>
+                      <div className={styles.notifIcon}>
+                        <i className="fas fa-check"></i>
+                      </div>
+                      <div className={styles.notifContent}>
+                        <div className={styles.notifText}>Permintaan <strong>Spidol Whiteboard</strong> disetujui.</div>
+                        <div className={styles.notifTime}>Baru saja</div>
+                      </div>
+                    </div>
+                    <div className={styles.notifItem}>
+                      <div className={`${styles.notifIcon} ${styles.warning}`}>
+                        <i className="fas fa-undo-alt"></i>
+                      </div>
+                      <div className={styles.notifContent}>
+                        <div className={styles.notifText}>Jatuh tempo: Proyektor harus dikembalikan hari ini.</div>
+                        <div className={styles.notifTime}>3 jam yang lalu</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </button>
           </div>
         </header>

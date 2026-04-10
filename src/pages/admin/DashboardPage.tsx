@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -7,30 +7,72 @@ import {
   BarElement,
   Tooltip,
 } from 'chart.js';
-import { requests as initialRequests, getLowStockItems, getCriticalStockItems } from '../../data/mockData';
-import type { Request } from '../../data/mockData';
+import { fetchStats, fetchRequests, updateRequestStatus, type DashboardStats } from '../../services/api';
 import styles from '../../styles/adminDashboard.module.css';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
 export default function DashboardPage() {
-  const [reqs, setReqs] = useState<Request[]>(initialRequests);
-  const lowStockItems = getLowStockItems();
-  const criticalItems = getCriticalStockItems();
+  const [reqs, setReqs] = useState<any[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Modal State
+  const [confirmModal, setConfirmModal] = useState<{ id: number, type: 'APPROVED' | 'REJECTED', name: string } | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
 
-  const handleApprove = (id: number) => {
-    setReqs(prev =>
-      prev.map(r => (r.id === id ? { ...r, status: 'APPROVED' as const } : r))
-    );
+  const closeModal = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setConfirmModal(null);
+      setIsClosing(false);
+    }, 300); // Wait for fadeOutDown animation
   };
 
-  const handleReject = (id: number) => {
-    setReqs(prev =>
-      prev.map(r => (r.id === id ? { ...r, status: 'REJECTED' as const } : r))
-    );
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [statsData, reqsData] = await Promise.all([
+          fetchStats(),
+          fetchRequests()
+        ]);
+        setStats(statsData);
+        // Tampilkan 5 permintaan terbaru saja di dashboard
+        setReqs(reqsData.slice(0, 5));
+      } catch (err) {
+        console.error('Gagal mengambil data dashboard', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  const handleApproveClick = (id: number, name: string) => {
+    setConfirmModal({ id, type: 'APPROVED', name });
   };
 
-  const pendingCount = reqs.filter(r => r.status === 'PENDING').length;
+  const handleRejectClick = (id: number, name: string) => {
+    setConfirmModal({ id, type: 'REJECTED', name });
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmModal) return;
+    try {
+      await updateRequestStatus(confirmModal.id, confirmModal.type);
+      setReqs(prev => prev.map(r => (r.id === confirmModal.id ? { ...r, status: confirmModal.type } : r)));
+      closeModal();
+    } catch (err) {
+      console.error(err);
+      alert('Gagal memproses permintaan');
+    }
+  };
+
+  if (isLoading || !stats) {
+    return <div style={{ padding: '24px' }}>Memuat data dashboard...</div>;
+  }
+
+  const { pendingRequests, criticalStockCount, criticalItems } = stats;
 
   // Weekly activity chart data
   const chartData = {
@@ -86,7 +128,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className={`${styles.statValue} ${styles.alertValue}`}>
-            {lowStockItems.length} Item
+            {criticalStockCount} Item
           </div>
           <div className={`${styles.statSubtitle} ${styles.alertSubtitle}`}>
             Tindakan segera diperlukan
@@ -101,7 +143,7 @@ export default function DashboardPage() {
               <i className="fas fa-clipboard-list"></i>
             </div>
           </div>
-          <div className={styles.statValue}>{pendingCount + 8}</div>
+          <div className={styles.statValue}>{pendingRequests}</div>
           <div className={styles.statSubtitle}>Pemeriksaan dokumen</div>
         </div>
       </div>
@@ -139,7 +181,7 @@ export default function DashboardPage() {
                     <span>({req.requester_role})</span>
                   </div>
                 </td>
-                <td>{req.request_date}</td>
+                <td>{new Date(req.request_date).toLocaleDateString('id-ID')}</td>
                 <td>
                   <span
                     className={`${styles.badge} ${
@@ -154,13 +196,13 @@ export default function DashboardPage() {
                     <div className={styles.actionBtns}>
                       <button
                         className={styles.btnApprove}
-                        onClick={() => handleApprove(req.id)}
+                        onClick={() => handleApproveClick(req.id, req.item_name)}
                       >
                         Setujui
                       </button>
                       <button
                         className={styles.btnReject}
-                        onClick={() => handleReject(req.id)}
+                        onClick={() => handleRejectClick(req.id, req.item_name)}
                       >
                         Tolak
                       </button>
@@ -210,6 +252,36 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {confirmModal && (
+        <div className={`globalModalOverlay ${isClosing ? 'closing' : ''}`} onClick={closeModal}>
+          <div className={`globalModal ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <div className={`globalModalIcon ${confirmModal.type === 'APPROVED' ? 'success' : 'error'}`}>
+              <i className={`fas ${confirmModal.type === 'APPROVED' ? 'fa-check' : 'fa-times'}`}></i>
+            </div>
+            <h3>Konfirmasi Tindakan</h3>
+            <p>
+              Apakah Anda yakin ingin <strong>{confirmModal.type === 'APPROVED' ? 'MENYETUJUI' : 'MENOLAK'}</strong> permintaan untuk <strong>{confirmModal.name}</strong>?
+            </p>
+            <div className="globalModalBtns">
+              <button 
+                className="globalModalBtnCancel" 
+                onClick={closeModal}
+              >
+                Batal
+              </button>
+              <button 
+                className="globalModalBtnConfirm" 
+                onClick={handleConfirmAction}
+                style={confirmModal.type === 'REJECTED' ? { backgroundColor: 'var(--error-red)' } : {}}
+              >
+                Ya, Lanjutkan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -18,7 +18,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: box-shadow var(--transition-normal), transform var(--transition-fast);
+  transition: all var(--transition-normal);
+  cursor: pointer;
 }
 
 .statCard:hover {
@@ -128,11 +129,13 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  transition: box-shadow var(--transition-normal);
+  transition: all var(--transition-normal);
+  cursor: pointer;
 }
 
 .itemCard:hover {
   box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .itemImage {

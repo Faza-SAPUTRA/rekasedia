@@ -1,45 +1,47 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from '../../styles/teacherRequests.module.css';
-
-// Simulasi data untuk guru (berbeda struktur sedikit dengan admin untuk tampilan di frontend ini)
-const mockRequests = [
-  {
-    id: 1,
-    reqCode: 'REQ-2023-1044',
-    date: '24 Oktober 2023, 08:30',
-    status: 'PENDING',
-    itemsDesc: '2x Kertas A4 80gr, 1x Tinta Printer HP Black',
-    location: 'Ruang Guru Lt. 2 (Ibu Sarah Putri)',
-  },
-  {
-    id: 2,
-    reqCode: 'REQ-2023-1012',
-    date: '10 Oktober 2023, 11:15',
-    status: 'READY',
-    itemsDesc: '10x Spidol Whiteboard (Biru), 2x Penghapus Papan',
-    location: 'Ruang Guru Lt. 2 (Ibu Sarah Putri)',
-  },
-];
+import { fetchRequests, getUser } from '../../services/api';
 
 export default function TeacherRequestsPage() {
+  const [requests, setRequests] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Semua');
 
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const user = getUser();
+        const allRequests = await fetchRequests();
+        setRequests(allRequests.filter((r: any) => r.requester_id === user?.id));
+      } catch (err) {
+        console.error('Gagal mengambil data permintaan', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
   const tabs = [
-    { label: 'Semua', count: mockRequests.length },
-    { label: 'Menunggu Validasi', count: mockRequests.filter(r => r.status === 'PENDING').length },
-    { label: 'Siap Diambil', count: mockRequests.filter(r => r.status === 'READY').length },
-    { label: 'Selesai', count: 0 },
-    { label: 'Ditolak', count: 0 },
+    { label: 'Semua', count: requests.length },
+    { label: 'Menunggu Validasi', count: requests.filter((r: any) => r.status === 'PENDING').length },
+    { label: 'Siap Diambil', count: requests.filter((r: any) => r.status === 'APPROVED').length },
+    { label: 'Ditolak', count: requests.filter((r: any) => r.status === 'REJECTED').length },
   ];
 
   const filteredRequests = activeTab === 'Semua' 
-    ? mockRequests 
-    : mockRequests.filter(r => {
+    ? requests 
+    : requests.filter((r: any) => {
         if (activeTab === 'Menunggu Validasi') return r.status === 'PENDING';
-        if (activeTab === 'Siap Diambil') return r.status === 'READY';
+        if (activeTab === 'Siap Diambil') return r.status === 'APPROVED';
+        if (activeTab === 'Ditolak') return r.status === 'REJECTED';
         return false;
       });
+
+  if (isLoading) {
+    return <div style={{ padding: '24px' }}>Memuat riwayat permintaan...</div>;
+  }
 
   return (
     <div>
@@ -63,21 +65,21 @@ export default function TeacherRequestsPage() {
           <div key={req.id} className={styles.requestCard}>
             <div className={styles.cardHeader}>
               <div className={styles.headerLeft}>
-                <span className={styles.reqCode}>{req.reqCode}</span>
+                <span className={styles.reqCode}>{req.req_code}</span>
                 <span className={styles.reqDate}>
                   <i className="far fa-calendar-alt" style={{marginRight: '6px'}}></i>
-                  {req.date}
+                  {new Date(req.request_date).toLocaleDateString('id-ID')}
                 </span>
               </div>
               <div className={`${styles.statusPill} ${req.status === 'PENDING' ? styles.pending : styles.ready}`}>
-                {req.status === 'PENDING' ? 'Menunggu Validasi' : 'Siap Diambil'}
+                {req.status === 'PENDING' ? 'Menunggu Validasi' : (req.status === 'APPROVED' ? 'Siap Diambil' : 'Ditolak')}
               </div>
             </div>
             <div className={styles.cardContent}>
-              <div className={styles.itemList}>{req.itemsDesc}</div>
+              <div className={styles.itemList}>{req.quantity}x {req.item_name}</div>
               <div className={styles.destination}>
                 <i className="fas fa-map-marker-alt"></i>
-                {req.location}
+                Pengambilan di Ruang Sarpras
               </div>
             </div>
           </div>

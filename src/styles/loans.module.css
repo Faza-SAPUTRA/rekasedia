@@ -20,18 +20,19 @@
   line-height: 1.5;
 }
 
-/* --- Loan Card --- */
 .loanCard {
   background: var(--white);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 24px;
   margin-bottom: 20px;
-  transition: box-shadow var(--transition-normal);
+  transition: all var(--transition-normal);
+  cursor: pointer;
 }
 
 .loanCard:hover {
   box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .loanCardContent {

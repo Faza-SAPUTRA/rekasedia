@@ -68,11 +68,13 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 24px;
-  transition: box-shadow var(--transition-normal);
+  transition: all var(--transition-normal);
+  cursor: pointer;
 }
 
 .requestCard:hover {
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .cardHeader {

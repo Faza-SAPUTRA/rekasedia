@@ -1,15 +1,31 @@
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from '../../styles/teacherDashboard.module.css';
-import { items } from '../../data/mockData';
+import { fetchItems } from '../../services/api';
 
 export default function TeacherDashboardPage() {
-  // Ambil beberapa item contoh (Sering Dibutuhkan)
-  // Kita ambil 3 item, campurkan sedikit consumable & aset
-  const frequentItems = [
-    items.find((i) => i.name.includes('Spidol Marker')) || items[0],
-    items.find((i) => i.name.includes('Kertas A4')) || items[1],
-    items.find((i) => i.name.includes('Proyektor')) || items[8],
-  ];
+  const navigate = useNavigate();
+  const [frequentItems, setFrequentItems] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const itemsData = await fetchItems();
+        // Ambil beberapa item sebagai contoh
+        setFrequentItems(itemsData.slice(0, 3));
+      } catch (err) {
+        console.error('Gagal mengambil data', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  if (isLoading) {
+    return <div style={{ padding: '24px' }}>Memuat dashboard...</div>;
+  }
 
   return (
     <div>

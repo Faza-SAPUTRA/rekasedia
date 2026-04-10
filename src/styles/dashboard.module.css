@@ -98,6 +98,104 @@
   color: var(--dark-text);
 }
 
+.notifBadge {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  background: var(--error-red);
+  border-radius: 50%;
+  border: 2px solid var(--white);
+}
+
+.notifDropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 12px;
+  width: 320px;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+  animation: fadeInUp var(--transition-fast) forwards;
+  z-index: 100;
+  text-align: left;
+  overflow: hidden;
+  cursor: default;
+}
+
+.notifHeader {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 700;
+  color: var(--dark-text);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notifHeader span {
+  font-size: 11px;
+  color: var(--sage-green);
+  cursor: pointer;
+}
+
+.notifList {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.notifItem {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  gap: 12px;
+  transition: background var(--transition-fast);
+  cursor: pointer;
+}
+
+.notifItem:hover {
+  background: var(--cream);
+}
+
+.notifItem:last-child {
+  border-bottom: none;
+}
+
+.notifIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--badge-green-bg);
+  color: var(--success-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notifIcon.warning {
+  background: #FFF3CD;
+  color: #856404;
+}
+
+.notifContent {
+  flex: 1;
+}
+
+.notifText {
+  font-size: 13px;
+  color: var(--dark-text);
+  margin-bottom: 4px;
+}
+
+.notifTime {
+  font-size: 11px;
+  color: var(--light-text);
+}
+
 /* --- Content Area --- */
 .content {
   flex: 1;

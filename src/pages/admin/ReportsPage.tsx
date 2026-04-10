@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -7,32 +8,97 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { monthlyReports } from '../../data/mockData';
+import * as XLSX from 'xlsx';
+import { fetchReports } from '../../services/api';
 import styles from '../../styles/reports.module.css';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 export default function ReportsPage() {
-  const totalItems = monthlyReports.reduce((sum, r) => sum + r.total_items_ordered, 0);
-  const totalAssets = monthlyReports.reduce(
+  const [reports, setReports] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Modal State
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+
+  const closeExportModal = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsExportOpen(false);
+      setIsClosing(false);
+    }, 300);
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const reportsData = await fetchReports();
+        setReports(reportsData);
+      } catch (err) {
+        console.error('Gagal mengambil laporan', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  const totalItems = reports.reduce((sum, r) => sum + r.total_items_ordered, 0);
+  const totalAssets = reports.reduce(
     (sum, r) => sum + r.total_assets_borrowed,
     0
   );
 
+  const handleExportCSV = () => {
+    // Generate CSV string
+    const header = ['Bulan', 'Total Item (ATK)', 'Total Peminjaman Aset'];
+    const rows = reports.map(r => [r.month_name, r.total_items_ordered, r.total_assets_borrowed]);
+    const csvContent = [header, ...rows, ['TOTAL SEMESTER', totalItems, totalAssets]]
+      .map(e => e.join(','))
+      .join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'Laporan_RekaSedia.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+    closeExportModal();
+  };
+
+  const handleExportXLSX = () => {
+    const wsData = [
+      ['Bulan', 'Total Item (ATK)', 'Total Peminjaman Aset'],
+      ...reports.map(r => [r.month_name, r.total_items_ordered, r.total_assets_borrowed]),
+      ['TOTAL SEMESTER', totalItems, totalAssets]
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Laporan');
+    XLSX.writeFile(wb, 'Laporan_RekaSedia.xlsx');
+    closeExportModal();
+  };
+
+  if (isLoading) {
+      return <div style={{ padding: '24px' }}>Memuat laporan...</div>;
+  }
+
   // Chart data
   const chartData = {
-    labels: monthlyReports.map((r) => r.month_name.substring(0, 3).toUpperCase()),
+    labels: reports.map((r) => r.month_name.substring(0, 3).toUpperCase()),
     datasets: [
       {
         label: 'Total Item (ATK)',
-        data: monthlyReports.map((r) => r.total_items_ordered),
+        data: reports.map((r) => r.total_items_ordered),
         backgroundColor: '#8A9E8A',
         borderRadius: 6,
         barThickness: 24,
       },
       {
         label: 'Total Peminjaman Aset',
-        data: monthlyReports.map((r) => r.total_assets_borrowed),
+        data: reports.map((r) => r.total_assets_borrowed),
         backgroundColor: '#2D2D2D',
         borderRadius: 6,
         barThickness: 24,
@@ -70,9 +136,9 @@ export default function ReportsPage() {
             sekolah secara berkala.
           </p>
         </div>
-        <button className={styles.exportBtn}>
+        <button className={styles.exportBtn} onClick={() => setIsExportOpen(true)}>
           <i className="fas fa-download"></i>
-          Export ke PDF/Excel
+          Export Laporan
         </button>
       </div>
 
@@ -96,7 +162,7 @@ export default function ReportsPage() {
             </tr>
           </thead>
           <tbody>
-            {monthlyReports.map((report) => (
+            {reports.map((report) => (
               <tr key={report.id}>
                 <td className={styles.monthCell}>{report.month_name}</td>
                 <td>
@@ -184,6 +250,44 @@ export default function ReportsPage() {
           </div>
         </div>
       </div>
+
+      {isExportOpen && (
+        <div className={`globalModalOverlay ${isClosing ? 'closing' : ''}`} onClick={closeExportModal}>
+          <div className={`globalModal ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
+            <div className="globalModalIcon">
+              <i className="fas fa-file-export"></i>
+            </div>
+            <h3>Export Laporan Semester</h3>
+            <p>
+              Pilih format file untuk mengunduh rekapitulasi inventaris semester ini.
+            </p>
+            <div className="globalModalBtns" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button 
+                className="globalModalBtnConfirm" 
+                onClick={handleExportXLSX}
+                style={{ backgroundColor: '#1d6f42', borderColor: '#1d6f42' }}
+              >
+                <i className="fas fa-file-excel" style={{ marginRight: '8px' }}></i>
+                Unduh format Excel (.xlsx)
+              </button>
+              <button 
+                className="globalModalBtnConfirm" 
+                onClick={handleExportCSV}
+                style={{ backgroundColor: '#2196F3', borderColor: '#2196F3' }}
+              >
+                <i className="fas fa-file-csv" style={{ marginRight: '8px' }}></i>
+                Unduh format CSV (.csv)
+              </button>
+              <button 
+                className="globalModalBtnCancel" 
+                onClick={closeExportModal}
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

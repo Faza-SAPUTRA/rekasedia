@@ -15,6 +15,8 @@ import TeacherInventoryPage from './pages/teacher/InventoryPage';
 import TeacherLoansPage from './pages/teacher/LoansPage';
 import TeacherReportsPage from './pages/teacher/ReportsPage';
 
+import ProtectedRoute from './components/ProtectedRoute';
+
 function App() {
   return (
     <BrowserRouter>
@@ -23,21 +25,25 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         
         {/* Admin Routes */}
-        <Route path="/admin" element={<DashboardLayout />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="inventory" element={<InventoryPage />} />
-          {/* <Route path="loans" element={<LoansPage />} /> */}
-          <Route path="requests" element={<AdminRequestsPage />} />
-          <Route path="reports" element={<ReportsPage />} />
+        <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+          <Route path="/admin" element={<DashboardLayout />}>
+            <Route index element={<DashboardPage />} />
+            <Route path="inventory" element={<InventoryPage />} />
+            {/* <Route path="loans" element={<LoansPage />} /> */}
+            <Route path="requests" element={<AdminRequestsPage />} />
+            <Route path="reports" element={<ReportsPage />} />
+          </Route>
         </Route>
 
         {/* Teacher Routes */}
-        <Route path="/teacher" element={<TeacherLayout />}>
-          <Route index element={<TeacherDashboardPage />} />
-          <Route path="inventory" element={<TeacherInventoryPage />} />
-          {/* <Route path="requests" element={<TeacherRequestsPage />} /> */}
-          <Route path="loans" element={<TeacherLoansPage />} />
-          <Route path="reports" element={<TeacherReportsPage />} />
+        <Route element={<ProtectedRoute allowedRoles={['guru']} />}>
+          <Route path="/teacher" element={<TeacherLayout />}>
+            <Route index element={<TeacherDashboardPage />} />
+            <Route path="inventory" element={<TeacherInventoryPage />} />
+            {/* <Route path="requests" element={<TeacherRequestsPage />} /> */}
+            <Route path="loans" element={<TeacherLoansPage />} />
+            <Route path="reports" element={<TeacherReportsPage />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

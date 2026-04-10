@@ -1,17 +1,19 @@
 import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
 import InputField from '../components/InputField';
 import AccessibilityBadge from '../components/AccessibilityBadge';
 import registerIllustration from '../assets/register-illustration.png';
 import styles from '../styles/auth.module.css';
 import cStyles from '../styles/components.module.css';
+import { register as apiRegister } from '../services/api';
 
 const isValidEmail = (email: string): boolean => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
 const RegisterPage: React.FC = () => {
+    const navigate = useNavigate();
     const [fullName, setFullName] = useState('');
     const [nip, setNip] = useState('');
     const [email, setEmail] = useState('');
@@ -44,19 +46,30 @@ const RegisterPage: React.FC = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         if (!validate() || isSubmitting) return;
 
         setIsSubmitting(true);
+        setErrors({});
 
-        setTimeout(() => {
+        try {
+            await apiRegister({ 
+                full_name: fullName, 
+                email, 
+                password,
+                department: `NIP: ${nip}` // Storing NIP in department for simplicity or could be omitted
+            });
             setIsSuccess(true);
+
             setTimeout(() => {
-                setIsSubmitting(false);
-                setIsSuccess(false);
+                navigate('/');
             }, 1500);
-        }, 1500);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Registrasi gagal';
+            setErrors({ email: message }); // Display general error on email field
+            setIsSubmitting(false);
+        }
     };
 
     const clearError = (field: string) => {
