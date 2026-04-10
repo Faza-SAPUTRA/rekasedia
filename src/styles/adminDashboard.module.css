@@ -19,11 +19,13 @@
   flex-direction: column;
   gap: 8px;
   position: relative;
-  transition: box-shadow var(--transition-normal);
+  transition: all var(--transition-normal);
+  cursor: pointer;
 }
 
 .statCard:hover {
   box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .statCard.alert {
@@ -155,6 +157,7 @@
 .table tbody tr {
   border-bottom: 1px solid var(--cream-dark);
   transition: background var(--transition-fast);
+  cursor: pointer;
 }
 
 .table tbody tr:last-child {

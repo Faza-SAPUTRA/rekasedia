@@ -104,6 +104,7 @@
   overflow: hidden;
   transition: all var(--transition-normal);
   position: relative;
+  cursor: pointer;
 }
 
 .productCard:hover {

@@ -84,6 +84,7 @@
 .table tbody tr {
   border-bottom: 1px solid var(--cream-dark);
   transition: background var(--transition-fast);
+  cursor: pointer;
 }
 
 .table tbody tr:last-child {

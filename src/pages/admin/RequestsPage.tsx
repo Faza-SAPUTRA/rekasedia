@@ -1,65 +1,78 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from '../../styles/adminRequests.module.css';
-
-// Mock Data spesifik untuk diulas Admin (Lebih kompleks dibanding Teacher view)
-const initialRequests = [
-  {
-    id: 1,
-    reqCode: 'REQ-2023-1044',
-    item: '2x Kertas A4 80gr, 1x Tinta',
-    requesterName: 'Ibu Sarah Putri',
-    requesterRole: 'Wali Kelas 10-A',
-    status: 'MENUNGGU', // MENUNGGU, DISETUJUI, DITOLAK
-  },
-  {
-    id: 2,
-    reqCode: 'REQ-2023-1043',
-    item: '5x Penghapus Papan',
-    requesterName: 'Bapak Budi Darma',
-    requesterRole: 'Guru Matematika',
-    status: 'MENUNGGU',
-  },
-  {
-    id: 3,
-    reqCode: 'REQ-2023-1012',
-    item: '10x Spidol Whiteboard',
-    requesterName: 'Ibu Sarah Putri',
-    requesterRole: 'Wali Kelas 10-A',
-    status: 'DISETUJUI',
-  },
-  {
-    id: 4,
-    reqCode: 'REQ-2023-0998',
-    item: '1x Kipas Angin Portable',
-    requesterName: 'Ibu Lestari',
-    requesterRole: 'Lab Bahasa',
-    status: 'DITOLAK',
-  },
-];
+import { fetchRequests, updateRequestStatus, getUser } from '../../services/api';
 
 export default function AdminRequestsPage() {
-  const [requests, setRequests] = useState(initialRequests);
+  const [requests, setRequests] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('Semua');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Modal State
+  const [confirmModal, setConfirmModal] = useState<{ id: number, type: 'APPROVED' | 'REJECTED', name: string } | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
+
+  const closeModal = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setConfirmModal(null);
+      setIsClosing(false);
+    }, 300); // Wait for fadeOutDown animation
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const reqsData = await fetchRequests();
+        setRequests(reqsData);
+      } catch (err) {
+        console.error('Gagal mengambil permintaan', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   const tabs = [
     { label: 'Semua', count: requests.length },
-    { label: 'Menunggu Validasi', count: requests.filter(r => r.status === 'MENUNGGU').length },
-    { label: 'Disetujui', count: requests.filter(r => r.status === 'DISETUJUI').length },
-    { label: 'Ditolak', count: requests.filter(r => r.status === 'DITOLAK').length },
+    { label: 'Menunggu Validasi', count: requests.filter(r => r.status === 'PENDING').length },
+    { label: 'Disetujui', count: requests.filter(r => r.status === 'APPROVED').length },
+    { label: 'Ditolak', count: requests.filter(r => r.status === 'REJECTED').length },
   ];
 
   const filteredRequests = activeTab === 'Semua' 
     ? requests 
     : requests.filter(r => {
-        if (activeTab === 'Menunggu Validasi') return r.status === 'MENUNGGU';
-        if (activeTab === 'Disetujui') return r.status === 'DISETUJUI';
-        if (activeTab === 'Ditolak') return r.status === 'DITOLAK';
+        if (activeTab === 'Menunggu Validasi') return r.status === 'PENDING';
+        if (activeTab === 'Disetujui') return r.status === 'APPROVED';
+        if (activeTab === 'Ditolak') return r.status === 'REJECTED';
         return false;
       });
 
-  const handleAction = (id: number, newStatus: string) => {
-    setRequests(prev => prev.map(req => req.id === id ? { ...req, status: newStatus } : req));
+  const handleApproveClick = (id: number, name: string) => {
+    setConfirmModal({ id, type: 'APPROVED', name });
   };
+
+  const handleRejectClick = (id: number, name: string) => {
+    setConfirmModal({ id, type: 'REJECTED', name });
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmModal) return;
+    try {
+      const user = getUser();
+      await updateRequestStatus(confirmModal.id, confirmModal.type, user?.id);
+      setRequests(prev => prev.map(req => req.id === confirmModal.id ? { ...req, status: confirmModal.type } : req));
+      closeModal();
+    } catch (err) {
+      console.error(err);
+      alert('Gagal mengupdate status: ' + (err instanceof Error ? err.message : String(err)));
+    }
+  };
+
+  if (isLoading) {
+    return <div style={{ padding: '24px' }}>Memuat data permintaan...</div>;
+  }
 
   return (
     <div>
@@ -93,32 +106,34 @@ export default function AdminRequestsPage() {
             {filteredRequests.map((req) => (
               <tr key={req.id}>
                 <td>
-                  <span className={styles.reqCode}>{req.reqCode}</span>
+                  <span className={styles.reqCode}>{req.req_code}</span>
                 </td>
-                <td className={styles.itemName}>{req.item}</td>
+                <td className={styles.itemName}>
+                  {req.quantity}x {req.item_name}
+                </td>
                 <td>
                   <div className={styles.requesterInfo}>
-                    <span>{req.requesterName}</span>
-                    <span>{req.requesterRole}</span>
+                    <span>{req.requester_name}</span>
+                    <span>{req.requester_role}</span>
                   </div>
                 </td>
                 <td>
-                  {req.status === 'MENUNGGU' && <span className={`${styles.badge} ${styles.reguler}`}>Menunggu</span>}
-                  {req.status === 'DISETUJUI' && <span className={`${styles.badge} ${styles.approved}`}>Disetujui</span>}
-                  {req.status === 'DITOLAK' && <span className={`${styles.badge} ${styles.rejected}`}>Ditolak</span>}
+                  {req.status === 'PENDING' && <span className={`${styles.badge} ${styles.reguler}`}>Menunggu</span>}
+                  {req.status === 'APPROVED' && <span className={`${styles.badge} ${styles.approved}`}>Disetujui</span>}
+                  {req.status === 'REJECTED' && <span className={`${styles.badge} ${styles.rejected}`}>Ditolak</span>}
                 </td>
                 <td>
-                  {req.status === 'MENUNGGU' ? (
+                  {req.status === 'PENDING' ? (
                     <div className={styles.actionBtns}>
                       <button 
                         className={styles.btnApprove}
-                        onClick={() => handleAction(req.id, 'DISETUJUI')}
+                        onClick={() => handleApproveClick(req.id, req.item_name)}
                       >
                         Setujui
                       </button>
                       <button 
                         className={styles.btnReject}
-                        onClick={() => handleAction(req.id, 'DITOLAK')}
+                        onClick={() => handleRejectClick(req.id, req.item_name)}
                       >
                         Tolak
                       </button>
@@ -139,6 +154,36 @@ export default function AdminRequestsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Confirmation Modal */}
+      {confirmModal && (
+        <div className={`globalModalOverlay ${isClosing ? 'closing' : ''}`} onClick={closeModal}>
+          <div className={`globalModal ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <div className={`globalModalIcon ${confirmModal.type === 'APPROVED' ? 'success' : 'error'}`}>
+              <i className={`fas ${confirmModal.type === 'APPROVED' ? 'fa-check' : 'fa-times'}`}></i>
+            </div>
+            <h3>Konfirmasi Tindakan</h3>
+            <p>
+              Apakah Anda yakin ingin <strong>{confirmModal.type === 'APPROVED' ? 'MENYETUJUI' : 'MENOLAK'}</strong> permintaan untuk <strong>{confirmModal.name}</strong>?
+            </p>
+            <div className="globalModalBtns">
+              <button 
+                className="globalModalBtnCancel" 
+                onClick={closeModal}
+              >
+                Batal
+              </button>
+              <button 
+                className="globalModalBtnConfirm" 
+                onClick={handleConfirmAction}
+                style={confirmModal.type === 'REJECTED' ? { backgroundColor: 'var(--error-red)' } : {}}
+              >
+                Ya, Lanjutkan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

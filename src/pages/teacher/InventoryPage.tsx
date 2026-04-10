@@ -1,14 +1,18 @@
-import { useState, useMemo } from 'react';
-import { items, categories } from '../../data/mockData';
+import { useState, useMemo, useEffect } from 'react';
 import styles from '../../styles/inventory.module.css';
 import CartDrawer, { type CartItem } from '../../components/CartDrawer';
-import type { Item } from '../../data/mockData';
+import { fetchItems, fetchCategories, createRequest, getUser } from '../../services/api';
 
 const ITEMS_PER_PAGE = 6;
 
 export default function TeacherInventoryPage() {
+  const [items, setItems] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('Semua');
+  const [sortOrder, setSortOrder] = useState('Terpopuler');
   const [currentPage, setCurrentPage] = useState(1);
   
   // Cart State
@@ -16,15 +20,54 @@ export default function TeacherInventoryPage() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [confirmModal, setConfirmModal] = useState(false);
   const [successModal, setSuccessModal] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+
+  const closeModal = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setConfirmModal(false);
+      setIsClosing(false);
+    }, 300); // Wait for fadeOutDown animation
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [itemsData, catsData] = await Promise.all([
+          fetchItems(),
+          fetchCategories()
+        ]);
+        setItems(itemsData);
+        setCategories(catsData);
+      } catch (err) {
+        console.error('Gagal memuat inventaris', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   const filteredItems = useMemo(() => {
-    return items.filter((item) => {
+    let result = items.filter((item) => {
       const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
       const matchesCategory =
         activeCategory === 'Semua' || item.category_name === activeCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [search, activeCategory]);
+
+    if (sortOrder === 'A-Z') {
+      result.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortOrder === 'Z-A') {
+      result.sort((a, b) => b.name.localeCompare(a.name));
+    } else if (sortOrder === 'Stok Terbanyak') {
+      result.sort((a, b) => b.stock - a.stock);
+    } else if (sortOrder === 'Stok Terdikit') {
+      result.sort((a, b) => a.stock - b.stock);
+    }
+
+    return result;
+  }, [items, search, activeCategory, sortOrder]);
 
   const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
   const paginatedItems = filteredItems.slice(
@@ -38,7 +81,7 @@ export default function TeacherInventoryPage() {
   };
 
   // Cart Functions
-  const handleAddToCart = (item: Item) => {
+  const handleAddToCart = (item: any) => {
     setCartItems(prev => {
       const existing = prev.find(i => i.id === item.id);
       if (existing) {
@@ -71,11 +114,22 @@ export default function TeacherInventoryPage() {
     setConfirmModal(true);
   };
 
-  const handleConfirmSubmit = () => {
-    setCartItems([]);
-    setConfirmModal(false);
-    setSuccessModal(true);
-    setTimeout(() => setSuccessModal(false), 3000);
+  const handleConfirmSubmit = async () => {
+    try {
+      const user = getUser();
+      if (!user) throw new Error('Not logged in');
+      
+      const payload = cartItems.map(i => ({ item_id: i.id, quantity: i.quantity }));
+      await createRequest(payload, user.id);
+
+      setCartItems([]);
+      closeModal();
+      setSuccessModal(true);
+      setTimeout(() => setSuccessModal(false), 3000);
+    } catch (err) {
+      console.error(err);
+      alert('Gagal mengirim permintaan');
+    }
   };
 
   const categoryList = ['Semua', ...categories.map((c) => c.name)];
@@ -153,7 +207,20 @@ export default function TeacherInventoryPage() {
         </div>
         <div className={styles.sortDropdown}>
           <i className="fas fa-sliders-h"></i>
-          Urutkan: Terpopuler
+          <select 
+            value={sortOrder} 
+            onChange={(e) => {
+              setSortOrder(e.target.value);
+              setCurrentPage(1);
+            }}
+            style={{ border: 'none', background: 'transparent', outline: 'none', color: 'inherit', fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}
+          >
+            <option value="Terpopuler">Urutkan: Terpopuler</option>
+            <option value="A-Z">Nama A-Z</option>
+            <option value="Z-A">Nama Z-A</option>
+            <option value="Stok Terbanyak">Stok Terbanyak</option>
+            <option value="Stok Terdikit">Stok Sedikit</option>
+          </select>
         </div>
       </div>
 
@@ -222,8 +289,8 @@ export default function TeacherInventoryPage() {
 
       {/* Confirm Modal */}
       {confirmModal && (
-        <div className="globalModalOverlay">
-          <div className="globalModal" style={{ backgroundColor: '#FDFBF7', maxWidth: '420px', padding: '32px' }}>
+        <div className={`globalModalOverlay ${isClosing ? 'closing' : ''}`} onClick={closeModal}>
+          <div className={`globalModal ${isClosing ? 'closing' : ''}`} style={{ backgroundColor: '#FDFBF7', maxWidth: '420px', padding: '32px' }} onClick={(e) => e.stopPropagation()}>
             <div className="globalModalIcon" style={{ background: '#E2EBE5', color: '#6A9276', marginBottom: '20px', width: '60px', height: '60px', fontSize: '24px' }}>
               <i className="fas fa-clipboard-check"></i>
             </div>
@@ -255,7 +322,7 @@ export default function TeacherInventoryPage() {
 
             <div style={{ display: 'flex', gap: '16px' }}>
               <button 
-                onClick={() => setConfirmModal(false)}
+                onClick={closeModal}
                 style={{ flex: 1, padding: '14px', background: 'transparent', border: '2px solid #DD8A71', color: '#DD8A71', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
               >
                 Batal
