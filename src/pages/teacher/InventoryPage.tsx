@@ -8,7 +8,6 @@ const ITEMS_PER_PAGE = 6;
 export default function TeacherInventoryPage() {
   const [items, setItems] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('Semua');
@@ -41,8 +40,6 @@ export default function TeacherInventoryPage() {
         setCategories(catsData);
       } catch (err) {
         console.error('Gagal memuat inventaris', err);
-      } finally {
-        setIsLoading(false);
       }
     };
     loadData();
