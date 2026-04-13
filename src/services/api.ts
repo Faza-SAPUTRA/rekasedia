@@ -7,7 +7,7 @@
 import * as mockData from '../data/mockData';
 
 const API_BASE = '/api';
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+const USE_MOCK = true; // FORCE MOCK MODE FOR PRESENTATION
 
 // --- Helper: get token dari localStorage ---
 function getToken(): string | null {
