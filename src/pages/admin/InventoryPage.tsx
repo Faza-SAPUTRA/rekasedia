@@ -38,8 +38,7 @@ export default function InventoryPage() {
     let result = items.filter((item) => {
       const matchesSearch = 
         item.name.toLowerCase().includes(search.toLowerCase()) || 
-        item.sku.toLowerCase().includes(search.toLowerCase()) ||
-        item.category_name.toLowerCase().includes(search.toLowerCase());
+        item.sku.toLowerCase().includes(search.toLowerCase());
       
       const matchesCategory =
         activeCategory === 'Semua Kategori' || item.category_name === activeCategory;
@@ -77,21 +76,21 @@ export default function InventoryPage() {
   const sortOptions = ['Nama A-Z', 'Nama Z-A', 'Stok Terbanyak', 'Stok Sedikit'];
 
   if (isLoading) {
-    return <div style={{ padding: '24px' }}>Memuat data inventaris...</div>;
+    return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--gray-text)' }}>Memuat data inventaris...</div>;
   }
 
   return (
-    <div>
+    <div className="animate-fade-in">
       {/* Breadcrumbs & Header */}
       <div className={styles.inventoryHeader}>
         <div>
-            <div style={{ fontSize: '13px', color: '#8A8A8A', marginBottom: '4px' }}>
-                Dashboard &rsaquo; <span style={{ color: '#8A9E8A', fontWeight: 600 }}>Manajemen Inventaris</span>
+            <div className={styles.breadcrumb}>
+                Dashboard &rsaquo; <span>Manajemen Inventaris</span>
             </div>
             <h1 className={styles.inventoryTitle}>Manajemen Inventaris Barang</h1>
         </div>
         <button className={styles.addBtn}>
-          <i className="fas fa-plus"></i>
+          <i className="fas fa-plus-circle"></i>
           Tambah Barang Baru
         </button>
       </div>
@@ -102,7 +101,7 @@ export default function InventoryPage() {
           <i className="fas fa-search"></i>
           <input
             type="text"
-            placeholder="Cari nama barang, SKU, atau kategori..."
+            placeholder="Cari berdasarkan nama atau SKU barang..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -113,42 +112,51 @@ export default function InventoryPage() {
 
         <div className={styles.filterRows}>
           <div className={styles.filterGroup}>
-            <select 
-              className={styles.filterSelect}
-              value={activeCategory}
-              onChange={(e) => {
-                setActiveCategory(e.target.value);
-                setCurrentPage(1);
-              }}
-            >
-              {categoryOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
+            <div style={{ position: 'relative' }}>
+                <select 
+                  className={styles.customSelect}
+                  value={activeCategory}
+                  onChange={(e) => {
+                    setActiveCategory(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  {categoryOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+                <i className="fas fa-chevron-down" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: '10px', color: 'var(--light-text)' }}></i>
+            </div>
 
-            <select 
-              className={styles.filterSelect}
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-            >
-              {statusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
+            <div style={{ position: 'relative' }}>
+                <select 
+                  className={styles.customSelect}
+                  value={statusFilter}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  {statusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+                <i className="fas fa-chevron-down" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: '10px', color: 'var(--light-text)' }}></i>
+            </div>
 
-            <select 
-              className={styles.filterSelect}
-              value={sortOrder}
-              onChange={(e) => {
-                setSortOrder(e.target.value);
-                setCurrentPage(1);
-              }}
-            >
-              {sortOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
+            <div style={{ position: 'relative' }}>
+                <select 
+                  className={styles.customSelect}
+                  value={sortOrder}
+                  onChange={(e) => {
+                    setSortOrder(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  {sortOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+                <i className="fas fa-chevron-down" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: '10px', color: 'var(--light-text)' }}></i>
+            </div>
           </div>
 
           <div className={styles.advancedFilter}>
-            <i className="fas fa-sliders-h"></i>
+            <i className="fas fa-cog"></i>
             Filter Lanjutan
           </div>
         </div>
@@ -159,12 +167,12 @@ export default function InventoryPage() {
         <table className={styles.adminTable}>
           <thead>
             <tr>
-              <th>FOTO</th>
+              <th style={{ width: '80px' }}>FOTO</th>
               <th>NAMA BARANG</th>
               <th>KATEGORI</th>
               <th>SISA STOK</th>
               <th>SATUAN</th>
-              <th>AKSI</th>
+              <th style={{ textAlign: 'center' }}>AKSI</th>
             </tr>
           </thead>
           <tbody>
@@ -176,11 +184,11 @@ export default function InventoryPage() {
                 <tr key={item.id} className={styles.itemRow}>
                   <td>
                     <div className={styles.itemThumb}>
-                      <i className="fas fa-box" style={{ color: 'rgba(255,255,255,0.3)' }}></i>
+                      <i className="fas fa-box" style={{ color: 'rgba(255,255,255,0.2)', fontSize: '20px' }}></i>
                     </div>
                   </td>
                   <td>
-                    <div className={styles.itemInfo}>
+                    <div>
                       <div className={styles.itemName}>{item.name}</div>
                       <div className={styles.itemSku}>{item.sku}</div>
                     </div>
@@ -190,19 +198,19 @@ export default function InventoryPage() {
                   </td>
                   <td>
                     <div className={`${styles.stockWrapper} ${isLow ? styles.stockLow : ''} ${isEmpty ? styles.stockEmpty : ''}`}>
-                      {isLow && <i className={`fas fa-exclamation-triangle ${styles.stockIcons}`}></i>}
-                      {isEmpty && <i className={`fas fa-info-circle ${styles.stockIcons}`}></i>}
+                      {isLow && <i className="fas fa-exclamation-triangle stockIcons"></i>}
+                      {isEmpty && <i className="fas fa-times-circle stockIcons"></i>}
                       {item.stock}
                     </div>
                   </td>
-                  <td>{item.unit}</td>
+                  <td style={{ fontWeight: 500, color: 'var(--medium-text)' }}>{item.unit}</td>
                   <td>
-                    <div className={styles.actions}>
+                    <div className={styles.actions} style={{ justifyContent: 'center' }}>
                       <button className={`${styles.actionBtn} ${styles.editBtn}`} title="Edit">
-                        <i className="fas fa-pen"></i>
+                        <i className="fas fa-edit"></i>
                       </button>
                       <button className={`${styles.actionBtn} ${styles.deleteBtn}`} title="Hapus">
-                        <i className="fas fa-trash"></i>
+                        <i className="fas fa-trash-alt"></i>
                       </button>
                     </div>
                   </td>
@@ -215,7 +223,7 @@ export default function InventoryPage() {
         {/* Pagination Row */}
         <div className={styles.paginationRow}>
           <div className={styles.paginationInfo}>
-            Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, filteredItems.length)} dari {filteredItems.length} barang
+            Menampilkan <strong>{(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, filteredItems.length)}</strong> dari <strong>{filteredItems.length}</strong> barang inventaris
           </div>
           <div className={styles.pagination}>
             <div 
@@ -223,7 +231,7 @@ export default function InventoryPage() {
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 style={{ opacity: currentPage === 1 ? 0.3 : 1, cursor: currentPage === 1 ? 'default' : 'pointer' }}
             >
-                <i className="fas fa-chevron-left"></i>
+                <i className="fas fa-angle-left"></i>
             </div>
             
             {[...Array(totalPages)].map((_, i) => (
@@ -241,7 +249,7 @@ export default function InventoryPage() {
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 style={{ opacity: currentPage === totalPages ? 0.3 : 1, cursor: currentPage === totalPages ? 'default' : 'pointer' }}
             >
-                <i className="fas fa-chevron-right"></i>
+                <i className="fas fa-angle-right"></i>
             </div>
           </div>
         </div>

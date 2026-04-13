@@ -1,436 +1,99 @@
 /* ============================================
-   RekaSedia — Inventory Catalog Page
+   RekaSedia — Inventory Management (Admin)
    ============================================ */
-
-/* --- Search Bar --- */
-.searchBar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--white);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  padding: 14px 24px;
-  margin-bottom: 20px;
-  transition: border-color var(--transition-fast);
-}
-
-.searchBar:focus-within {
-  border-color: var(--sage-green);
-  box-shadow: 0 0 0 3px rgba(138, 158, 138, 0.1);
-}
-
-.searchBar i {
-  color: var(--gray-text);
-  font-size: 16px;
-}
-
-.searchBar input {
-  border: none;
-  background: transparent;
-  outline: none;
-  font-size: 14px;
-  color: var(--dark-text);
-  width: 100%;
-  font-family: var(--font-primary);
-}
-
-.searchBar input::placeholder {
-  color: var(--light-text);
-}
-
-/* --- Filters Row --- */
-.filtersRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-}
-
-.categoryPills {
-  display: flex;
-  gap: 10px;
-}
-
-.pill {
-  padding: 8px 20px;
-  border-radius: var(--radius-xl);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  border: 1.5px solid var(--border-color);
-  background: var(--white);
-  color: var(--medium-text);
-}
-
-.pill:hover {
-  border-color: var(--sage-green);
-  color: var(--sage-green);
-}
-
-.pill.active {
-  background: var(--sage-green);
-  color: var(--white);
-  border-color: var(--sage-green);
-}
-
-.sortDropdown {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--gray-text);
-  cursor: pointer;
-}
-
-.sortDropdown i {
-  font-size: 12px;
-}
-
-/* --- Product Grid --- */
-.productGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-bottom: 32px;
-}
-
-/* --- Product Card --- */
-.productCard {
-  background: var(--white);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  transition: all var(--transition-normal);
-  position: relative;
-  cursor: pointer;
-}
-
-.productCard:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-.productCard.lowStock {
-  border-color: var(--sage-green);
-  border-width: 2px;
-}
-
-.productImage {
-  width: 100%;
-  height: 200px;
-  background: var(--cream);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.productImage img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.imagePlaceholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  color: var(--light-text);
-}
-
-.imagePlaceholder i {
-  font-size: 32px;
-  opacity: 0.4;
-}
-
-.imagePlaceholder span {
-  font-size: 11px;
-  opacity: 0.5;
-}
-
-/* Alternating product card colors matching Figma */
-.bgPink {
-  background: #F2D5D0 !important;
-}
-
-.bgMint {
-  background: #D4E8E1 !important;
-}
-
-.bgBeige {
-  background: #EDE5D8 !important;
-}
-
-.bgCream {
-  background: #F0ECE3 !important;
-}
-
-.bgSage {
-  background: #D8E2D1 !important;
-}
-
-.bgPeach {
-  background: #F5DDD3 !important;
-}
-
-/* Decorative lines for placeholder images */
-.imagePlaceholder .lines {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 60%;
-  margin-top: 8px;
-}
-
-.imagePlaceholder .line {
-  height: 3px;
-  border-radius: 2px;
-  background: rgba(0, 0, 0, 0.06);
-}
-
-.imagePlaceholder .lineShort {
-  width: 70%;
-}
-
-.lowStockBadge {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: var(--error-red);
-  color: var(--white);
-  padding: 4px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  z-index: 2;
-}
-
-.productInfo {
-  padding: 16px 20px;
-}
-
-.productName {
-  font-family: var(--font-heading);
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--dark-text);
-  margin-bottom: 4px;
-}
-
-.stockInfo {
-  font-size: 13px;
-  color: var(--gray-text);
-}
-
-.stockInfo.low {
-  color: var(--error-red);
-  font-weight: 600;
-}
-
-.addToCartBtn {
-  width: calc(100% - 40px);
-  margin: 0 20px 16px;
-  padding: 10px;
-  background: var(--sage-green);
-  color: var(--white);
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.addToCartBtn:hover {
-  background: var(--sage-green-hover);
-}
-
-.addToCartBtn:active {
-  transform: scale(0.98);
-}
-
-/* --- Pagination --- */
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.pageBtn {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
-  background: var(--white);
-  color: var(--medium-text);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-fast);
-}
-
-.pageBtn:hover {
-  border-color: var(--sage-green);
-  color: var(--sage-green);
-}
-
-.pageBtn.active {
-  background: var(--sage-green);
-  color: var(--white);
-  border-color: var(--sage-green);
-}
-
-.pageBtn.disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.pageNavBtn {
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  background: var(--white);
-  color: var(--medium-text);
-  font-size: 13px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all var(--transition-fast);
-}
-
-.pageNavBtn:hover {
-  border-color: var(--sage-green);
-  color: var(--sage-green);
-}
-
-.pageEllipsis {
-  font-size: 13px;
-  color: var(--gray-text);
-  padding: 0 4px;
-}
-
-/* --- Floating Cart Button --- */
-.floatingCart {
-  position: fixed;
-  bottom: 32px;
-  right: 32px;
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-full);
-  background: var(--dark-text);
-  color: var(--white);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  cursor: pointer;
-  box-shadow: var(--shadow-lg);
-  transition: all var(--transition-fast);
-  z-index: 90;
-}
-
-.floatingCart:hover {
-  transform: scale(1.1);
-  background: #1a1a1a;
-}
-
-.cartBadge {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 22px;
-  height: 22px;
-  border-radius: var(--radius-full);
-  background: var(--error-red);
-  color: var(--white);
-  font-size: 11px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* --- Admin Management Table Extra Styles --- */
 
 .inventoryHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  animation: fadeIn 0.5s ease both;
+}
+
+.breadcrumb {
+  font-size: 13px;
+  color: var(--gray-text);
+  margin-bottom: 4px;
+  font-family: var(--font-primary);
+}
+
+.breadcrumb span {
+  color: var(--sage-green);
+  font-weight: 600;
 }
 
 .inventoryTitle {
-  font-size: 24px;
+  font-family: var(--font-heading);
+  font-size: 28px;
   font-weight: 700;
-  color: #2D2D2D;
+  color: var(--dark-text);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .addBtn {
   background-color: var(--sage-green);
-  color: white;
+  color: var(--white);
   border: none;
-  padding: 10px 18px;
-  border-radius: 10px;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-primary);
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
-  transition: all 0.2s;
-  font-size: 14px;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
 }
 
 .addBtn:hover {
   background-color: var(--sage-green-hover);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
+/* --- Improved Filter Container --- */
 .filterContainer {
-  background: white;
-  padding: 20px;
-  border-radius: 16px;
+  background: var(--white);
+  padding: 24px;
+  border-radius: var(--radius-lg);
   margin-bottom: 24px;
   border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-card);
 }
 
 .searchBarWrapper {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   position: relative;
 }
 
 .searchBarWrapper i {
   position: absolute;
-  left: 16px;
+  left: 18px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--light-text);
+  font-size: 16px;
 }
 
 .searchBarWrapper input {
   width: 100%;
-  padding: 12px 12px 12px 44px;
-  border: 1.5px solid var(--border-color);
-  border-radius: 12px;
-  background-color: #FDFCFB;
+  padding: 14px 14px 14px 50px;
+  border: 1.5px solid var(--light-gray);
+  border-radius: var(--radius-md);
+  background-color: var(--sidebar-bg);
   font-size: 14px;
+  font-family: var(--font-primary);
+  color: var(--dark-text);
   outline: none;
+  transition: all var(--transition-fast);
+}
+
+.searchBarWrapper input:focus {
+  border-color: var(--sage-green);
+  background-color: var(--white);
+  box-shadow: 0 0 0 4px rgba(138, 158, 138, 0.1);
 }
 
 .filterRows {
@@ -444,31 +107,51 @@
   gap: 12px;
 }
 
-.filterSelect {
-  padding: 8px 12px;
-  border: 1.5px solid var(--border-color);
-  border-radius: 8px;
-  background: white;
+/* Custom Dropdown Simulation */
+.customSelect {
+  padding: 10px 16px;
+  border: 1.5px solid var(--light-gray);
+  border-radius: var(--radius-md);
+  background: var(--white);
   color: var(--medium-text);
-  font-weight: 500;
+  font-family: var(--font-primary);
+  font-weight: 600;
   font-size: 13px;
   outline: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--transition-fast);
+}
+
+.customSelect:hover {
+  border-color: var(--sage-green);
+  color: var(--sage-green);
 }
 
 .advancedFilter {
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: var(--medium-text);
+  gap: 8px;
+  color: var(--gray-text);
   font-size: 13px;
   font-weight: 600;
+  cursor: pointer;
+  transition: color var(--transition-fast);
 }
 
+.advancedFilter:hover {
+  color: var(--dark-text);
+}
+
+/* --- Table Styles (Matching adminRequests) --- */
 .tableWrapper {
-  background: white;
-  border-radius: 16px;
+  background: var(--white);
+  border-radius: var(--radius-lg);
   overflow: hidden;
   border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-card);
 }
 
 .adminTable {
@@ -478,39 +161,52 @@
 
 .adminTable th {
   text-align: left;
-  padding: 16px;
-  background-color: #FDFCFB;
-  color: var(--gray-text);
+  padding: 16px 20px;
+  background-color: var(--table-header-bg);
+  color: var(--table-header-text);
+  font-family: var(--font-heading);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1.5px solid var(--border-color);
+  letter-spacing: 0.08em;
+  border-bottom: 2px solid rgba(0,0,0,0.05);
 }
 
 .adminTable td {
-  padding: 16px;
-  border-bottom: 1px solid var(--border-color);
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--cream-dark);
   vertical-align: middle;
-  font-size: 14px;
+  font-family: var(--font-primary);
+  font-size: 13px;
+  color: var(--dark-text);
+}
+
+.itemRow {
+  transition: background var(--transition-fast);
+}
+
+.itemRow:hover {
+  background-color: var(--cream);
 }
 
 .itemName {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--dark-text);
+  font-size: 14px;
 }
 
 .itemSku {
   font-size: 11px;
-  color: var(--light-text);
+  color: var(--gray-text);
   margin-top: 2px;
+  font-weight: 500;
 }
 
 .itemThumb {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background-color: #2D2D2D;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  background-color: var(--dark-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -518,53 +214,120 @@
 }
 
 .categoryBadge {
-  padding: 4px 10px;
-  border-radius: 15px;
-  background-color: #F0F4F0;
-  color: var(--sage-green);
+  padding: 4px 12px;
+  border-radius: var(--radius-xl);
+  background-color: var(--badge-green-bg);
+  color: var(--badge-green-text);
   font-size: 11px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .stockWrapper {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-weight: 600;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14px;
 }
 
 .stockIcons {
-  font-size: 12px;
+  font-size: 14px;
 }
 
-.stockLow { color: #E67E22; }
-.stockEmpty { color: #E74C3C; }
+.stockLow { color: var(--warning-orange); }
+.stockEmpty { color: var(--error-red); }
 
 .actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .actionBtn {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1.5px solid var(--light-gray);
+  background: var(--white);
+  transition: all var(--transition-fast);
+  color: var(--medium-text);
+  padding: 0;
+}
+
+.editBtn:hover {
+  border-color: var(--sage-green);
+  color: var(--sage-green);
+  background: var(--badge-green-bg);
+}
+
+.deleteBtn:hover {
+  border-color: var(--error-red);
+  color: var(--error-red);
+  background: var(--badge-red-bg);
+}
+
+/* --- Pagination Row --- */
+.paginationRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: var(--white);
+  border-top: 1px solid var(--border-color);
+}
+
+.paginationInfo {
+  color: var(--gray-text);
+  font-size: 13px;
+  font-family: var(--font-primary);
+}
+
+.pagination {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pageBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   border: 1px solid var(--border-color);
-  background: white;
-  padding: 0;
+  background: var(--white);
+  color: var(--medium-text);
+  font-weight: 600;
+  font-size: 13px;
+  transition: all var(--transition-fast);
 }
 
-.editBtn { color: var(--medium-text); }
-.deleteBtn { color: #E74C3C; }
+.pageBtn.active {
+  background-color: var(--sage-green);
+  color: var(--white);
+  border-color: var(--sage-green);
+}
 
-.paginationRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background: white;
+.pageBtn:hover:not(.active) {
+  border-color: var(--sage-green);
+  color: var(--sage-green);
+}
+
+.pageNavBtn {
+  color: var(--gray-text);
+  cursor: pointer;
+  padding: 0 8px;
+  font-size: 18px;
+  transition: color var(--transition-fast);
+}
+
+.pageNavBtn:hover {
+  color: var(--dark-text);
 }
