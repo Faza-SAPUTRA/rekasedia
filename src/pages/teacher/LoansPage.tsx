@@ -1,29 +1,22 @@
 import { useState, useEffect } from 'react';
 import { fetchLoans, returnLoan, getUser } from '../../services/api';
 import styles from '../../styles/loans.module.css';
+import Modal from '../../components/Modal';
 
 export default function TeacherLoansPage() {
   const [loanList, setLoanList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   const [confirmModal, setConfirmModal] = useState<any | null>(null);
-  const [successModal, setSuccessModal] = useState<string | null>(null);
-  const [isClosing, setIsClosing] = useState(false);
-
-  const closeModal = () => {
-    setIsClosing(true);
-    setTimeout(() => {
-      setConfirmModal(null);
-      setIsClosing(false);
-    }, 300); // Wait for fadeOutDown animation
-  };
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successItemName, setSuccessItemName] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
       try {
         const user = getUser();
         const allLoans = await fetchLoans();
-        // Filter peminjaman yang dimiliki oleh user yang sedang login
+        // Filter peminjaman yang dimiliki oleh user yang sedang login (ID 6 for Ibu Sarah)
         setLoanList(allLoans.filter((l: any) => l.borrower_id === user?.id));
       } catch (err) {
         console.error('Gagal mengambil data peminjaman', err);
@@ -44,6 +37,10 @@ export default function TeacherLoansPage() {
     setConfirmModal(loan);
   };
 
+  const closeModal = () => {
+    setConfirmModal(null);
+  };
+
   const handleConfirmReturn = async () => {
     if (confirmModal) {
       try {
@@ -53,10 +50,10 @@ export default function TeacherLoansPage() {
             l.id === confirmModal.id ? { ...l, status: 'DIKEMBALIKAN' } : l
           )
         );
-        const name = confirmModal.item_name;
+        setSuccessItemName(confirmModal.item_name);
         closeModal();
-        setSuccessModal(name);
-        setTimeout(() => setSuccessModal(null), 2500);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
       } catch (err) {
         console.error('Gagal mengembalikan aset', err);
         alert('Gagal memproses pengembalian');
@@ -65,11 +62,11 @@ export default function TeacherLoansPage() {
   };
 
   if (isLoading) {
-      return <div style={{ padding: '24px' }}>Memuat data peminjaman...</div>;
+      return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--gray-text)' }}>Memuat data peminjaman...</div>;
   }
 
   return (
-    <div>
+    <div className="animate-fade-in">
       {/* Page Header */}
       <div className={styles.pageHeader}>
         <h1 className={styles.pageTitle}>Barang Pinjaman Anda</h1>
@@ -79,66 +76,70 @@ export default function TeacherLoansPage() {
       </div>
 
       {/* Loan Cards */}
-      {loanList.map((loan) => {
-        const overdue = isDueToday(loan.due_date);
-        const returned = loan.status === 'DIKEMBALIKAN';
+      <div style={{ display: 'grid', gap: '20px' }}>
+        {loanList.map((loan) => {
+          const overdue = isDueToday(loan.due_date);
+          const returned = loan.status === 'DIKEMBALIKAN';
 
-        return (
-          <div key={loan.id} className={styles.loanCard}>
-            <div className={styles.loanCardContent}>
-              <div className={styles.loanImage}>
-                <div className={styles.loanImagePlaceholder}>
-                  <i className="fas fa-laptop"></i>
+          return (
+            <div key={loan.id} className={styles.loanCard}>
+              <div className={styles.loanCardContent}>
+                <div className={styles.loanImage}>
+                  <div className={styles.loanImagePlaceholder}>
+                    <i className={`fas fa-${loan.item_name.toLowerCase().includes('projector') ? 'video' : 'laptop'}`}></i>
+                    <span>ASET</span>
+                  </div>
+                </div>
+
+                <div className={styles.loanDetails}>
+                  <div className={styles.loanItemName}>{loan.item_name}</div>
+                  <div className={styles.loanDate}>
+                    <i className="fas fa-calendar-alt"></i>
+                    Dipinjam: {loan.borrow_date}
+                  </div>
+                </div>
+
+                <div
+                  className={`${styles.dueDateBadge} ${
+                    overdue && !returned ? styles.overdue : styles.normal
+                  }`}
+                >
+                  <div className={styles.dueDateLabel}>BATAS WAKTU</div>
+                  <div className={styles.dueDateValue}>
+                    {overdue && !returned ? (
+                      <i className="fas fa-exclamation-triangle"></i>
+                    ) : (
+                      <i className="fas fa-clock"></i>
+                    )}
+                    {loan.due_date}
+                  </div>
+                  {overdue && !returned && <div className={styles.dueDateExtra}>(Hari Ini)</div>}
                 </div>
               </div>
 
-              <div className={styles.loanDetails}>
-                <div className={styles.loanItemName}>{loan.item_name}</div>
-                <div className={styles.loanDate}>
-                  <i className="fas fa-calendar"></i>
-                  Tanggal Pinjam: {loan.borrow_date}
+              {returned ? (
+                <div className={styles.returnedBadge}>
+                  <i className="fas fa-check-circle"></i>
+                  Sudah Dikembalikan
                 </div>
-              </div>
-
-              <div
-                className={`${styles.dueDateBadge} ${
-                  overdue ? styles.overdue : styles.normal
-                }`}
-              >
-                <div className={styles.dueDateLabel}>BATAS WAKTU</div>
-                <div className={styles.dueDateValue}>
-                  {overdue ? (
-                    <i className="fas fa-exclamation-triangle"></i>
-                  ) : (
-                    <i className="fas fa-clock"></i>
-                  )}
-                  {loan.due_date}
-                </div>
-                {overdue && <div className={styles.dueDateExtra}>(Hari Ini)</div>}
-              </div>
+              ) : (
+                <button
+                  className={styles.returnBtn}
+                  onClick={() => handleReturnClick(loan)}
+                >
+                  <i className="fas fa-undo-alt"></i>
+                  Kembalikan Sekarang
+                </button>
+              )}
             </div>
-
-            {returned ? (
-              <div className={styles.returnedBadge}>
-                <i className="fas fa-check-circle"></i>
-                Sudah Dikembalikan
-              </div>
-            ) : (
-              <button
-                className={styles.returnBtn}
-                onClick={() => handleReturnClick(loan)}
-              >
-                <i className="fas fa-undo-alt"></i>
-                Kembalikan
-              </button>
-            )}
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
 
       {loanList.length === 0 && (
-        <div style={{textAlign: 'center', padding: '40px', color: '#999'}}>
-          Anda tidak memiliki peminjaman aktif saat ini.
+        <div style={{textAlign: 'center', padding: '60px 40px', color: 'var(--gray-text)', background: 'var(--white)', borderRadius: 'var(--radius-lg)', border: '1px dashed var(--border-color)'}}>
+          <i className="fas fa-box-open" style={{fontSize: '40px', marginBottom: '16px', opacity: 0.3}}></i>
+          <p>Anda tidak memiliki peminjaman aktif saat ini.</p>
         </div>
       )}
 
@@ -146,45 +147,46 @@ export default function TeacherLoansPage() {
       <div className={styles.infoBox}>
         <i className="fas fa-info-circle"></i>
         <div className={styles.infoContent}>
-          <h4>Informasi Tambahan</h4>
+          <h4>Informasi Pengembalian</h4>
           <p>
-            Pastikan barang dikembalikan dalam kondisi yang sama saat dipinjam. Jika ada kerusakan, silakan lapor ke staf Sarpras.
+            Pastikan barang dikembalikan dalam kondisi yang sama saat dipinjam. Jika ada kerusakan atau kendala teknis pada aset, silakan segera melapor ke staf Sarana & Prasarana.
           </p>
         </div>
       </div>
 
-      {/* Modals are reusing the same basic structure but modified copy */}
-      {confirmModal && (
-        <div className={`globalModalOverlay ${isClosing ? 'closing' : ''}`} onClick={closeModal}>
-          <div className={`globalModal ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
-            <div className="globalModalIcon">
-              <i className="fas fa-undo-alt"></i>
+      {/* Confirmation Modal - Using Portal */}
+      <Modal isOpen={confirmModal !== null} onClose={closeModal}>
+        <div style={{ maxWidth: '420px', width: '100%', margin: '0 auto' }}>
+            <button className="globalModalClose" onClick={closeModal} title="Tutup">
+                <i className="fas fa-times"></i>
+            </button>
+            <div className="globalModalIcon" style={{ background: 'var(--badge-green-bg)', color: 'var(--sage-green)' }}>
+                <i className="fas fa-undo-alt"></i>
             </div>
-            <h3>Konfirmasi Pengebalian</h3>
+            <h3>Konfirmasi Pengembalian</h3>
             <p>
-              Yakin mengembalikan <strong>{confirmModal.item_name}</strong> sekarang?
+                Apakah Anda yakin ingin mengembalikan <strong>{confirmModal?.item_name}</strong> sekarang? Pastikan kelengkapan unit sudah sesuai.
             </p>
             <div className="globalModalBtns">
-              <button className="globalModalBtnCancel" onClick={closeModal}>Batal</button>
-              <button className="globalModalBtnConfirm" onClick={handleConfirmReturn}>Ya, Kembalikan</button>
+                <button className="globalModalBtnCancel" onClick={closeModal}>Batal</button>
+                <button className="globalModalBtnConfirm" onClick={handleConfirmReturn}>Ya, Kembalikan</button>
             </div>
-          </div>
         </div>
-      )}
+      </Modal>
 
-      {successModal && (
-        <div className="globalModalOverlay" onClick={() => setSuccessModal(null)}>
-          <div className="globalModal" onClick={(e) => e.stopPropagation()}>
-            <div className="globalModalIcon success">
-              <i className="fas fa-check"></i>
-            </div>
-            <h3>Pengembalian Diproses</h3>
-            <p>
-              Permintaan pengembalian <strong>{successModal}</strong> telah dikirim ke admin.
-            </p>
-          </div>
+      {/* Success Notification - Using Portal */}
+      <Modal isOpen={showSuccess} onClose={() => setShowSuccess(false)}>
+        <button className="globalModalClose" onClick={() => setShowSuccess(false)}>
+            <i className="fas fa-times"></i>
+        </button>
+        <div className="globalModalIcon success">
+            <i className="fas fa-check"></i>
         </div>
-      )}
+        <h3>Pengembalian Diproses</h3>
+        <p>
+            Permintaan pengembalian <strong>{successItemName}</strong> telah dikirim ke sistem. Silakan bawa fisik barang ke ruang Sarpras.
+        </p>
+      </Modal>
     </div>
   );
 }

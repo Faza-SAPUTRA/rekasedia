@@ -254,6 +254,26 @@ export async function fetchStats(): Promise<DashboardStats> {
   return res.json();
 }
 
+// --- Teacher Specific Mock ---
+export interface TeacherStats {
+  totalItemsRequested: number;
+  activeLoansCount: number;
+  historyCount: number;
+}
+
+export async function fetchTeacherStats(userId: number): Promise<TeacherStats> {
+  if (USE_MOCK) {
+    const userLoans = mockData.loans.filter(l => l.borrower_id === userId);
+    return {
+      totalItemsRequested: 42, // Mock total consumable items ever requested
+      activeLoansCount: userLoans.filter(l => l.status === 'DIPINJAM').length,
+      historyCount: 15
+    };
+  }
+  // In real backend, this would be a filtered endpoint
+  return { totalItemsRequested: 0, activeLoansCount: 0, historyCount: 0 };
+}
+
 // --- Session helpers ---
 export function saveSession(token: string, user: LoginResponse['user']) {
   localStorage.setItem('rekasedia_token', token);

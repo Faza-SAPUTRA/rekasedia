@@ -1,0 +1,182 @@
+/* ============================================
+   RekaSedia — Teacher Personal Report Styles
+   ============================================ */
+
+.header {
+  margin-bottom: 32px;
+  animation: fadeIn 0.5s ease both;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--dark-text);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--gray-text);
+  line-height: 1.6;
+  max-width: 600px;
+}
+
+/* --- Stats Grid --- */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.statCard {
+  background: var(--white);
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: all var(--transition-fast);
+}
+
+.statCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--sage-green);
+}
+
+.statIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sage-green);
+  font-size: 22px;
+}
+
+.statInfo h4 {
+  font-size: 13px;
+  color: var(--gray-text);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.statValue {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--dark-text);
+}
+
+/* --- Report Table --- */
+.sectionTitle {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--dark-text);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sectionTitle i {
+  color: var(--sage-green);
+  font-size: 18px;
+}
+
+.tableWrapper {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.reportTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.reportTable th {
+  text-align: left;
+  padding: 16px 24px;
+  background: #F8FAFB;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gray-text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.reportTable td {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--cream-dark);
+  font-size: 14px;
+  color: var(--dark-text);
+  font-weight: 500;
+}
+
+.reportTable tr:last-child td {
+  border-bottom: none;
+}
+
+.monthName {
+  font-weight: 700;
+  color: var(--dark-text);
+}
+
+.badge {
+  display: inline-flex;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badgeInfo {
+  background: var(--badge-green-bg);
+  color: var(--sage-green);
+}
+
+/* --- Analysis Card --- */
+.analysisBox {
+  margin-top: 32px;
+  background: var(--cream);
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--sage-green);
+  display: flex;
+  gap: 16px;
+}
+
+.analysisBox i {
+  font-size: 24px;
+  color: var(--sage-green);
+  margin-top: 4px;
+}
+
+.analysisText h4 {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dark-text);
+  margin-bottom: 8px;
+}
+
+.analysisText p {
+  font-size: 14px;
+  color: var(--medium-text);
+  line-height: 1.6;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
