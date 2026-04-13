@@ -84,6 +84,47 @@ export async function fetchCategories() {
   return res.json();
 }
 
+export async function addItem(data: any) {
+  if (USE_MOCK) {
+    console.log('[MOCK] Add item:', data);
+    return { id: Date.now(), ...data, message: 'Barang berhasil ditambahkan (MOCK)' };
+  }
+  const res = await fetch(`${API_BASE}/items`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Gagal menambah barang');
+  return res.json();
+}
+
+export async function updateItem(id: number, data: any) {
+  if (USE_MOCK) {
+    console.log('[MOCK] Update item:', id, data);
+    return { message: 'Barang berhasil diperbarui (MOCK)' };
+  }
+  const res = await fetch(`${API_BASE}/items/${id}`, {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Gagal memperbarui barang');
+  return res.json();
+}
+
+export async function deleteItem(id: number) {
+  if (USE_MOCK) {
+    console.log('[MOCK] Delete item:', id);
+    return { message: 'Barang berhasil dihapus (MOCK)' };
+  }
+  const res = await fetch(`${API_BASE}/items/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error('Gagal menghapus barang');
+  return res.json();
+}
+
 // --- Requests ---
 export async function fetchRequests() {
   if (USE_MOCK) {

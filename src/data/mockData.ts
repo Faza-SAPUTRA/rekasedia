@@ -19,6 +19,7 @@ export interface Category {
 
 export interface Item {
   id: number;
+  sku: string;
   name: string;
   category_id: number;
   category_name: string;
@@ -81,24 +82,24 @@ export const categories: Category[] = [
 ];
 
 export const items: Item[] = [
-  { id: 1, name: 'Spidol Marker Set', category_id: 1, category_name: 'ATK', stock: 15, unit: 'Set', description: 'Spidol hitam anti-kering, tinta tebal untuk papan tulis kelas.', image_url: null, is_loanable: false },
-  { id: 2, name: 'Kertas A4 80gr', category_id: 2, category_name: 'Kertas', stock: 2, unit: 'Rim', description: 'Kertas 80gsm untuk penggandaan soal ujian & materi ajar.', image_url: null, is_loanable: false },
-  { id: 3, name: 'Stapler Besar HD', category_id: 1, category_name: 'ATK', stock: 8, unit: 'Unit', description: 'Stapler heavy-duty untuk dokumen tebal.', image_url: null, is_loanable: false },
-  { id: 4, name: 'Buku Catatan Eksklusif', category_id: 1, category_name: 'ATK', stock: 20, unit: 'Unit', description: 'Buku catatan hardcover premium untuk pencatatan.', image_url: null, is_loanable: false },
-  { id: 5, name: 'Kabel HDMI 4K 2m', category_id: 3, category_name: 'Elektronik', stock: 12, unit: 'Unit', description: 'Kabel HDMI 4K untuk koneksi proyektor.', image_url: null, is_loanable: false },
-  { id: 6, name: 'Tinta Printer Black', category_id: 1, category_name: 'ATK', stock: 4, unit: 'Botol', description: 'Tinta printer HP Black untuk printer kantor.', image_url: null, is_loanable: false },
-  { id: 7, name: 'Whiteboard Marker', category_id: 1, category_name: 'ATK', stock: 45, unit: 'Unit', description: 'Spidol hitam anti-kering, tinta tebal untuk papan tulis kelas.', image_url: null, is_loanable: false },
-  { id: 8, name: 'Kertas A4 HVS', category_id: 2, category_name: 'Kertas', stock: 12, unit: 'Rim', description: 'Kertas 80gsm untuk penggandaan soal ujian & materi ajar.', image_url: null, is_loanable: false },
-  { id: 9, name: 'Proyektor Digital', category_id: 3, category_name: 'Elektronik', stock: 4, unit: 'Unit', description: 'Unit proyektor portabel lengkap dengan kabel HDMI/VGA.', image_url: null, is_loanable: true },
-  { id: 10, name: 'Masker Medis', category_id: 4, category_name: 'Kebersihan', stock: 20, unit: 'Box', description: 'Masker 3-ply standar kesehatan untuk kebutuhan UKS/Kelas.', image_url: null, is_loanable: false },
-  { id: 11, name: 'Tinta Toner Laserjet', category_id: 1, category_name: 'ATK', stock: 1, unit: 'Unit', description: 'Toner untuk printer laserjet kantor.', image_url: null, is_loanable: false },
-  { id: 12, name: 'Materai 10.000', category_id: 1, category_name: 'ATK', stock: 3, unit: 'Lembar', description: 'Materai tempel Rp10.000 untuk dokumen resmi.', image_url: null, is_loanable: false },
-  { id: 13, name: 'Digital Projector Epson X-400', category_id: 3, category_name: 'Elektronik', stock: 3, unit: 'Unit', description: 'Proyektor Epson X-400 untuk ruang rapat dan kelas.', image_url: null, is_loanable: true },
-  { id: 14, name: 'Portable Speaker JBL Boombox', category_id: 3, category_name: 'Elektronik', stock: 2, unit: 'Unit', description: 'Speaker portabel JBL untuk kegiatan sekolah.', image_url: null, is_loanable: true },
-  { id: 15, name: 'MacBook Air M2 Silver', category_id: 3, category_name: 'Elektronik', stock: 1, unit: 'Unit', description: 'Laptop MacBook Air M2 untuk keperluan presentasi.', image_url: null, is_loanable: true },
-  { id: 16, name: 'Sticky Notes Neon', category_id: 1, category_name: 'ATK', stock: 30, unit: 'Pack', description: 'Sticky notes warna neon untuk penanda dokumen.', image_url: null, is_loanable: false },
-  { id: 17, name: 'Spidol Whiteboard (Biru)', category_id: 1, category_name: 'ATK', stock: 25, unit: 'Unit', description: 'Spidol whiteboard warna biru.', image_url: null, is_loanable: false },
-  { id: 18, name: 'Buku Induk Siswa 2023', category_id: 1, category_name: 'ATK', stock: 10, unit: 'Unit', description: 'Buku induk untuk pencatatan data siswa tahun 2023.', image_url: null, is_loanable: false },
+  { id: 1, sku: 'SKU-2023-001', name: 'Spidol Marker Set', category_id: 1, category_name: 'ATK', stock: 15, unit: 'Set', description: 'Spidol hitam anti-kering, tinta tebal untuk papan tulis kelas.', image_url: null, is_loanable: false },
+  { id: 2, sku: 'SKU-2023-002', name: 'Kertas A4 80gr', category_id: 2, category_name: 'Kertas', stock: 2, unit: 'Rim', description: 'Kertas 80gsm untuk penggandaan soal ujian & materi ajar.', image_url: null, is_loanable: false },
+  { id: 3, sku: 'SKU-2023-003', name: 'Stapler Besar HD', category_id: 1, category_name: 'ATK', stock: 8, unit: 'Unit', description: 'Stapler heavy-duty untuk dokumen tebal.', image_url: null, is_loanable: false },
+  { id: 4, sku: 'SKU-2023-004', name: 'Buku Catatan Eksklusif', category_id: 1, category_name: 'ATK', stock: 20, unit: 'Unit', description: 'Buku catatan hardcover premium untuk pencatatan.', image_url: null, is_loanable: false },
+  { id: 5, sku: 'SKU-2023-005', name: 'Kabel HDMI 4K 2m', category_id: 3, category_name: 'Elektronik', stock: 12, unit: 'Unit', description: 'Kabel HDMI 4K untuk koneksi proyektor.', image_url: null, is_loanable: false },
+  { id: 6, sku: 'SKU-2023-006', name: 'Tinta Printer Black', category_id: 1, category_name: 'ATK', stock: 4, unit: 'Botol', description: 'Tinta printer HP Black untuk printer kantor.', image_url: null, is_loanable: false },
+  { id: 7, sku: 'SKU-2023-007', name: 'Whiteboard Marker', category_id: 1, category_name: 'ATK', stock: 45, unit: 'Unit', description: 'Spidol hitam anti-kering, tinta tebal untuk papan tulis kelas.', image_url: null, is_loanable: false },
+  { id: 8, sku: 'SKU-2023-008', name: 'Kertas A4 HVS', category_id: 2, category_name: 'Kertas', stock: 12, unit: 'Rim', description: 'Kertas 80gsm untuk penggandaan soal ujian & materi ajar.', image_url: null, is_loanable: false },
+  { id: 9, sku: 'SKU-2023-009', name: 'Proyektor Digital', category_id: 3, category_name: 'Elektronik', stock: 4, unit: 'Unit', description: 'Unit proyektor portabel lengkap dengan kabel HDMI/VGA.', image_url: null, is_loanable: true },
+  { id: 10, sku: 'SKU-2023-010', name: 'Masker Medis', category_id: 4, category_name: 'Kebersihan', stock: 20, unit: 'Box', description: 'Masker 3-ply standar kesehatan untuk kebutuhan UKS/Kelas.', image_url: null, is_loanable: false },
+  { id: 11, sku: 'SKU-2023-011', name: 'Tinta Toner Laserjet', category_id: 1, category_name: 'ATK', stock: 1, unit: 'Unit', description: 'Toner untuk printer laserjet kantor.', image_url: null, is_loanable: false },
+  { id: 12, sku: 'SKU-2023-012', name: 'Materai 10.000', category_id: 1, category_name: 'ATK', stock: 3, unit: 'Lembar', description: 'Materai tempel Rp10.000 untuk dokumen resmi.', image_url: null, is_loanable: false },
+  { id: 13, sku: 'SKU-2023-013', name: 'Digital Projector Epson X-400', category_id: 3, category_name: 'Elektronik', stock: 3, unit: 'Unit', description: 'Proyektor Epson X-400 untuk ruang rapat dan kelas.', image_url: null, is_loanable: true },
+  { id: 14, sku: 'SKU-2023-014', name: 'Portable Speaker JBL Boombox', category_id: 3, category_name: 'Elektronik', stock: 2, unit: 'Unit', description: 'Speaker portabel JBL untuk kegiatan sekolah.', image_url: null, is_loanable: true },
+  { id: 15, sku: 'SKU-2023-015', name: 'MacBook Air M2 Silver', category_id: 3, category_name: 'Elektronik', stock: 1, unit: 'Unit', description: 'Laptop MacBook Air M2 untuk keperluan presentasi.', image_url: null, is_loanable: true },
+  { id: 16, sku: 'SKU-2023-016', name: 'Sticky Notes Neon', category_id: 1, category_name: 'ATK', stock: 30, unit: 'Pack', description: 'Sticky notes warna neon untuk penanda dokumen.', image_url: null, is_loanable: false },
+  { id: 17, sku: 'SKU-2023-017', name: 'Spidol Whiteboard (Biru)', category_id: 1, category_name: 'ATK', stock: 25, unit: 'Unit', description: 'Spidol whiteboard warna biru.', image_url: null, is_loanable: false },
+  { id: 18, sku: 'SKU-2023-018', name: 'Buku Induk Siswa 2023', category_id: 1, category_name: 'ATK', stock: 10, unit: 'Unit', description: 'Buku induk untuk pencatatan data siswa tahun 2023.', image_url: null, is_loanable: false },
 ];
 
 export const requests: Request[] = [
