@@ -116,6 +116,7 @@ img {
 }
 
 .globalModal {
+  position: relative;
   background: var(--white);
   border-radius: var(--radius-xl);
   padding: 40px;
@@ -124,6 +125,30 @@ img {
   text-align: center;
   box-shadow: var(--shadow-lg);
   animation: fadeInUp var(--transition-normal) forwards;
+}
+
+.globalModalClose {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--light-text);
+  font-size: 18px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  z-index: 10;
+}
+
+.globalModalClose:hover {
+  background: var(--cream);
+  color: var(--dark-text);
 }
 
 .globalModal.closing {

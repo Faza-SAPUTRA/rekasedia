@@ -159,6 +159,9 @@ export default function AdminRequestsPage() {
       {confirmModal && (
         <div className={`globalModalOverlay ${isClosing ? 'closing' : ''}`} onClick={closeModal}>
           <div className={`globalModal ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <button className="globalModalClose" onClick={closeModal} title="Tutup">
+                <i className="fas fa-times"></i>
+            </button>
             <div className={`globalModalIcon ${confirmModal.type === 'APPROVED' ? 'success' : 'error'}`}>
               <i className={`fas ${confirmModal.type === 'APPROVED' ? 'fa-check' : 'fa-times'}`}></i>
             </div>

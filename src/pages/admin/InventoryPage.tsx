@@ -153,6 +153,9 @@ export default function InventoryPage() {
     return (
       <div className="globalModalOverlay animate-fade-in">
         <div className="globalModal" style={{ maxWidth: activeModal === 'add' || activeModal === 'edit' ? '600px' : '420px' }}>
+          <button className="globalModalClose" onClick={closeModal} title="Tutup">
+            <i className="fas fa-times"></i>
+          </button>
           
           {/* Add / Edit Modal */}
           {(activeModal === 'add' || activeModal === 'edit') && (
@@ -432,6 +435,9 @@ export default function InventoryPage() {
       {showSuccess && (
         <div className="globalModalOverlay animate-fade-in">
           <div className="globalModal">
+            <button className="globalModalClose" onClick={() => setShowSuccess(false)}>
+              <i className="fas fa-times"></i>
+            </button>
             <div className="globalModalIcon success">
               <i className="fas fa-check"></i>
             </div>

@@ -254,6 +254,9 @@ export default function ReportsPage() {
       {isExportOpen && (
         <div className={`globalModalOverlay ${isClosing ? 'closing' : ''}`} onClick={closeExportModal}>
           <div className={`globalModal ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
+            <button className="globalModalClose" onClick={closeExportModal} title="Tutup">
+                <i className="fas fa-times"></i>
+            </button>
             <div className="globalModalIcon">
               <i className="fas fa-file-export"></i>
             </div>
