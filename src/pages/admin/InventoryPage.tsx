@@ -195,9 +195,9 @@ export default function InventoryPage() {
                 </div>
               </div>
               
-              <div className={styles.modalFooter}>
-                <button className={styles.secondaryBtn} onClick={closeModal}>Batal</button>
-                <button className="globalModalBtnConfirm" style={{ padding: '12px 32px' }} onClick={handleSaveItem}>Simpan Perubahan</button>
+              <div className="globalModalBtns" style={{ marginTop: '32px' }}>
+                <button className="globalModalBtnCancel" onClick={closeModal}>Batal</button>
+                <button className="globalModalBtnConfirm" onClick={handleSaveItem}>Simpan Perubahan</button>
               </div>
             </div>
           )}
@@ -252,7 +252,7 @@ export default function InventoryPage() {
                 </div>
               </div>
               
-              <div className={styles.modalFooter}>
+              <div className="globalModalBtns" style={{ marginTop: '24px' }}>
                 <button className="globalModalBtnConfirm" style={{ width: '100%' }} onClick={closeModal}>Terapkan Filter</button>
               </div>
             </div>
