@@ -4,17 +4,36 @@ import { fetchItems, fetchCategories } from '../../services/api';
 
 const ITEMS_PER_PAGE = 10;
 
+type ModalType = 'add' | 'edit' | 'delete' | 'filter' | null;
+
 export default function InventoryPage() {
   const [items, setItems] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Table Filters State
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('Semua Kategori');
   const [statusFilter, setStatusFilter] = useState('Semua Status');
   const [sortOrder, setSortOrder] = useState('Nama A-Z');
   const [currentPage, setCurrentPage] = useState(1);
   
-  const [isLoading, setIsLoading] = useState(true);
+  // Modal State
+  const [activeModal, setActiveModal] = useState<ModalType>(null);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  // Form State (for Add/Edit)
+  const [formData, setFormData] = useState({
+    name: '',
+    sku: '',
+    category_id: 1,
+    category_name: 'ATK',
+    stock: 0,
+    unit: 'Unit',
+    description: ''
+  });
 
   useEffect(() => {
     const loadData = async () => {
@@ -79,6 +98,171 @@ export default function InventoryPage() {
     return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--gray-text)' }}>Memuat data inventaris...</div>;
   }
 
+  // --- Handlers ---
+  const openAddModal = () => {
+    setFormData({ name: '', sku: `SKU-${new Date().getFullYear()}-${Math.floor(Math.random()*900)+100}`, category_id: 1, category_name: 'ATK', stock: 0, unit: 'Unit', description: '' });
+    setActiveModal('add');
+  };
+
+  const openEditModal = (item: any) => {
+    setSelectedItem(item);
+    setFormData({ ...item });
+    setActiveModal('edit');
+  };
+
+  const openDeleteModal = (item: any) => {
+    setSelectedItem(item);
+    setActiveModal('delete');
+  };
+
+  const closeModal = () => {
+    setActiveModal(null);
+    setSelectedItem(null);
+  };
+
+  const triggerSuccess = (msg: string) => {
+    setSuccessMessage(msg);
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 2500);
+  };
+
+  const handleSaveItem = () => {
+    // Mock Save
+    if (activeModal === 'add') {
+        const newItem = { id: Date.now(), ...formData };
+        setItems([newItem, ...items]);
+        triggerSuccess('Barang berhasil ditambahkan ke sistem.');
+    } else if (activeModal === 'edit') {
+        setItems(items.map(i => i.id === selectedItem.id ? { ...formData } : i));
+        triggerSuccess('Data barang berhasil diperbarui.');
+    }
+    closeModal();
+  };
+
+  const handleDeleteItem = () => {
+    // Mock Delete
+    setItems(items.filter(i => i.id !== selectedItem.id));
+    triggerSuccess(`Barang "${selectedItem.name}" berhasil dihapus.`);
+    closeModal();
+  };
+
+  // --- Modal Renderer ---
+  const renderModals = () => {
+    if (!activeModal) return null;
+
+    return (
+      <div className="globalModalOverlay animate-fade-in">
+        <div className="globalModal" style={{ maxWidth: activeModal === 'add' || activeModal === 'edit' ? '600px' : '420px' }}>
+          
+          {/* Add / Edit Modal */}
+          {(activeModal === 'add' || activeModal === 'edit') && (
+            <div className={styles.modalForm}>
+              <div className="globalModalIcon" style={{ margin: '0 0 16px 0', width: '48px', height: '48px', fontSize: '20px' }}>
+                <i className={`fas fa-${activeModal === 'add' ? 'plus' : 'edit'}`}></i>
+              </div>
+              <h3>{activeModal === 'add' ? 'Tambah Barang Baru' : 'Edit Data Barang'}</h3>
+              <p>Pastikan informasi barang yang dimasukkan sudah sesuai dengan fisik inventaris.</p>
+              
+              <div className={styles.modalFormGrid}>
+                <div className={styles.formGroup}>
+                  <label>Nama Barang</label>
+                  <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Contoh: Kertas HVS A4" />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>SKU Barang</label>
+                  <input type="text" value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value})} placeholder="SKU-2023-XXX" />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Kategori</label>
+                  <select value={formData.category_name} onChange={e => setFormData({...formData, category_name: e.target.value})}>
+                    {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Satuan</label>
+                  <input type="text" value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} placeholder="Pcs, Rim, Set, dsb." />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Stok Awal</label>
+                  <input type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: parseInt(e.target.value) || 0})} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Dapat Dipinjam?</label>
+                  <select>
+                    <option value="false">Tidak (Habis Pakai)</option>
+                    <option value="true">Ya (Aset/Pinjaman)</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className={styles.modalFooter}>
+                <button className={styles.secondaryBtn} onClick={closeModal}>Batal</button>
+                <button className="globalModalBtnConfirm" style={{ padding: '12px 32px' }} onClick={handleSaveItem}>Simpan Perubahan</button>
+              </div>
+            </div>
+          )}
+
+          {/* Delete Modal */}
+          {activeModal === 'delete' && (
+            <div>
+              <div className="globalModalIcon" style={{ background: 'var(--badge-red-bg)', color: 'var(--error-red)' }}>
+                <i className="fas fa-trash-alt"></i>
+              </div>
+              <h3>Hapus Barang?</h3>
+              <div className={styles.deleteConfirmText}>
+                Apakah Anda yakin ingin menghapus <span className={styles.deleteItemName}>{selectedItem?.name}</span> dari daftar inventaris? Tindakan ini tidak dapat dibatalkan.
+              </div>
+              <div className="globalModalBtns">
+                <button className="globalModalBtnCancel" onClick={closeModal}>Batal</button>
+                <button className="globalModalBtnConfirm" style={{ background: 'var(--error-red)', borderColor: 'var(--error-red)' }} onClick={handleDeleteItem}>Ya, Hapus Barang</button>
+              </div>
+            </div>
+          )}
+
+          {/* Filter Modal */}
+          {activeModal === 'filter' && (
+            <div className={styles.modalForm}>
+              <div className="globalModalIcon" style={{ margin: '0 0 16px 0', width: '48px', height: '48px', fontSize: '20px' }}>
+                <i className="fas fa-sliders-h"></i>
+              </div>
+              <h3>Filter Lanjutan</h3>
+              <p>Gunakan filter ini untuk pencarian data yang lebih spesifik.</p>
+              
+              <div className={styles.filterModalGrid}>
+                <div className={styles.formGroup}>
+                  <label>Urutkan Berdasarkan</label>
+                  <select value={sortOrder} onChange={e => setSortOrder(e.target.value)}>
+                    {sortOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                  </select>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Status Ketersediaan</label>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {statusOptions.map(opt => (
+                        <button 
+                            key={opt} 
+                            onClick={() => setStatusFilter(opt)}
+                            className={styles.pageBtn} 
+                            style={{ width: 'auto', padding: '0 12px', borderColor: statusFilter === opt ? 'var(--sage-green)' : 'var(--border-color)', color: statusFilter === opt ? 'var(--sage-green)' : 'var(--medium-text)' }}
+                        >
+                            {opt}
+                        </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              <div className={styles.modalFooter}>
+                <button className="globalModalBtnConfirm" style={{ width: '100%' }} onClick={closeModal}>Terapkan Filter</button>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="animate-fade-in">
       {/* Breadcrumbs & Header */}
@@ -89,7 +273,7 @@ export default function InventoryPage() {
             </div>
             <h1 className={styles.inventoryTitle}>Manajemen Inventaris Barang</h1>
         </div>
-        <button className={styles.addBtn}>
+        <button className={styles.addBtn} onClick={openAddModal}>
           <i className="fas fa-plus-circle"></i>
           Tambah Barang Baru
         </button>
@@ -139,23 +323,9 @@ export default function InventoryPage() {
                 </select>
                 <i className="fas fa-chevron-down" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: '10px', color: 'var(--light-text)' }}></i>
             </div>
-
-            <div style={{ position: 'relative' }}>
-                <select 
-                  className={styles.customSelect}
-                  value={sortOrder}
-                  onChange={(e) => {
-                    setSortOrder(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                >
-                  {sortOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                </select>
-                <i className="fas fa-chevron-down" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: '10px', color: 'var(--light-text)' }}></i>
-            </div>
           </div>
 
-          <div className={styles.advancedFilter}>
+          <div className={styles.advancedFilter} onClick={() => setActiveModal('filter')}>
             <i className="fas fa-cog"></i>
             Filter Lanjutan
           </div>
@@ -206,10 +376,10 @@ export default function InventoryPage() {
                   <td style={{ fontWeight: 500, color: 'var(--medium-text)' }}>{item.unit}</td>
                   <td>
                     <div className={styles.actions} style={{ justifyContent: 'center' }}>
-                      <button className={`${styles.actionBtn} ${styles.editBtn}`} title="Edit">
+                      <button className={`${styles.actionBtn} ${styles.editBtn}`} title="Edit" onClick={() => openEditModal(item)}>
                         <i className="fas fa-edit"></i>
                       </button>
-                      <button className={`${styles.actionBtn} ${styles.deleteBtn}`} title="Hapus">
+                      <button className={`${styles.actionBtn} ${styles.deleteBtn}`} title="Hapus" onClick={() => openDeleteModal(item)}>
                         <i className="fas fa-trash-alt"></i>
                       </button>
                     </div>
@@ -254,6 +424,22 @@ export default function InventoryPage() {
           </div>
         </div>
       </div>
+
+      {/* Render Modals */}
+      {renderModals()}
+
+      {/* Success Feedback Modal */}
+      {showSuccess && (
+        <div className="globalModalOverlay animate-fade-in">
+          <div className="globalModal">
+            <div className="globalModalIcon success">
+              <i className="fas fa-check"></i>
+            </div>
+            <h3>Berhasil!</h3>
+            <p>{successMessage}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
