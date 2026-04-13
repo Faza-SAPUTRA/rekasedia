@@ -1,5 +1,10 @@
 # Catatan Materi Presentasi: Proyek RekaSedia
 
+> [!TIP]
+> **Akses Demo (Login)**:
+> - **Admin**: Ketik `admin` (Password bebas)
+> - **Guru**: Ketik `guru` (Password bebas)
+
 ## 1. Tahap Empathize & Define (Memahami Masalah)
 Proyek ini bermula dari keresahan manajemen sarana dan prasarana (Sarpras) di sekolah:
 - **Masalah**: Proses permintaan alat tulis kantor (ATK) dan peminjaman aset seringkali tidak tercatat dengan rapi, masih manual, dan sulit dipantau progresnya.

@@ -1,0 +1,428 @@
+/* ============================================
+   RekaSedia — Admin Inventory Management Table
+   Isolated CSS Module for Admin View
+   ============================================ */
+
+.inventoryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  animation: fadeIn 0.5s ease both;
+}
+
+.breadcrumb {
+  font-size: 13px;
+  color: var(--gray-text);
+  margin-bottom: 4px;
+  font-family: var(--font-primary);
+}
+
+.breadcrumb span {
+  color: var(--sage-green);
+  font-weight: 600;
+}
+
+.inventoryTitle {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--dark-text);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.addBtn {
+  background-color: var(--sage-green);
+  color: var(--white);
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-primary);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.addBtn:hover {
+  background-color: var(--sage-green-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* --- Improved Filter Container --- */
+.filterContainer {
+  background: var(--white);
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 24px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-card);
+}
+
+.searchBarWrapper {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.searchBarWrapper i {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--light-text);
+  font-size: 16px;
+}
+
+.searchBarWrapper input {
+  width: 100%;
+  padding: 14px 14px 14px 50px;
+  border: 1.5px solid var(--light-gray);
+  border-radius: var(--radius-md);
+  background-color: var(--sidebar-bg);
+  font-size: 14px;
+  font-family: var(--font-primary);
+  color: var(--dark-text);
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.searchBarWrapper input:focus {
+  border-color: var(--sage-green);
+  background-color: var(--white);
+  box-shadow: 0 0 0 4px rgba(138, 158, 138, 0.1);
+}
+
+.filterRows {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.filterGroup {
+  display: flex;
+  gap: 12px;
+}
+
+/* Custom Dropdown Simulation */
+.customSelect {
+  padding: 10px 16px;
+  border: 1.5px solid var(--light-gray);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--medium-text);
+  font-family: var(--font-primary);
+  font-weight: 600;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--transition-fast);
+}
+
+.customSelect:hover {
+  border-color: var(--sage-green);
+  color: var(--sage-green);
+}
+
+.advancedFilter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gray-text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.advancedFilter:hover {
+  color: var(--dark-text);
+}
+
+/* --- Table Styles (Matching adminRequests) --- */
+.tableWrapper {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-card);
+}
+
+.adminTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.adminTable th {
+  text-align: left;
+  padding: 16px 20px;
+  background-color: var(--table-header-bg);
+  color: var(--table-header-text);
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 2px solid rgba(0,0,0,0.05);
+}
+
+.adminTable td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--cream-dark);
+  vertical-align: middle;
+  font-family: var(--font-primary);
+  font-size: 13px;
+  color: var(--dark-text);
+}
+
+.itemRow {
+  transition: background var(--transition-fast);
+}
+
+.itemRow:hover {
+  background-color: var(--cream);
+}
+
+.itemName {
+  font-weight: 700;
+  color: var(--dark-text);
+  font-size: 14px;
+}
+
+.itemSku {
+  font-size: 11px;
+  color: var(--gray-text);
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.itemThumb {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  background-color: var(--dark-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.categoryBadge {
+  padding: 4px 12px;
+  border-radius: var(--radius-xl);
+  background-color: var(--badge-green-bg);
+  color: var(--badge-green-text);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stockWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.stockIcons {
+  font-size: 14px;
+}
+
+.stockLow { color: var(--warning-orange); }
+.stockEmpty { color: var(--error-red); }
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1.5px solid var(--light-gray);
+  background: var(--white);
+  transition: all var(--transition-fast);
+  color: var(--medium-text);
+  padding: 0;
+}
+
+.editBtn:hover {
+  border-color: var(--sage-green);
+  color: var(--sage-green);
+  background: var(--badge-green-bg);
+}
+
+.deleteBtn:hover {
+  border-color: var(--error-red);
+  color: var(--error-red);
+  background: var(--badge-red-bg);
+}
+
+/* --- Pagination Row --- */
+.paginationRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: var(--white);
+  border-top: 1px solid var(--border-color);
+}
+
+/* --- Modal Content Specifics --- */
+
+.modalForm {
+  text-align: left;
+}
+
+.modalFormGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.formGroup label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dark-text);
+  margin-bottom: 8px;
+  font-family: var(--font-primary);
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--light-gray);
+  border-radius: var(--radius-md);
+  font-family: var(--font-primary);
+  font-size: 14px;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  border-color: var(--sage-green);
+  box-shadow: 0 0 0 4px rgba(138, 158, 138, 0.1);
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--cream-dark);
+}
+
+.secondaryBtn {
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border-color);
+  background: var(--white);
+  color: var(--dark-text);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.secondaryBtn:hover {
+  background: var(--cream);
+  border-color: var(--dark-text);
+}
+
+.deleteConfirmText {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--medium-text);
+  margin-bottom: 24px;
+}
+
+.deleteItemName {
+  color: var(--dark-text);
+  font-weight: 700;
+  background: var(--cream);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.filterModalGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  text-align: left;
+}
+
+.paginationInfo {
+  color: var(--gray-text);
+  font-size: 13px;
+  font-family: var(--font-primary);
+}
+
+.pagination {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pageBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  background: var(--white);
+  color: var(--medium-text);
+  font-weight: 600;
+  font-size: 13px;
+  transition: all var(--transition-fast);
+}
+
+.pageBtn.active {
+  background-color: var(--sage-green);
+  color: var(--white);
+  border-color: var(--sage-green);
+}
+
+.pageBtn:hover:not(.active) {
+  border-color: var(--sage-green);
+  color: var(--sage-green);
+}
+
+.pageNavBtn {
+  color: var(--gray-text);
+  cursor: pointer;
+  padding: 0 8px;
+  font-size: 18px;
+  transition: color var(--transition-fast);
+}
+
+.pageNavBtn:hover {
+  color: var(--dark-text);
+}

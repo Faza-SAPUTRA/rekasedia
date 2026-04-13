@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import styles from '../../styles/inventory.module.css';
+import styles from '../../styles/adminInventory.module.css';
 import { fetchItems, fetchCategories } from '../../services/api';
 
 const ITEMS_PER_PAGE = 10;

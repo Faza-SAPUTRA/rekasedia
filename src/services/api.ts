@@ -28,7 +28,13 @@ export interface LoginResponse {
 export async function login(email: string, password: string): Promise<LoginResponse> {
   if (USE_MOCK) {
     console.log('[MOCK] Login attempt:', email);
-    const user = mockData.users.find(u => u.email === email) || mockData.users[0];
+    
+    // Support simple aliases for easier demos
+    let targetEmail = email;
+    if (email.toLowerCase() === 'admin') targetEmail = 'admin@rekasedia.sch.id';
+    if (email.toLowerCase() === 'guru') targetEmail = 'sarah.putri@rekasedia.sch.id';
+
+    const user = mockData.users.find(u => u.email === targetEmail) || mockData.users[0];
     return {
       token: 'mock-jwt-token-12345',
       user: { ...user }
