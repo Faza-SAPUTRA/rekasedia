@@ -1,9 +1,13 @@
 // ============================================
 // RekaSedia — API Service Layer
 // Wrapper fetch untuk semua endpoint backend
+// With Mock Mode support for Vercel/Demos
 // ============================================
 
+import * as mockData from '../data/mockData';
+
 const API_BASE = '/api';
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
 // --- Helper: get token dari localStorage ---
 function getToken(): string | null {
@@ -22,6 +26,15 @@ export interface LoginResponse {
 }
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
+  if (USE_MOCK) {
+    console.log('[MOCK] Login attempt:', email);
+    const user = mockData.users.find(u => u.email === email) || mockData.users[0];
+    return {
+      token: 'mock-jwt-token-12345',
+      user: { ...user }
+    };
+  }
+
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -35,6 +48,13 @@ export async function login(email: string, password: string): Promise<LoginRespo
 }
 
 export async function register(data: { full_name: string; email: string; password: string; role?: string; department?: string }): Promise<LoginResponse> {
+  if (USE_MOCK) {
+    return {
+      token: 'mock-jwt-token-new',
+      user: { id: Date.now(), full_name: data.full_name, email: data.email, role: (data.role as any) || 'guru', department: data.department || 'Umum' }
+    };
+  }
+
   const res = await fetch(`${API_BASE}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -49,12 +69,16 @@ export async function register(data: { full_name: string; email: string; passwor
 
 // --- Items ---
 export async function fetchItems() {
+  if (USE_MOCK) return mockData.items;
+
   const res = await fetch(`${API_BASE}/items`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Gagal mengambil data barang');
   return res.json();
 }
 
 export async function fetchCategories() {
+  if (USE_MOCK) return mockData.categories;
+
   const res = await fetch(`${API_BASE}/items/categories/all`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Gagal mengambil data kategori');
   return res.json();
@@ -62,12 +86,41 @@ export async function fetchCategories() {
 
 // --- Requests ---
 export async function fetchRequests() {
+  if (USE_MOCK) {
+    const saved = localStorage.getItem('mock_requests');
+    return saved ? JSON.parse(saved) : mockData.requests;
+  }
+
   const res = await fetch(`${API_BASE}/requests`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Gagal mengambil data permintaan');
   return res.json();
 }
 
 export async function createRequest(items: { item_id: number; quantity: number }[], requester_id: number) {
+  if (USE_MOCK) {
+    console.log('[MOCK] Create request:', items);
+    const existingRaw = localStorage.getItem('mock_requests');
+    const existing = existingRaw ? JSON.parse(existingRaw) : [...mockData.requests];
+    
+    // Add new (simplified mock)
+    const newReq = {
+        id: Date.now(),
+        req_code: `REQ-MOCK-${Date.now().toString().slice(-4)}`,
+        item_id: items[0].item_id,
+        item_name: mockData.items.find(i => i.id === items[0].item_id)?.name || 'Unknown Item',
+        requester_name: 'User Mock',
+        requester_role: 'guru',
+        quantity: items[0].quantity,
+        request_date: new Date().toLocaleDateString(),
+        status: 'PENDING',
+        priority: 'REGULER'
+    };
+    
+    const updated = [newReq, ...existing];
+    localStorage.setItem('mock_requests', JSON.stringify(updated));
+    return { message: 'Permintaan berhasil (MOCK)' };
+  }
+
   const res = await fetch(`${API_BASE}/requests`, {
     method: 'POST',
     headers: authHeaders(),
@@ -78,6 +131,14 @@ export async function createRequest(items: { item_id: number; quantity: number }
 }
 
 export async function updateRequestStatus(id: number, status: 'APPROVED' | 'REJECTED', reviewed_by?: number) {
+  if (USE_MOCK) {
+    const existingRaw = localStorage.getItem('mock_requests');
+    let existing = existingRaw ? JSON.parse(existingRaw) : [...mockData.requests];
+    existing = existing.map((r: any) => r.id === id ? { ...r, status } : r);
+    localStorage.setItem('mock_requests', JSON.stringify(existing));
+    return { message: 'Status diupdate (MOCK)' };
+  }
+
   const res = await fetch(`${API_BASE}/requests/${id}`, {
     method: 'PUT',
     headers: authHeaders(),
@@ -89,12 +150,16 @@ export async function updateRequestStatus(id: number, status: 'APPROVED' | 'REJE
 
 // --- Loans ---
 export async function fetchLoans() {
+  if (USE_MOCK) return mockData.loans;
+
   const res = await fetch(`${API_BASE}/loans`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Gagal mengambil data peminjaman');
   return res.json();
 }
 
 export async function returnLoan(id: number) {
+  if (USE_MOCK) return { message: 'Barang dikembalikan (MOCK)' };
+
   const res = await fetch(`${API_BASE}/loans/${id}/return`, {
     method: 'PUT',
     headers: authHeaders(),
@@ -105,6 +170,8 @@ export async function returnLoan(id: number) {
 
 // --- Reports & Stats ---
 export async function fetchReports() {
+  if (USE_MOCK) return mockData.monthlyReports;
+
   const res = await fetch(`${API_BASE}/reports`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Gagal mengambil data laporan');
   return res.json();
@@ -119,6 +186,22 @@ export interface DashboardStats {
 }
 
 export async function fetchStats(): Promise<DashboardStats> {
+  if (USE_MOCK) {
+    return {
+      totalItems: mockData.getTotalItemsCount(),
+      activeLoans: mockData.loans.length,
+      pendingRequests: mockData.requests.filter(r => r.status === 'PENDING').length,
+      criticalStockCount: mockData.getCriticalStockItems().length,
+      criticalItems: mockData.getCriticalStockItems().map(i => ({
+        id: i.id,
+        name: i.name,
+        stock: i.stock,
+        category_name: i.category_name,
+        unit: i.unit
+      }))
+    };
+  }
+
   const res = await fetch(`${API_BASE}/reports/stats`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Gagal mengambil statistik');
   return res.json();
