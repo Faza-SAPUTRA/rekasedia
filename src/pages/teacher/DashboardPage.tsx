@@ -1,18 +1,26 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from '../../styles/teacherDashboard.module.css';
-import { fetchItems } from '../../services/api';
+import { fetchItems, fetchTeacherStats, getUser, type TeacherStats } from '../../services/api';
 
 export default function TeacherDashboardPage() {
   const [frequentItems, setFrequentItems] = useState<any[]>([]);
+  const [stats, setStats] = useState<TeacherStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const itemsData = await fetchItems();
-        // Ambil beberapa item sebagai contoh
-        setFrequentItems(itemsData.slice(0, 3));
+        const user = getUser();
+        if (user) {
+          const [itemsData, statsData] = await Promise.all([
+            fetchItems(),
+            fetchTeacherStats(user.id)
+          ]);
+          // Ambil beberapa item sebagai contoh
+          setFrequentItems(itemsData.slice(0, 3));
+          setStats(statsData);
+        }
       } catch (err) {
         console.error('Gagal mengambil data', err);
       } finally {
@@ -27,7 +35,7 @@ export default function TeacherDashboardPage() {
   }
 
   return (
-    <div>
+    <div className="animate-fade-in">
       {/* Stats Row */}
       <div className={styles.statsRow}>
         {/* AKTIF */}
@@ -36,7 +44,7 @@ export default function TeacherDashboardPage() {
             <span className={styles.statTitle}>Sedang Dipinjam</span>
             <span className={`${styles.badge} ${styles.aktif}`}>AKTIF</span>
           </div>
-          <div className={styles.statValue}>12</div>
+          <div className={styles.statValue}>{stats?.activeLoansCount.toString().padStart(2, '0') || '00'}</div>
         </div>
 
         {/* PROSES */}
@@ -45,16 +53,16 @@ export default function TeacherDashboardPage() {
             <span className={styles.statTitle}>Permintaan Diproses</span>
             <span className={`${styles.badge} ${styles.proses}`}>PROSES</span>
           </div>
-          <div className={styles.statValue}>05</div>
+          <div className={styles.statValue}>04</div>
         </div>
 
         {/* TOTAL */}
         <div className={`${styles.statCard} ${styles.total}`}>
           <div className={styles.statHeader}>
-            <span className={styles.statTitle}>Riwayat Ambil</span>
+            <span className={styles.statTitle}>Total Pinjam/Ambil</span>
             <span className={`${styles.badge} ${styles.total}`}>TOTAL</span>
           </div>
-          <div className={styles.statValue}>28</div>
+          <div className={styles.statValue}>{stats?.historyCount.toString().padStart(2, '0') || '00'}</div>
         </div>
       </div>
 
@@ -70,21 +78,21 @@ export default function TeacherDashboardPage() {
         {frequentItems.map((item, idx) => (
           <div key={`${item.id}-${idx}`} className={styles.itemCard}>
             <div className={styles.itemImage}>
-              <i className="fas fa-box-open"></i>
+              <i className={`fas fa-${item.is_loanable ? 'laptop' : 'box-open'}`}></i>
             </div>
             <div className={styles.itemName}>{item.name}</div>
             <div className={styles.itemCategory}>{item.category_name}</div>
             
             {item.is_loanable ? (
-              <button className={`${styles.actionBtn} ${styles.btnBorrow}`}>
+              <Link to="/teacher/inventory" className={`${styles.actionBtn} ${styles.btnBorrow}`}>
                 <i className="fas fa-arrow-circle-down"></i>
                 Pinjam Barang
-              </button>
+              </Link>
             ) : (
-              <button className={`${styles.actionBtn} ${styles.btnRequest}`}>
+              <Link to="/teacher/inventory" className={`${styles.actionBtn} ${styles.btnRequest}`}>
                 <i className="fas fa-plus"></i>
                 Minta Barang
-              </button>
+              </Link>
             )}
           </div>
         ))}

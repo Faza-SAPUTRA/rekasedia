@@ -48,6 +48,7 @@ export interface Loan {
   item_id: number;
   item_name: string;
   item_image: string | null;
+  borrower_id: number; // Added borrower_id for filtering
   borrower_name: string;
   borrow_date: string;
   due_date: string;
@@ -103,16 +104,18 @@ export const items: Item[] = [
 ];
 
 export const requests: Request[] = [
-  { id: 1, req_code: 'REQ-001', item_id: 2, item_name: 'Kertas A4 80gr', requester_name: 'Budi Utomo', requester_role: 'Guru Matematika', quantity: 5, request_date: '24 Okt 2023', status: 'PENDING', priority: 'REGULER' },
-  { id: 2, req_code: 'REQ-002', item_id: 6, item_name: 'Tinta Printer HP Black', requester_name: 'Siti Aminah', requester_role: 'Tata Usaha', quantity: 2, request_date: '24 Okt 2023', status: 'PENDING', priority: 'URGENT' },
-  { id: 3, req_code: 'REQ-003', item_id: 17, item_name: 'Spidol Whiteboard (Biru)', requester_name: 'Ahmad Faisal', requester_role: 'Guru Fisika', quantity: 10, request_date: '23 Okt 2023', status: 'PENDING', priority: 'REGULER' },
-  { id: 4, req_code: 'REQ-004', item_id: 18, item_name: 'Buku Induk Siswa 2023', requester_name: 'Dewi Lestari', requester_role: 'Kesiswaan', quantity: 3, request_date: '23 Okt 2023', status: 'PENDING', priority: 'REGULER' },
+  { id: 1, req_code: 'REQ-2023-001', item_id: 2, item_name: 'Kertas A4 80gr', requester_name: 'Budi Utomo', requester_role: 'Guru Matematika', quantity: 5, request_date: '24 Okt 2023', status: 'PENDING', priority: 'REGULER' },
+  { id: 2, req_code: 'REQ-2023-002', item_id: 6, item_name: 'Tinta Printer HP Black', requester_name: 'Siti Aminah', requester_role: 'Tata Usaha', quantity: 2, request_date: '24 Okt 2023', status: 'PENDING', priority: 'URGENT' },
+  { id: 3, req_code: 'REQ-2023-003', item_id: 17, item_name: 'Spidol Whiteboard (Biru)', requester_name: 'Ahmad Faisal', requester_role: 'Guru Fisika', quantity: 10, request_date: '23 Okt 2023', status: 'PENDING', priority: 'REGULER' },
+  { id: 4, req_code: 'REQ-2023-004', item_id: 18, item_name: 'Buku Induk Siswa 2023', requester_name: 'Dewi Lestari', requester_role: 'Kesiswaan', quantity: 3, request_date: '23 Okt 2023', status: 'PENDING', priority: 'REGULER' },
 ];
 
 export const loans: Loan[] = [
-  { id: 1, item_id: 13, item_name: 'Digital Projector Epson X-400', item_image: null, borrower_name: 'Ibu Sarah Putri', borrow_date: '20 Okt 2023', due_date: '25 Okt 2023', status: 'DIPINJAM' },
-  { id: 2, item_id: 14, item_name: 'Portable Speaker JBL Boombox', item_image: null, borrower_name: 'Ibu Sarah Putri', borrow_date: '20 Okt 2023', due_date: '28 Okt 2023', status: 'DIPINJAM' },
-  { id: 3, item_id: 15, item_name: 'MacBook Air M2 Silver', item_image: null, borrower_name: 'Ibu Sarah Putri', borrow_date: '15 Okt 2023', due_date: '30 Okt 2023', status: 'DIPINJAM' },
+  { id: 1, item_id: 13, item_name: 'Digital Projector Epson X-400', item_image: null, borrower_id: 6, borrower_name: 'Ibu Sarah Putri', borrow_date: '20 Okt 2023', due_date: '25 Okt 2023', status: 'DIPINJAM' },
+  { id: 2, item_id: 14, item_name: 'Portable Speaker JBL Boombox', item_image: null, borrower_id: 6, borrower_name: 'Ibu Sarah Putri', borrow_date: '20 Okt 2023', due_date: '28 Okt 2023', status: 'DIPINJAM' },
+  { id: 3, item_id: 15, item_name: 'MacBook Air M2 Silver', item_image: null, borrower_id: 6, borrower_name: 'Ibu Sarah Putri', borrow_date: '15 Okt 2023', due_date: '30 Okt 2023', status: 'DIPINJAM' },
+  { id: 4, item_id: 9, item_name: 'Proyektor Digital LG-X1', item_image: null, borrower_id: 6, borrower_name: 'Ibu Sarah Putri', borrow_date: '10 Okt 2023', due_date: '15 Okt 2023', status: 'DIKEMBALIKAN' },
+  { id: 5, item_id: 13, item_name: 'Digital Projector Epson X-400', item_image: null, borrower_id: 1, borrower_name: 'Admin Staff', borrow_date: '18 Okt 2023', due_date: '22 Okt 2023', status: 'DIPINJAM' },
 ];
 
 export const monthlyReports: MonthlyReport[] = [
@@ -124,17 +127,14 @@ export const monthlyReports: MonthlyReport[] = [
   { id: 6, semester: 'Semester Ganjil 2025/2026', month_name: 'Juni', month_order: 6, total_items_ordered: 95, total_assets_borrowed: 9 },
 ];
 
-// Helper: get items with LOW stock for the stat card (≤ 5, consumable only)
 export function getLowStockItems(): Item[] {
   return items.filter(item => item.stock <= 5 && !item.is_loanable);
 }
 
-// Helper: get items with CRITICAL stock for the bottom section (≤ 3)
 export function getCriticalStockItems(): Item[] {
   return items.filter(item => item.stock <= 3 && !item.is_loanable);
 }
 
-// Helper: total items count
 export function getTotalItemsCount(): number {
   return items.reduce((sum, item) => sum + item.stock, 0);
 }
