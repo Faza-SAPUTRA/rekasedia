@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import styles from '../../styles/adminInventory.module.css';
 import { fetchItems, fetchCategories } from '../../services/api';
+import Modal from '../../components/Modal';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -127,7 +128,6 @@ export default function InventoryPage() {
   };
 
   const handleSaveItem = () => {
-    // Mock Save
     if (activeModal === 'add') {
         const newItem = { id: Date.now(), ...formData };
         setItems([newItem, ...items]);
@@ -140,7 +140,6 @@ export default function InventoryPage() {
   };
 
   const handleDeleteItem = () => {
-    // Mock Delete
     setItems(items.filter(i => i.id !== selectedItem.id));
     triggerSuccess(`Barang "${selectedItem.name}" berhasil dihapus.`);
     closeModal();
@@ -148,11 +147,9 @@ export default function InventoryPage() {
 
   // --- Modal Renderer ---
   const renderModals = () => {
-    if (!activeModal) return null;
-
     return (
-      <div className="globalModalOverlay animate-fade-in">
-        <div className="globalModal" style={{ maxWidth: activeModal === 'add' || activeModal === 'edit' ? '600px' : '420px' }}>
+      <Modal isOpen={activeModal !== null} onClose={closeModal}>
+        <div style={{ maxWidth: activeModal === 'add' || activeModal === 'edit' ? '600px' : '420px', width: '100%', margin: '0 auto' }}>
           <button className="globalModalClose" onClick={closeModal} title="Tutup">
             <i className="fas fa-times"></i>
           </button>
@@ -260,9 +257,8 @@ export default function InventoryPage() {
               </div>
             </div>
           )}
-
         </div>
-      </div>
+      </Modal>
     );
   };
 
@@ -428,24 +424,20 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      {/* Render Modals */}
+      {/* Render Modals via Portal */}
       {renderModals()}
 
-      {/* Success Feedback Modal */}
-      {showSuccess && (
-        <div className="globalModalOverlay animate-fade-in">
-          <div className="globalModal">
-            <button className="globalModalClose" onClick={() => setShowSuccess(false)}>
-              <i className="fas fa-times"></i>
-            </button>
-            <div className="globalModalIcon success">
-              <i className="fas fa-check"></i>
-            </div>
-            <h3>Berhasil!</h3>
-            <p>{successMessage}</p>
-          </div>
+      {/* Success Feedback Modal via Portal */}
+      <Modal isOpen={showSuccess} onClose={() => setShowSuccess(false)}>
+        <button className="globalModalClose" onClick={() => setShowSuccess(false)}>
+          <i className="fas fa-times"></i>
+        </button>
+        <div className="globalModalIcon success">
+          <i className="fas fa-check"></i>
         </div>
-      )}
+        <h3>Berhasil!</h3>
+        <p>{successMessage}</p>
+      </Modal>
     </div>
   );
 }

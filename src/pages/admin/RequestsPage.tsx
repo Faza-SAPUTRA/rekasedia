@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import styles from '../../styles/adminRequests.module.css';
 import { fetchRequests, updateRequestStatus, getUser } from '../../services/api';
+import Modal from '../../components/Modal';
 
 export default function AdminRequestsPage() {
   const [requests, setRequests] = useState<any[]>([]);
@@ -9,15 +10,6 @@ export default function AdminRequestsPage() {
 
   // Modal State
   const [confirmModal, setConfirmModal] = useState<{ id: number, type: 'APPROVED' | 'REJECTED', name: string } | null>(null);
-  const [isClosing, setIsClosing] = useState(false);
-
-  const closeModal = () => {
-    setIsClosing(true);
-    setTimeout(() => {
-      setConfirmModal(null);
-      setIsClosing(false);
-    }, 300); // Wait for fadeOutDown animation
-  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -55,6 +47,10 @@ export default function AdminRequestsPage() {
 
   const handleRejectClick = (id: number, name: string) => {
     setConfirmModal({ id, type: 'REJECTED', name });
+  };
+
+  const closeModal = () => {
+    setConfirmModal(null);
   };
 
   const handleConfirmAction = async () => {
@@ -155,38 +151,36 @@ export default function AdminRequestsPage() {
         </table>
       </div>
 
-      {/* Confirmation Modal */}
-      {confirmModal && (
-        <div className={`globalModalOverlay ${isClosing ? 'closing' : ''}`} onClick={closeModal}>
-          <div className={`globalModal ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-            <button className="globalModalClose" onClick={closeModal} title="Tutup">
-                <i className="fas fa-times"></i>
+      {/* Confirmation Modal - Using Portal */}
+      <Modal isOpen={confirmModal !== null} onClose={closeModal}>
+        <div style={{ maxWidth: '400px', width: '100%', margin: '0 auto' }}>
+          <button className="globalModalClose" onClick={closeModal} title="Tutup">
+              <i className="fas fa-times"></i>
+          </button>
+          <div className={`globalModalIcon ${confirmModal?.type === 'APPROVED' ? 'success' : 'error'}`} style={confirmModal?.type === 'REJECTED' ? { background: 'var(--badge-red-bg)', color: 'var(--error-red)' } : {}}>
+            <i className={`fas ${confirmModal?.type === 'APPROVED' ? 'fa-check' : 'fa-times'}`}></i>
+          </div>
+          <h3>Konfirmasi Tindakan</h3>
+          <p>
+            Apakah Anda yakin ingin <strong>{confirmModal?.type === 'APPROVED' ? 'MENYETUJUI' : 'MENOLAK'}</strong> permintaan untuk <strong>{confirmModal?.name}</strong>?
+          </p>
+          <div className="globalModalBtns">
+            <button 
+              className="globalModalBtnCancel" 
+              onClick={closeModal}
+            >
+              Batal
             </button>
-            <div className={`globalModalIcon ${confirmModal.type === 'APPROVED' ? 'success' : 'error'}`}>
-              <i className={`fas ${confirmModal.type === 'APPROVED' ? 'fa-check' : 'fa-times'}`}></i>
-            </div>
-            <h3>Konfirmasi Tindakan</h3>
-            <p>
-              Apakah Anda yakin ingin <strong>{confirmModal.type === 'APPROVED' ? 'MENYETUJUI' : 'MENOLAK'}</strong> permintaan untuk <strong>{confirmModal.name}</strong>?
-            </p>
-            <div className="globalModalBtns">
-              <button 
-                className="globalModalBtnCancel" 
-                onClick={closeModal}
-              >
-                Batal
-              </button>
-              <button 
-                className="globalModalBtnConfirm" 
-                onClick={handleConfirmAction}
-                style={confirmModal.type === 'REJECTED' ? { backgroundColor: 'var(--error-red)' } : {}}
-              >
-                Ya, Lanjutkan
-              </button>
-            </div>
+            <button 
+              className="globalModalBtnConfirm" 
+              onClick={handleConfirmAction}
+              style={confirmModal?.type === 'REJECTED' ? { backgroundColor: 'var(--error-red)', borderColor: 'var(--error-red)' } : {}}
+            >
+              Ya, Lanjutkan
+            </button>
           </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

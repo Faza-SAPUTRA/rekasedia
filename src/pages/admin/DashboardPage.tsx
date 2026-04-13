@@ -9,6 +9,7 @@ import {
 } from 'chart.js';
 import { fetchStats, fetchRequests, updateRequestStatus, type DashboardStats } from '../../services/api';
 import styles from '../../styles/adminDashboard.module.css';
+import Modal from '../../components/Modal';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
@@ -19,14 +20,9 @@ export default function DashboardPage() {
   
   // Modal State
   const [confirmModal, setConfirmModal] = useState<{ id: number, type: 'APPROVED' | 'REJECTED', name: string } | null>(null);
-  const [isClosing, setIsClosing] = useState(false);
 
   const closeModal = () => {
-    setIsClosing(true);
-    setTimeout(() => {
-      setConfirmModal(null);
-      setIsClosing(false);
-    }, 300); // Wait for fadeOutDown animation
+    setConfirmModal(null);
   };
 
   useEffect(() => {
@@ -37,7 +33,6 @@ export default function DashboardPage() {
           fetchRequests()
         ]);
         setStats(statsData);
-        // Tampilkan 5 permintaan terbaru saja di dashboard
         setReqs(reqsData.slice(0, 5));
       } catch (err) {
         console.error('Gagal mengambil data dashboard', err);
@@ -74,7 +69,6 @@ export default function DashboardPage() {
 
   const { pendingRequests, criticalStockCount, criticalItems } = stats;
 
-  // Weekly activity chart data
   const chartData = {
     labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum'],
     datasets: [
@@ -107,7 +101,6 @@ export default function DashboardPage() {
     <div>
       {/* Stats Cards */}
       <div className={styles.statsRow}>
-        {/* Card 1: Total Permintaan Hari Ini */}
         <div className={styles.statCard}>
           <div className={styles.statCardHeader}>
             <span>Total Permintaan Hari Ini</span>
@@ -119,7 +112,6 @@ export default function DashboardPage() {
           <div className={styles.statTrend}>↗ +12% dari kemarin</div>
         </div>
 
-        {/* Card 2: Stok Menipis */}
         <div className={`${styles.statCard} ${styles.alert}`}>
           <div className={styles.statCardHeader}>
             <span>Stok Menipis</span>
@@ -135,7 +127,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Card 3: Menunggu Validasi */}
         <div className={styles.statCard}>
           <div className={styles.statCardHeader}>
             <span>Menunggu Validasi</span>
@@ -225,7 +216,6 @@ export default function DashboardPage() {
 
       {/* Bottom Grid */}
       <div className={styles.bottomGrid}>
-        {/* Critical Stock */}
         <div className={styles.criticalCard}>
           <div className={styles.criticalHeader}>
             <i className="fas fa-exclamation-circle"></i>
@@ -241,7 +231,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Activity Summary */}
         <div className={styles.activityCard}>
           <div className={styles.activityHeader}>
             <h3>Ringkasan Aktivitas</h3>
@@ -253,38 +242,36 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Confirmation Modal */}
-      {confirmModal && (
-        <div className={`globalModalOverlay ${isClosing ? 'closing' : ''}`} onClick={closeModal}>
-          <div className={`globalModal ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-            <button className="globalModalClose" onClick={closeModal} title="Tutup">
-                <i className="fas fa-times"></i>
+      {/* Confirmation Modal - Using Portal */}
+      <Modal isOpen={confirmModal !== null} onClose={closeModal}>
+        <div style={{ maxWidth: '400px', width: '100%', margin: '0 auto' }}>
+          <button className="globalModalClose" onClick={closeModal} title="Tutup">
+              <i className="fas fa-times"></i>
+          </button>
+          <div className={`globalModalIcon ${confirmModal?.type === 'APPROVED' ? 'success' : 'error'}`} style={confirmModal?.type === 'REJECTED' ? { background: 'var(--badge-red-bg)', color: 'var(--error-red)' } : {}}>
+            <i className={`fas ${confirmModal?.type === 'APPROVED' ? 'fa-check' : 'fa-times'}`}></i>
+          </div>
+          <h3>Konfirmasi Tindakan</h3>
+          <p>
+            Apakah Anda yakin ingin <strong>{confirmModal?.type === 'APPROVED' ? 'MENYETUJUI' : 'MENOLAK'}</strong> permintaan untuk <strong>{confirmModal?.name}</strong>?
+          </p>
+          <div className="globalModalBtns">
+            <button 
+              className="globalModalBtnCancel" 
+              onClick={closeModal}
+            >
+              Batal
             </button>
-            <div className={`globalModalIcon ${confirmModal.type === 'APPROVED' ? 'success' : 'error'}`}>
-              <i className={`fas ${confirmModal.type === 'APPROVED' ? 'fa-check' : 'fa-times'}`}></i>
-            </div>
-            <h3>Konfirmasi Tindakan</h3>
-            <p>
-              Apakah Anda yakin ingin <strong>{confirmModal.type === 'APPROVED' ? 'MENYETUJUI' : 'MENOLAK'}</strong> permintaan untuk <strong>{confirmModal.name}</strong>?
-            </p>
-            <div className="globalModalBtns">
-              <button 
-                className="globalModalBtnCancel" 
-                onClick={closeModal}
-              >
-                Batal
-              </button>
-              <button 
-                className="globalModalBtnConfirm" 
-                onClick={handleConfirmAction}
-                style={confirmModal.type === 'REJECTED' ? { backgroundColor: 'var(--error-red)' } : {}}
-              >
-                Ya, Lanjutkan
-              </button>
-            </div>
+            <button 
+              className="globalModalBtnConfirm" 
+              onClick={handleConfirmAction}
+              style={confirmModal?.type === 'REJECTED' ? { backgroundColor: 'var(--error-red)', borderColor: 'var(--error-red)' } : {}}
+            >
+              Ya, Lanjutkan
+            </button>
           </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

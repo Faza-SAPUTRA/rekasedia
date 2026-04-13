@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import styles from '../styles/sidebar.module.css';
 import { logout } from '../services/api';
+import Modal from './Modal';
 
 interface NavItemDef {
   path: string;
@@ -89,36 +90,32 @@ export default function TeacherSidebar() {
         </button>
       </div>
 
-      {/* Logout Confirmation Modal */}
-      {showLogoutModal && (
-        <div className="globalModalOverlay animate-fade-in" style={{ zIndex: 10000 }}>
-          <div className="globalModal">
-            <button className="globalModalClose" onClick={() => setShowLogoutModal(false)}>
-              <i className="fas fa-times"></i>
-            </button>
-            <div className="globalModalIcon" style={{ background: 'var(--badge-red-bg)', color: 'var(--error-red)' }}>
-                <i className="fas fa-sign-out-alt"></i>
-            </div>
-            <h3>Yakin ingin keluar?</h3>
-            <p>Anda perlu masuk kembali untuk mengakses dashboard inventory sekolah.</p>
-            <div className="globalModalBtns">
-              <button 
-                className="globalModalBtnCancel" 
-                onClick={() => setShowLogoutModal(false)}
-              >
-                Batal
-              </button>
-              <button 
-                className="globalModalBtnConfirm" 
-                style={{ background: 'var(--error-red)', borderColor: 'var(--error-red)' }}
-                onClick={handleLogout}
-              >
-                Ya, Keluar Akun
-              </button>
-            </div>
-          </div>
+      {/* Logout Confirmation Modal - Using Portal */}
+      <Modal isOpen={showLogoutModal} onClose={() => setShowLogoutModal(false)}>
+        <button className="globalModalClose" onClick={() => setShowLogoutModal(false)}>
+          <i className="fas fa-times"></i>
+        </button>
+        <div className="globalModalIcon" style={{ background: 'var(--badge-red-bg)', color: 'var(--error-red)' }}>
+            <i className="fas fa-sign-out-alt"></i>
         </div>
-      )}
+        <h3>Yakin ingin keluar?</h3>
+        <p>Anda perlu masuk kembali untuk mengakses dashboard inventory sekolah.</p>
+        <div className="globalModalBtns">
+          <button 
+            className="globalModalBtnCancel" 
+            onClick={() => setShowLogoutModal(false)}
+          >
+            Batal
+          </button>
+          <button 
+            className="globalModalBtnConfirm" 
+            style={{ background: 'var(--error-red)', borderColor: 'var(--error-red)' }}
+            onClick={handleLogout}
+          >
+            Ya, Keluar Akun
+          </button>
+        </div>
+      </Modal>
     </aside>
   );
 }

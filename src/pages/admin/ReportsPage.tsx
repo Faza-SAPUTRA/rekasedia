@@ -11,6 +11,7 @@ import {
 import * as XLSX from 'xlsx';
 import { fetchReports } from '../../services/api';
 import styles from '../../styles/reports.module.css';
+import Modal from '../../components/Modal';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
@@ -20,14 +21,9 @@ export default function ReportsPage() {
 
   // Modal State
   const [isExportOpen, setIsExportOpen] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
 
   const closeExportModal = () => {
-    setIsClosing(true);
-    setTimeout(() => {
-      setIsExportOpen(false);
-      setIsClosing(false);
-    }, 300);
+    setIsExportOpen(false);
   };
 
   useEffect(() => {
@@ -251,46 +247,45 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {isExportOpen && (
-        <div className={`globalModalOverlay ${isClosing ? 'closing' : ''}`} onClick={closeExportModal}>
-          <div className={`globalModal ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
-            <button className="globalModalClose" onClick={closeExportModal} title="Tutup">
-                <i className="fas fa-times"></i>
+      {/* Export Modal - Using Portal */}
+      <Modal isOpen={isExportOpen} onClose={closeExportModal}>
+        <div style={{ width: '100%', maxWidth: '400px', margin: '0 auto' }}>
+          <button className="globalModalClose" onClick={closeExportModal} title="Tutup">
+              <i className="fas fa-times"></i>
+          </button>
+          <div className="globalModalIcon">
+            <i className="fas fa-file-export"></i>
+          </div>
+          <h3>Export Laporan Semester</h3>
+          <p>
+            Pilih format file untuk mengunduh rekapitulasi inventaris semester ini.
+          </p>
+          <div className="globalModalBtns" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <button 
+              className="globalModalBtnConfirm" 
+              onClick={handleExportXLSX}
+              style={{ backgroundColor: '#1d6f42', borderColor: '#1d6f42' }}
+            >
+              <i className="fas fa-file-excel" style={{ marginRight: '8px' }}></i>
+              Unduh format Excel (.xlsx)
             </button>
-            <div className="globalModalIcon">
-              <i className="fas fa-file-export"></i>
-            </div>
-            <h3>Export Laporan Semester</h3>
-            <p>
-              Pilih format file untuk mengunduh rekapitulasi inventaris semester ini.
-            </p>
-            <div className="globalModalBtns" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <button 
-                className="globalModalBtnConfirm" 
-                onClick={handleExportXLSX}
-                style={{ backgroundColor: '#1d6f42', borderColor: '#1d6f42' }}
-              >
-                <i className="fas fa-file-excel" style={{ marginRight: '8px' }}></i>
-                Unduh format Excel (.xlsx)
-              </button>
-              <button 
-                className="globalModalBtnConfirm" 
-                onClick={handleExportCSV}
-                style={{ backgroundColor: '#2196F3', borderColor: '#2196F3' }}
-              >
-                <i className="fas fa-file-csv" style={{ marginRight: '8px' }}></i>
-                Unduh format CSV (.csv)
-              </button>
-              <button 
-                className="globalModalBtnCancel" 
-                onClick={closeExportModal}
-              >
-                Batal
-              </button>
-            </div>
+            <button 
+              className="globalModalBtnConfirm" 
+              onClick={handleExportCSV}
+              style={{ backgroundColor: '#2196F3', borderColor: '#2196F3' }}
+            >
+              <i className="fas fa-file-csv" style={{ marginRight: '8px' }}></i>
+              Unduh format CSV (.csv)
+            </button>
+            <button 
+              className="globalModalBtnCancel" 
+              onClick={closeExportModal}
+            >
+              Batal
+            </button>
           </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }
