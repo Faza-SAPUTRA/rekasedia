@@ -25,10 +25,6 @@ export default function DashboardLayout() {
         <header className={styles.topBar}>
           <h2 className={styles.pageTitle}>{getTitle()}</h2>
           <div className={styles.topBarRight}>
-            <div className={styles.searchBox}>
-              <i className="fas fa-search"></i>
-              <input type="text" placeholder="Cari data..." />
-            </div>
             <button 
               className={styles.notifBtn} 
               aria-label="Notifikasi"
