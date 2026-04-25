@@ -12,6 +12,7 @@ import * as XLSX from 'xlsx';
 import { fetchReports } from '../../services/api';
 import styles from '../../styles/reports.module.css';
 import Modal from '../../components/Modal';
+import CustomSelect from '../../components/CustomSelect';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
@@ -21,6 +22,7 @@ export default function ReportsPage() {
 
   // Modal State
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const [semester, setSemester] = useState('ganjil-2025');
 
   const closeExportModal = () => {
     setIsExportOpen(false);
@@ -141,10 +143,16 @@ export default function ReportsPage() {
       {/* Semester Selector */}
       <div className={styles.semesterSection}>
         <div className={styles.semesterLabel}>Pilih Semester</div>
-        <select className={styles.semesterSelect} defaultValue="ganjil-2025">
-          <option value="ganjil-2025">Semester Ganjil 2025/2026</option>
-          <option value="genap-2024">Semester Genap 2024/2025</option>
-        </select>
+        <div style={{ width: '280px' }}>
+          <CustomSelect
+            value={semester}
+            onChange={setSemester}
+            options={[
+              { value: 'ganjil-2025', label: 'Semester Ganjil 2025/2026' },
+              { value: 'genap-2024', label: 'Semester Genap 2024/2025' }
+            ]}
+          />
+        </div>
       </div>
 
       {/* Data Table */}
