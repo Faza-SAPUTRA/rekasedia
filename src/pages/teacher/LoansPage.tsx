@@ -33,6 +33,18 @@ export default function TeacherLoansPage() {
     return dueDate.setHours(0,0,0,0) === today.setHours(0,0,0,0);
   };
 
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
   const handleReturnClick = (loan: any) => {
     setConfirmModal(loan);
   };
@@ -76,7 +88,7 @@ export default function TeacherLoansPage() {
       </div>
 
       {/* Loan Cards */}
-      <div style={{ display: 'grid', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '20px' }}>
         {loanList.map((loan) => {
           const overdue = isDueToday(loan.due_date);
           const returned = loan.status === 'DIKEMBALIKAN';
@@ -95,7 +107,7 @@ export default function TeacherLoansPage() {
                   <div className={styles.loanItemName}>{loan.item_name}</div>
                   <div className={styles.loanDate}>
                     <i className="fas fa-calendar-alt"></i>
-                    Dipinjam: {loan.borrow_date}
+                    Dipinjam: {formatDate(loan.borrow_date)}
                   </div>
                 </div>
 
@@ -111,7 +123,7 @@ export default function TeacherLoansPage() {
                     ) : (
                       <i className="fas fa-clock"></i>
                     )}
-                    {loan.due_date}
+                    {formatDate(loan.due_date)}
                   </div>
                   {overdue && !returned && <div className={styles.dueDateExtra}>(Hari Ini)</div>}
                 </div>
