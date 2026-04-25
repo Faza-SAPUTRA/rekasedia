@@ -1,236 +1,319 @@
--- ============================================
--- RekaSedia School Inventory System
--- MySQL Database Schema + Seed Data
--- Import this file into phpMyAdmin
--- ============================================
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Generation Time: Apr 25, 2026 at 03:31 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
--- Create database
-CREATE DATABASE IF NOT EXISTS rekasedia_db
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
 
-USE rekasedia_db;
 
--- ============================================
--- TABLE: users
--- ============================================
-DROP TABLE IF EXISTS users;
-CREATE TABLE users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  full_name VARCHAR(100) NOT NULL,
-  email VARCHAR(150) NOT NULL UNIQUE,
-  password_hash VARCHAR(255) NOT NULL,
-  role ENUM('admin', 'guru') NOT NULL DEFAULT 'guru',
-  department VARCHAR(100) DEFAULT NULL,
-  avatar_url VARCHAR(255) DEFAULT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
 
-INSERT INTO users (id, full_name, email, password_hash, role, department) VALUES
-(1, 'Admin Staff', 'admin@rekasedia.sch.id', '$2b$10$placeholder_hash_admin', 'admin', 'Administrasi');
+--
+-- Database: `rekasedia_db`
+--
 
-INSERT INTO users (id, full_name, email, password_hash, role, department) VALUES
-(2, 'Budi Utomo', 'budi.utomo@rekasedia.sch.id', '$2b$10$placeholder_hash_budi', 'guru', 'Matematika');
+-- --------------------------------------------------------
 
-INSERT INTO users (id, full_name, email, password_hash, role, department) VALUES
-(3, 'Siti Aminah', 'siti.aminah@rekasedia.sch.id', '$2b$10$placeholder_hash_siti', 'guru', 'Tata Usaha');
+--
+-- Table structure for table `categories`
+--
 
-INSERT INTO users (id, full_name, email, password_hash, role, department) VALUES
-(4, 'Ahmad Faisal', 'ahmad.faisal@rekasedia.sch.id', '$2b$10$placeholder_hash_ahmad', 'guru', 'Fisika');
+CREATE TABLE `categories` (
+  `id` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `description` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO users (id, full_name, email, password_hash, role, department) VALUES
-(5, 'Dewi Lestari', 'dewi.lestari@rekasedia.sch.id', '$2b$10$placeholder_hash_dewi', 'guru', 'Kesiswaan');
+--
+-- Dumping data for table `categories`
+--
 
-INSERT INTO users (id, full_name, email, password_hash, role, department) VALUES
-(6, 'Ibu Sarah Putri', 'sarah.putri@rekasedia.sch.id', '$2b$10$placeholder_hash_sarah', 'guru', 'Wali Kelas 10-A');
+INSERT INTO `categories` (`id`, `name`, `description`) VALUES
+(1, 'ATK', NULL),
+(2, 'Kertas', NULL),
+(3, 'Tinta & Toner', NULL),
+(4, 'Peralatan Kelas', NULL),
+(5, 'Elektronik', NULL);
 
--- ============================================
--- TABLE: categories
--- ============================================
-DROP TABLE IF EXISTS categories;
-CREATE TABLE categories (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(50) NOT NULL UNIQUE,
-  description VARCHAR(255) DEFAULT NULL
-) ENGINE=InnoDB;
+-- --------------------------------------------------------
 
-INSERT INTO categories (id, name, description) VALUES
-(1, 'ATK', 'Alat Tulis Kantor');
+--
+-- Table structure for table `items`
+--
 
-INSERT INTO categories (id, name, description) VALUES
-(2, 'Kertas', 'Produk kertas dan cetakan');
+CREATE TABLE `items` (
+  `id` int(11) NOT NULL,
+  `name` varchar(150) NOT NULL,
+  `category_id` int(11) NOT NULL,
+  `stock` int(11) NOT NULL DEFAULT 0,
+  `unit` varchar(20) NOT NULL DEFAULT 'Unit',
+  `description` text DEFAULT NULL,
+  `image_url` varchar(255) DEFAULT NULL,
+  `is_loanable` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO categories (id, name, description) VALUES
-(3, 'Elektronik', 'Peralatan elektronik dan digital');
+--
+-- Dumping data for table `items`
+--
 
-INSERT INTO categories (id, name, description) VALUES
-(4, 'Kebersihan', 'Alat kebersihan dan kesehatan');
+INSERT INTO `items` (`id`, `name`, `category_id`, `stock`, `unit`, `description`, `image_url`, `is_loanable`, `created_at`, `updated_at`) VALUES
+(1, 'Kertas HVS A4 80gsm', 2, 4, 'Rim', NULL, NULL, 0, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
+(2, 'Spidol Boardmarker Hitam', 1, 120, 'Pcs', NULL, NULL, 0, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
+(3, 'Spidol Boardmarker Merah', 1, 20, 'Pcs', NULL, NULL, 0, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
+(4, 'Tinta Printer Epson L3110 Hitam', 3, 12, 'Botol', NULL, NULL, 0, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
+(5, 'Proyektor Epson LCD K12', 5, 3, 'Unit', NULL, NULL, 1, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
+(6, 'Kabel HDMI 15 Meter', 5, 8, 'Pcs', NULL, NULL, 1, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
+(7, 'Speaker Aktif Portable JBL', 5, 2, 'Unit', NULL, NULL, 1, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
+(8, 'Penghapus Papan Tulis', 4, 45, 'Pcs', NULL, NULL, 0, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
+(9, 'Kertas Folio F4 70gsm', 2, 2, 'Rim', NULL, NULL, 0, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
+(10, 'Pulpen Gel Hitam', 1, 200, 'Pack', NULL, NULL, 0, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
+(11, 'Kabel Roll Terminal 10M', 5, 5, 'Unit', NULL, NULL, 1, '2026-04-13 13:10:41', '2026-04-13 13:10:41');
 
--- ============================================
--- TABLE: items
--- ============================================
-DROP TABLE IF EXISTS items;
-CREATE TABLE items (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(150) NOT NULL,
-  category_id INT NOT NULL,
-  stock INT NOT NULL DEFAULT 0,
-  unit VARCHAR(20) NOT NULL DEFAULT 'Unit',
-  description TEXT DEFAULT NULL,
-  image_url VARCHAR(255) DEFAULT NULL,
-  is_loanable TINYINT(1) NOT NULL DEFAULT 0,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (category_id) REFERENCES categories(id)
-) ENGINE=InnoDB;
+-- --------------------------------------------------------
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(1, 'Spidol Marker Set', 1, 15, 'Set', 'Spidol hitam anti-kering, tinta tebal untuk papan tulis kelas.', NULL, 0);
+--
+-- Table structure for table `loans`
+--
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(2, 'Kertas A4 80gr', 2, 2, 'Rim', 'Kertas 80gsm untuk penggandaan soal ujian & materi ajar.', NULL, 0);
+CREATE TABLE `loans` (
+  `id` int(11) NOT NULL,
+  `item_id` int(11) NOT NULL,
+  `borrower_id` int(11) NOT NULL,
+  `borrow_date` date NOT NULL,
+  `due_date` date NOT NULL,
+  `return_date` date DEFAULT NULL,
+  `status` enum('DIPINJAM','DIKEMBALIKAN') NOT NULL DEFAULT 'DIPINJAM',
+  `condition_note` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(3, 'Stapler Besar HD', 1, 8, 'Unit', 'Stapler heavy-duty untuk dokumen tebal.', NULL, 0);
+--
+-- Dumping data for table `loans`
+--
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(4, 'Buku Catatan Eksklusif', 1, 20, 'Unit', 'Buku catatan hardcover premium untuk pencatatan.', NULL, 0);
+INSERT INTO `loans` (`id`, `item_id`, `borrower_id`, `borrow_date`, `due_date`, `return_date`, `status`, `condition_note`, `created_at`) VALUES
+(1, 5, 2, '2025-11-18', '2025-11-18', NULL, 'DIKEMBALIKAN', NULL, '2026-04-13 13:10:41'),
+(2, 7, 3, '2025-11-20', '2025-11-22', NULL, 'DIPINJAM', NULL, '2026-04-13 13:10:41'),
+(3, 6, 4, '2025-11-21', '2026-04-14', NULL, 'DIPINJAM', NULL, '2026-04-13 13:10:41'),
+(4, 5, 2, '2026-04-13', '2026-04-13', NULL, 'DIPINJAM', NULL, '2026-04-13 13:10:41'),
+(5, 11, 3, '2025-11-10', '2025-11-11', NULL, '', NULL, '2026-04-13 13:10:41');
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(5, 'Kabel HDMI 4K 2m', 3, 12, 'Unit', 'Kabel HDMI 4K untuk koneksi proyektor.', NULL, 0);
+-- --------------------------------------------------------
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(6, 'Tinta Printer Black', 1, 4, 'Botol', 'Tinta printer HP Black untuk printer kantor.', NULL, 0);
+--
+-- Table structure for table `monthly_reports`
+--
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(7, 'Whiteboard Marker', 1, 45, 'Unit', 'Spidol hitam anti-kering, tinta tebal untuk papan tulis kelas.', NULL, 0);
+CREATE TABLE `monthly_reports` (
+  `id` int(11) NOT NULL,
+  `semester` varchar(50) NOT NULL,
+  `month_name` varchar(20) NOT NULL,
+  `month_order` int(11) NOT NULL,
+  `total_items_ordered` int(11) NOT NULL DEFAULT 0,
+  `total_assets_borrowed` int(11) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(8, 'Kertas A4 HVS', 2, 12, 'Rim', 'Kertas 80gsm untuk penggandaan soal ujian & materi ajar.', NULL, 0);
+--
+-- Dumping data for table `monthly_reports`
+--
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(9, 'Proyektor Digital', 3, 4, 'Unit', 'Unit proyektor portabel lengkap dengan kabel HDMI/VGA.', NULL, 1);
+INSERT INTO `monthly_reports` (`id`, `semester`, `month_name`, `month_order`, `total_items_ordered`, `total_assets_borrowed`) VALUES
+(1, '', 'Juli', 7, 450, 20),
+(2, '', 'Agustus', 8, 312, 15),
+(3, '', 'September', 9, 620, 48),
+(4, '', 'Oktober', 10, 410, 32),
+(5, '', 'November', 11, 385, 29),
+(6, '', 'Desember', 12, 120, 10),
+(7, '', 'Januari', 1, 450, 22),
+(8, '', 'Februari', 2, 320, 18),
+(9, '', 'Maret', 3, 890, 60),
+(10, '', 'April', 4, 210, 15);
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(10, 'Masker Medis', 4, 20, 'Box', 'Masker 3-ply standar kesehatan untuk kebutuhan UKS/Kelas.', NULL, 0);
+-- --------------------------------------------------------
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(11, 'Tinta Toner Laserjet', 1, 1, 'Unit', 'Toner untuk printer laserjet kantor.', NULL, 0);
+--
+-- Table structure for table `requests`
+--
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(12, 'Materai 10.000', 1, 3, 'Lembar', 'Materai tempel Rp10.000 untuk dokumen resmi.', NULL, 0);
+CREATE TABLE `requests` (
+  `id` int(11) NOT NULL,
+  `req_code` varchar(20) NOT NULL,
+  `item_id` int(11) NOT NULL,
+  `requester_id` int(11) NOT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 1,
+  `request_date` date NOT NULL,
+  `status` enum('PENDING','APPROVED','REJECTED') NOT NULL DEFAULT 'PENDING',
+  `priority` enum('REGULER','URGENT') NOT NULL DEFAULT 'REGULER',
+  `notes` text DEFAULT NULL,
+  `reviewed_by` int(11) DEFAULT NULL,
+  `reviewed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(13, 'Digital Projector Epson X-400', 3, 3, 'Unit', 'Proyektor Epson X-400 untuk ruang rapat dan kelas.', NULL, 1);
+--
+-- Dumping data for table `requests`
+--
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(14, 'Portable Speaker JBL Boombox', 3, 2, 'Unit', 'Speaker portabel JBL untuk kegiatan sekolah.', NULL, 1);
+INSERT INTO `requests` (`id`, `req_code`, `item_id`, `requester_id`, `quantity`, `request_date`, `status`, `priority`, `notes`, `reviewed_by`, `reviewed_at`, `created_at`) VALUES
+(1, 'REQ-202511-0001', 1, 2, 2, '2025-11-20', 'APPROVED', 'REGULER', NULL, NULL, NULL, '2026-04-13 13:10:41'),
+(2, 'REQ-202511-0002', 2, 3, 5, '2025-11-21', 'PENDING', 'URGENT', NULL, NULL, NULL, '2026-04-13 13:10:41'),
+(3, 'REQ-202511-0003', 10, 4, 2, '2025-11-19', 'REJECTED', 'REGULER', NULL, NULL, NULL, '2026-04-13 13:10:41'),
+(4, 'REQ-202511-0004', 8, 2, 10, '2025-11-22', 'PENDING', 'REGULER', NULL, NULL, NULL, '2026-04-13 13:10:41');
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(15, 'MacBook Air M2 Silver', 3, 1, 'Unit', 'Laptop MacBook Air M2 untuk keperluan presentasi.', NULL, 1);
+-- --------------------------------------------------------
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(16, 'Sticky Notes Neon', 1, 30, 'Pack', 'Sticky notes warna neon untuk penanda dokumen.', NULL, 0);
+--
+-- Table structure for table `users`
+--
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(17, 'Spidol Whiteboard (Biru)', 1, 25, 'Unit', 'Spidol whiteboard warna biru.', NULL, 0);
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL,
+  `full_name` varchar(100) NOT NULL,
+  `email` varchar(150) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `role` enum('admin','guru') NOT NULL DEFAULT 'guru',
+  `department` varchar(100) DEFAULT NULL,
+  `avatar_url` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO items (id, name, category_id, stock, unit, description, image_url, is_loanable) VALUES
-(18, 'Buku Induk Siswa 2023', 1, 10, 'Unit', 'Buku induk untuk pencatatan data siswa tahun 2023.', NULL, 0);
+--
+-- Dumping data for table `users`
+--
 
--- ============================================
--- TABLE: requests
--- ============================================
-DROP TABLE IF EXISTS requests;
-CREATE TABLE requests (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  req_code VARCHAR(20) NOT NULL UNIQUE,
-  item_id INT NOT NULL,
-  requester_id INT NOT NULL,
-  quantity INT NOT NULL DEFAULT 1,
-  request_date DATE NOT NULL,
-  status ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
-  priority ENUM('REGULER', 'URGENT') NOT NULL DEFAULT 'REGULER',
-  notes TEXT DEFAULT NULL,
-  reviewed_by INT DEFAULT NULL,
-  reviewed_at TIMESTAMP NULL DEFAULT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (item_id) REFERENCES items(id),
-  FOREIGN KEY (requester_id) REFERENCES users(id),
-  FOREIGN KEY (reviewed_by) REFERENCES users(id)
-) ENGINE=InnoDB;
+INSERT INTO `users` (`id`, `full_name`, `email`, `password_hash`, `role`, `department`, `avatar_url`, `created_at`, `updated_at`) VALUES
+(1, 'Admin Sarpras', 'admin@rekasedia.sch.id', '$2b$10$bgb7u.vOcnOGRq3XPE6Cau90SPGQpoNqyHE4bP/DQauOVCeq44b4y', 'admin', 'Sarpras', NULL, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
+(2, 'Pak Bambang (Fisika)', 'bambang@rekasedia.sch.id', '$2b$10$bgb7u.vOcnOGRq3XPE6Cau90SPGQpoNqyHE4bP/DQauOVCeq44b4y', 'guru', 'Fisika', NULL, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
+(3, 'Ibu Sarah Putri (Biologi)', 'sarah@rekasedia.sch.id', '$2b$10$bgb7u.vOcnOGRq3XPE6Cau90SPGQpoNqyHE4bP/DQauOVCeq44b4y', 'guru', 'Biologi', NULL, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
+(4, 'Bapak Budi Santoso (Matematika)', 'budi@rekasedia.sch.id', '$2b$10$bgb7u.vOcnOGRq3XPE6Cau90SPGQpoNqyHE4bP/DQauOVCeq44b4y', 'guru', 'Matematika', NULL, '2026-04-13 13:10:41', '2026-04-13 13:10:41');
 
-INSERT INTO requests (id, req_code, item_id, requester_id, quantity, request_date, status, priority) VALUES
-(1, 'REQ-001', 2, 2, 5, '2023-10-24', 'PENDING', 'REGULER');
+--
+-- Indexes for dumped tables
+--
 
-INSERT INTO requests (id, req_code, item_id, requester_id, quantity, request_date, status, priority) VALUES
-(2, 'REQ-002', 6, 3, 2, '2023-10-24', 'PENDING', 'URGENT');
+--
+-- Indexes for table `categories`
+--
+ALTER TABLE `categories`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
 
-INSERT INTO requests (id, req_code, item_id, requester_id, quantity, request_date, status, priority) VALUES
-(3, 'REQ-003', 17, 4, 10, '2023-10-23', 'PENDING', 'REGULER');
+--
+-- Indexes for table `items`
+--
+ALTER TABLE `items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `category_id` (`category_id`);
 
-INSERT INTO requests (id, req_code, item_id, requester_id, quantity, request_date, status, priority) VALUES
-(4, 'REQ-004', 18, 5, 3, '2023-10-23', 'PENDING', 'REGULER');
+--
+-- Indexes for table `loans`
+--
+ALTER TABLE `loans`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `item_id` (`item_id`),
+  ADD KEY `borrower_id` (`borrower_id`);
 
--- ============================================
--- TABLE: loans
--- ============================================
-DROP TABLE IF EXISTS loans;
-CREATE TABLE loans (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  item_id INT NOT NULL,
-  borrower_id INT NOT NULL,
-  borrow_date DATE NOT NULL,
-  due_date DATE NOT NULL,
-  return_date DATE DEFAULT NULL,
-  status ENUM('DIPINJAM', 'DIKEMBALIKAN') NOT NULL DEFAULT 'DIPINJAM',
-  condition_note TEXT DEFAULT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (item_id) REFERENCES items(id),
-  FOREIGN KEY (borrower_id) REFERENCES users(id)
-) ENGINE=InnoDB;
+--
+-- Indexes for table `monthly_reports`
+--
+ALTER TABLE `monthly_reports`
+  ADD PRIMARY KEY (`id`);
 
-INSERT INTO loans (id, item_id, borrower_id, borrow_date, due_date, status) VALUES
-(1, 13, 6, '2023-10-20', '2023-10-25', 'DIPINJAM');
+--
+-- Indexes for table `requests`
+--
+ALTER TABLE `requests`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `req_code` (`req_code`),
+  ADD KEY `item_id` (`item_id`),
+  ADD KEY `requester_id` (`requester_id`),
+  ADD KEY `reviewed_by` (`reviewed_by`);
 
-INSERT INTO loans (id, item_id, borrower_id, borrow_date, due_date, status) VALUES
-(2, 14, 6, '2023-10-20', '2023-10-28', 'DIPINJAM');
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`);
 
-INSERT INTO loans (id, item_id, borrower_id, borrow_date, due_date, status) VALUES
-(3, 15, 6, '2023-10-15', '2023-10-30', 'DIPINJAM');
+--
+-- AUTO_INCREMENT for dumped tables
+--
 
--- ============================================
--- TABLE: monthly_reports
--- ============================================
-DROP TABLE IF EXISTS monthly_reports;
-CREATE TABLE monthly_reports (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  semester VARCHAR(50) NOT NULL,
-  month_name VARCHAR(20) NOT NULL,
-  month_order INT NOT NULL,
-  total_items_ordered INT NOT NULL DEFAULT 0,
-  total_assets_borrowed INT NOT NULL DEFAULT 0
-) ENGINE=InnoDB;
+--
+-- AUTO_INCREMENT for table `categories`
+--
+ALTER TABLE `categories`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
-INSERT INTO monthly_reports (id, semester, month_name, month_order, total_items_ordered, total_assets_borrowed) VALUES
-(1, 'Semester Ganjil 2025/2026', 'Januari', 1, 124, 12);
+--
+-- AUTO_INCREMENT for table `items`
+--
+ALTER TABLE `items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
-INSERT INTO monthly_reports (id, semester, month_name, month_order, total_items_ordered, total_assets_borrowed) VALUES
-(2, 'Semester Ganjil 2025/2026', 'Februari', 2, 89, 8);
+--
+-- AUTO_INCREMENT for table `loans`
+--
+ALTER TABLE `loans`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
-INSERT INTO monthly_reports (id, semester, month_name, month_order, total_items_ordered, total_assets_borrowed) VALUES
-(3, 'Semester Ganjil 2025/2026', 'Maret', 3, 156, 15);
+--
+-- AUTO_INCREMENT for table `monthly_reports`
+--
+ALTER TABLE `monthly_reports`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
-INSERT INTO monthly_reports (id, semester, month_name, month_order, total_items_ordered, total_assets_borrowed) VALUES
-(4, 'Semester Ganjil 2025/2026', 'April', 4, 42, 5);
+--
+-- AUTO_INCREMENT for table `requests`
+--
+ALTER TABLE `requests`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
-INSERT INTO monthly_reports (id, semester, month_name, month_order, total_items_ordered, total_assets_borrowed) VALUES
-(5, 'Semester Ganjil 2025/2026', 'Mei', 5, 110, 10);
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
-INSERT INTO monthly_reports (id, semester, month_name, month_order, total_items_ordered, total_assets_borrowed) VALUES
-(6, 'Semester Ganjil 2025/2026', 'Juni', 6, 95, 9);
+--
+-- Constraints for dumped tables
+--
 
--- ============================================
--- END OF SCHEMA + SEED DATA
--- ============================================
+--
+-- Constraints for table `items`
+--
+ALTER TABLE `items`
+  ADD CONSTRAINT `items_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`);
+
+--
+-- Constraints for table `loans`
+--
+ALTER TABLE `loans`
+  ADD CONSTRAINT `loans_ibfk_1` FOREIGN KEY (`item_id`) REFERENCES `items` (`id`),
+  ADD CONSTRAINT `loans_ibfk_2` FOREIGN KEY (`borrower_id`) REFERENCES `users` (`id`);
+
+--
+-- Constraints for table `requests`
+--
+ALTER TABLE `requests`
+  ADD CONSTRAINT `requests_ibfk_1` FOREIGN KEY (`item_id`) REFERENCES `items` (`id`),
+  ADD CONSTRAINT `requests_ibfk_2` FOREIGN KEY (`requester_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `requests_ibfk_3` FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

@@ -44,7 +44,7 @@ export default function TeacherDashboardPage() {
             <span className={styles.statTitle}>Sedang Dipinjam</span>
             <span className={`${styles.badge} ${styles.aktif}`}>AKTIF</span>
           </div>
-          <div className={styles.statValue}>{stats?.activeLoansCount.toString().padStart(2, '0') || '00'}</div>
+          <div className={styles.statValue}>{stats?.activeLoansCount || '0'}</div>
         </div>
 
         {/* PROSES */}
@@ -53,7 +53,7 @@ export default function TeacherDashboardPage() {
             <span className={styles.statTitle}>Permintaan Diproses</span>
             <span className={`${styles.badge} ${styles.proses}`}>PROSES</span>
           </div>
-          <div className={styles.statValue}>04</div>
+          <div className={styles.statValue}>4</div>
         </div>
 
         {/* TOTAL */}
@@ -62,7 +62,7 @@ export default function TeacherDashboardPage() {
             <span className={styles.statTitle}>Total Pinjam/Ambil</span>
             <span className={`${styles.badge} ${styles.total}`}>TOTAL</span>
           </div>
-          <div className={styles.statValue}>{stats?.historyCount.toString().padStart(2, '0') || '00'}</div>
+          <div className={styles.statValue}>{stats?.historyCount || '0'}</div>
         </div>
       </div>
 
