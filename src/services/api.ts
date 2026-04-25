@@ -7,7 +7,7 @@
 import * as mockData from '../data/mockData';
 
 const API_BASE = '/api';
-const USE_MOCK = true; // FORCE MOCK MODE FOR PRESENTATION
+const USE_MOCK = false; // Set to false to use real backend API
 
 // --- Helper: get token dari localStorage ---
 function getToken(): string | null {
