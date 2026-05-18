@@ -4,6 +4,7 @@ import styles from '../../styles/loans.module.css';
 import Modal from '../../components/Modal';
 import LoadingButton from '../../components/LoadingButton';
 import { getItemImage } from '../../utils/itemImages';
+import PageSkeleton from '../../components/PageSkeleton';
 
 export default function TeacherLoansPage() {
   const [loanList, setLoanList] = useState<any[]>([]);
@@ -110,7 +111,7 @@ export default function TeacherLoansPage() {
   };
 
   if (isLoading) {
-      return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--gray-text)' }}>Memuat data peminjaman...</div>;
+      return <PageSkeleton variant="loans" rows={4} />;
   }
 
   return (

@@ -3,6 +3,7 @@ import styles from '../../styles/adminRequests.module.css';
 import { fetchRequests, updateRequestStatus, getUser } from '../../services/api';
 import Modal from '../../components/Modal';
 import LoadingButton from '../../components/LoadingButton';
+import PageSkeleton from '../../components/PageSkeleton';
 
 export default function AdminRequestsPage() {
   const [requests, setRequests] = useState<any[]>([]);
@@ -73,7 +74,7 @@ export default function AdminRequestsPage() {
   };
 
   if (isLoading) {
-    return <div style={{ padding: '24px' }}>Memuat data permintaan...</div>;
+    return <PageSkeleton variant="requests" rows={6} />;
   }
 
   return (
