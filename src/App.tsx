@@ -12,7 +12,7 @@ import AdminRequestsPage from './pages/admin/RequestsPage';
 import TeacherLayout from './components/TeacherLayout';
 import TeacherDashboardPage from './pages/teacher/DashboardPage';
 import TeacherInventoryPage from './pages/teacher/InventoryPage';
-// import TeacherRequestsPage from './pages/teacher/RequestsPage'; // Hidden based on request
+import TeacherRequestsPage from './pages/teacher/RequestsPage';
 import TeacherLoansPage from './pages/teacher/LoansPage';
 import TeacherReportsPage from './pages/teacher/ReportsPage';
 
@@ -42,7 +42,7 @@ function App() {
           <Route path="/teacher" element={<TeacherLayout />}>
             <Route index element={<TeacherDashboardPage />} />
             <Route path="inventory" element={<TeacherInventoryPage />} />
-            {/* <Route path="requests" element={<TeacherRequestsPage />} /> */}
+            <Route path="requests" element={<TeacherRequestsPage />} />
             <Route path="loans" element={<TeacherLoansPage />} />
             <Route path="reports" element={<TeacherReportsPage />} />
           </Route>
