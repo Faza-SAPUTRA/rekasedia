@@ -2,44 +2,136 @@
    RekaSedia — Teacher Requests (Pesanan) Page
    ============================================ */
 
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.pageHeader h1 {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--dark-text);
+  margin-bottom: 6px;
+}
+
+.pageHeader p {
+  font-size: 13px;
+  color: var(--gray-text);
+  line-height: 1.5;
+}
+
+.segmentedTabs {
+  display: inline-flex;
+  gap: 8px;
+  padding: 8px;
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 18px;
+}
+
+.segmentedTab {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--medium-text);
+  font-family: var(--font-interactive);
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.segmentedTab:hover:not(.active) {
+  background: var(--cream);
+  color: var(--dark-text);
+}
+
+.segmentedTab.active {
+  background: var(--sage-green);
+  color: var(--white);
+  box-shadow: 0 6px 14px rgba(138, 158, 138, 0.22);
+}
+
+.segmentedTab span {
+  min-width: 22px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cream);
+  color: var(--dark-text);
+  font-size: 11px;
+}
+
+.segmentedTab.active span {
+  background: rgba(255, 255, 255, 0.24);
+  color: var(--white);
+}
+
 /* --- Horizontal Filter Tabs --- */
 .tabsContainer {
   display: flex;
-  gap: 6px;
-  background: var(--cream);
-  padding: 6px;
+  gap: 8px;
+  background: var(--white);
+  padding: 8px;
   border-radius: var(--radius-lg);
-  border: 1px solid var(--cream-dark);
+  border: 1px solid var(--border-color);
   margin-bottom: 24px;
   overflow-x: auto;
-  width: max-content;
+  width: fit-content;
   max-width: 100%;
+  box-shadow: var(--shadow-sm);
+  scrollbar-width: none;
+}
+
+.tabsContainer::-webkit-scrollbar {
+  display: none;
 }
 
 .tab {
-  padding: 10px 20px;
-  border-radius: var(--radius-md);
+  appearance: none;
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
+  font-family: var(--font-interactive);
   cursor: pointer;
   transition: all var(--transition-fast);
   color: var(--medium-text);
-  border: none;
+  border: 1px solid transparent;
   background: transparent;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
+  white-space: nowrap;
 }
 
 .tab:hover:not(.active) {
   color: var(--dark-text);
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--cream);
+  border-color: var(--cream-dark);
 }
 
 .tab.active {
-  background: var(--white);
-  color: var(--sage-green);
-  box-shadow: var(--shadow-sm);
+  background: var(--sage-green);
+  color: var(--white);
+  border-color: var(--sage-green);
+  box-shadow: 0 6px 14px rgba(138, 158, 138, 0.22);
 }
 
 .tabCount {
@@ -51,12 +143,12 @@
 }
 
 .tab.active .tabCount {
-  background: var(--sage-green);
+  background: rgba(255, 255, 255, 0.24);
   color: var(--white);
 }
 
 .tab:not(.active) .tabCount {
-  background: var(--light-gray);
+  background: var(--cream);
   color: var(--dark-text);
 }
 
@@ -107,6 +199,9 @@
 .reqDate {
   font-size: 12px;
   color: var(--gray-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* Base pill styles */
@@ -146,6 +241,19 @@
   background: var(--sage-dark);
 }
 
+.statusPill.rejected {
+  background: var(--badge-red-bg);
+  color: var(--badge-red-text);
+}
+
+.statusPill.rejected::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--badge-red-text);
+}
+
 .cardContent {
   display: flex;
   flex-direction: column;
@@ -164,6 +272,82 @@
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.loanList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 32px;
+}
+
+.loanCard {
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  transition: all var(--transition-normal);
+}
+
+.loanCard:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.loanThumb {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--cream);
+}
+
+.loanThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.loanInfo {
+  min-width: 0;
+}
+
+.loanTitle {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--dark-text);
+  margin-bottom: 6px;
+}
+
+.loanMeta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--gray-text);
+}
+
+.emptyState {
+  text-align: center;
+  padding: 42px 24px;
+  color: var(--gray-text);
+  background: var(--white);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+.emptyState i {
+  display: block;
+  font-size: 28px;
+  margin-bottom: 10px;
+  color: var(--sage-green);
+  opacity: 0.45;
 }
 
 /* --- CTA Container --- */
@@ -215,4 +399,26 @@
 .ctaText p {
   font-size: 13px;
   color: var(--gray-text);
+}
+
+@media (max-width: 720px) {
+  .segmentedTabs,
+  .tabsContainer {
+    display: flex;
+    width: 100%;
+  }
+
+  .segmentedTab,
+  .tab {
+    flex: 1;
+  }
+
+  .loanCard {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+
+  .loanCard .statusPill {
+    grid-column: 1 / -1;
+    justify-self: flex-start;
+  }
 }
