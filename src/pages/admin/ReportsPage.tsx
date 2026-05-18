@@ -13,6 +13,7 @@ import * as XLSX from 'xlsx';
 import { fetchReports } from '../../services/api';
 import styles from '../../styles/reports.module.css';
 import Modal from '../../components/Modal';
+import PageSkeleton from '../../components/PageSkeleton';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
@@ -83,7 +84,7 @@ export default function ReportsPage() {
   };
 
   if (isLoading) {
-      return <div style={{ padding: '24px' }}>Memuat laporan...</div>;
+      return <PageSkeleton variant="reports" rows={6} />;
   }
 
   // Chart data

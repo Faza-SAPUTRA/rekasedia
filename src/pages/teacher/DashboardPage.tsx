@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import styles from '../../styles/teacherDashboard.module.css';
 import { fetchItems, fetchTeacherStats, getUser, type TeacherStats } from '../../services/api';
 import { getItemImage } from '../../utils/itemImages';
+import PageSkeleton from '../../components/PageSkeleton';
 
 export default function TeacherDashboardPage() {
   const [frequentItems, setFrequentItems] = useState<any[]>([]);
@@ -32,7 +33,7 @@ export default function TeacherDashboardPage() {
   }, []);
 
   if (isLoading) {
-    return <div style={{ padding: '24px' }}>Memuat dashboard...</div>;
+    return <PageSkeleton variant="dashboard" />;
   }
 
   return (

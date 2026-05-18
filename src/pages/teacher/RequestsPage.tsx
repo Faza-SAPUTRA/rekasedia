@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import styles from '../../styles/teacherRequests.module.css';
 import { fetchLoans, fetchRequests, getUser } from '../../services/api';
 import { getItemImage } from '../../utils/itemImages';
+import PageSkeleton from '../../components/PageSkeleton';
 
 type MainTab = 'requests' | 'loans';
 
@@ -70,7 +71,7 @@ export default function TeacherRequestsPage() {
   });
 
   if (isLoading) {
-    return <div style={{ padding: '24px' }}>Memuat riwayat pesanan...</div>;
+    return <PageSkeleton variant="requests" rows={5} />;
   }
 
   return (

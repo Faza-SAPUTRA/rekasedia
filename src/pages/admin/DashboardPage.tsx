@@ -11,6 +11,7 @@ import { fetchStats, fetchRequests, updateRequestStatus, fetchPendingUsers, upda
 import styles from '../../styles/adminDashboard.module.css';
 import Modal from '../../components/Modal';
 import LoadingButton from '../../components/LoadingButton';
+import PageSkeleton from '../../components/PageSkeleton';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
@@ -90,7 +91,7 @@ export default function DashboardPage() {
   };
 
   if (isLoading || !stats) {
-    return <div style={{ padding: '24px' }}>Memuat data dashboard...</div>;
+    return <PageSkeleton variant="dashboard" />;
   }
 
   const { pendingRequests, todayRequests, criticalStockCount, criticalItems } = stats;

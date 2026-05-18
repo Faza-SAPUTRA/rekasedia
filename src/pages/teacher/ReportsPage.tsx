@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { fetchTeacherReport, getUser, type TeacherStats } from '../../services/api';
 import styles from '../../styles/teacherReports.module.css';
+import PageSkeleton from '../../components/PageSkeleton';
 
 export default function TeacherReportsPage() {
   const [stats, setStats] = useState<TeacherStats | null>(null);
@@ -27,7 +28,7 @@ export default function TeacherReportsPage() {
   }, []);
 
   if (isLoading) {
-    return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--gray-text)' }}>Memuat laporan pribadi...</div>;
+    return <PageSkeleton variant="reports" rows={4} />;
   }
 
   const reportRows = reports.map((report) => ({

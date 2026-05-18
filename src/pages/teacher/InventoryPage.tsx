@@ -5,12 +5,14 @@ import CartDrawer, { type CartItem } from '../../components/CartDrawer';
 import LoadingButton from '../../components/LoadingButton';
 import { fetchItems, fetchCategories, createRequest, getUser } from '../../services/api';
 import { getItemImage } from '../../utils/itemImages';
+import PageSkeleton from '../../components/PageSkeleton';
 
 const ITEMS_PER_PAGE = 6;
 
 export default function TeacherInventoryPage() {
   const [items, setItems] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('Semua');
@@ -45,6 +47,8 @@ export default function TeacherInventoryPage() {
         setCategories(catsData);
       } catch (err) {
         console.error('Gagal memuat inventaris', err);
+      } finally {
+        setIsLoading(false);
       }
     };
     loadData();
@@ -150,6 +154,10 @@ export default function TeacherInventoryPage() {
 
   const categoryList = ['Semua', ...categories.map((c) => c.name)];
   const cartTotalQty = cartItems.reduce((sum, i) => sum + i.quantity, 0);
+
+  if (isLoading) {
+    return <PageSkeleton variant="inventory" rows={6} />;
+  }
 
   const renderPagination = () => {
     const pages: (number | string)[] = [];

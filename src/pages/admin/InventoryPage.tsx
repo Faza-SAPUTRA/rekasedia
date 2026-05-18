@@ -6,6 +6,7 @@ import Modal from '../../components/Modal';
 import CustomSelect from '../../components/CustomSelect';
 import LoadingButton from '../../components/LoadingButton';
 import { getItemImage } from '../../utils/itemImages';
+import PageSkeleton from '../../components/PageSkeleton';
 
 const ITEMS_PER_PAGE = 10;
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
@@ -125,7 +126,7 @@ export default function InventoryPage() {
   const statusOptions = ['Semua Status', 'Stok Tersedia', 'Stok Tipis', 'Habis'].map(status => ({ value: status, label: status }));
 
   if (isLoading) {
-    return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--gray-text)' }}>Memuat data inventaris...</div>;
+    return <PageSkeleton variant="table" rows={8} />;
   }
 
   // --- Handlers ---
