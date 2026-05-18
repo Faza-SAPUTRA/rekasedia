@@ -19,6 +19,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 export default function ReportsPage() {
   const [reports, setReports] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   // Modal State
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -33,8 +34,10 @@ export default function ReportsPage() {
       try {
         const reportsData = await fetchReports();
         setReports(reportsData);
+        setLoadError('');
       } catch (err) {
         console.error('Gagal mengambil laporan', err);
+        setLoadError(err instanceof Error ? err.message : 'Gagal mengambil laporan.');
       } finally {
         setIsLoading(false);
       }
@@ -177,6 +180,21 @@ export default function ReportsPage() {
                 <td>{report.total_assets_borrowed} Aset</td>
               </tr>
             ))}
+            {reports.length === 0 && (
+              <tr className={styles.emptyRow}>
+                <td colSpan={3}>
+                  <div className={styles.emptyState}>
+                    <div className={styles.emptyIcon}>
+                      <i className="fas fa-database"></i>
+                    </div>
+                    <div>
+                      <strong>Data laporan belum tersedia</strong>
+                      <span>{loadError || 'Backend akan mengisi data contoh otomatis saat endpoint laporan tersambung ke Supabase.'}</span>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            )}
             {/* Total Row */}
             <tr className={styles.totalRow}>
               <td className={styles.totalLabel}>TOTAL SEMESTER</td>
