@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import CustomSelect from '../../components/CustomSelect';
 import styles from '../../styles/inventory.module.css';
 import CartDrawer, { type CartItem } from '../../components/CartDrawer';
+import LoadingButton from '../../components/LoadingButton';
 import { fetchItems, fetchCategories, createRequest, getUser } from '../../services/api';
 import { getItemImage } from '../../utils/itemImages';
 
@@ -22,8 +23,10 @@ export default function TeacherInventoryPage() {
   const [confirmModal, setConfirmModal] = useState(false);
   const [successModal, setSuccessModal] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
 
   const closeModal = () => {
+    if (isSubmittingRequest) return;
     setIsClosing(true);
     setTimeout(() => {
       setConfirmModal(false);
@@ -123,6 +126,8 @@ export default function TeacherInventoryPage() {
   };
 
   const handleConfirmSubmit = async () => {
+    if (isSubmittingRequest) return;
+    setIsSubmittingRequest(true);
     try {
       const user = getUser();
       if (!user) throw new Error('Not logged in');
@@ -131,12 +136,15 @@ export default function TeacherInventoryPage() {
       await createRequest(payload, user.id);
 
       setCartItems([]);
-      closeModal();
+      setConfirmModal(false);
+      setIsClosing(false);
       setSuccessModal(true);
       setTimeout(() => setSuccessModal(false), 3000);
     } catch (err) {
       console.error(err);
       alert('Gagal mengirim permintaan');
+    } finally {
+      setIsSubmittingRequest(false);
     }
   };
 
@@ -321,16 +329,19 @@ export default function TeacherInventoryPage() {
             <div style={{ display: 'flex', gap: '16px' }}>
               <button 
                 onClick={closeModal}
+                disabled={isSubmittingRequest}
                 style={{ flex: 1, padding: '14px', background: 'transparent', border: '2px solid #DD8A71', color: '#DD8A71', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
               >
                 Batal
               </button>
-              <button 
+              <LoadingButton
                 onClick={handleConfirmSubmit}
+                isLoading={isSubmittingRequest}
+                loadingText="Mengajukan..."
                 style={{ flex: 1, padding: '14px', background: '#8A9E8A', border: 'none', color: '#fff', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(138,158,138,0.2)' }}
               >
                 Ya, Ajukan!
-              </button>
+              </LoadingButton>
             </div>
           </div>
         </div>

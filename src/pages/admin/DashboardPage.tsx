@@ -10,6 +10,7 @@ import {
 import { fetchStats, fetchRequests, updateRequestStatus, fetchPendingUsers, updateUserApproval, type DashboardStats, type PendingUser } from '../../services/api';
 import styles from '../../styles/adminDashboard.module.css';
 import Modal from '../../components/Modal';
+import LoadingButton from '../../components/LoadingButton';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
@@ -18,11 +19,14 @@ export default function DashboardPage() {
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
+  const [processingUserAction, setProcessingUserAction] = useState<string | null>(null);
   
   // Modal State
   const [confirmModal, setConfirmModal] = useState<{ id: number, type: 'APPROVED' | 'REJECTED', name: string } | null>(null);
 
   const closeModal = () => {
+    if (isSubmittingRequest) return;
     setConfirmModal(null);
   };
 
@@ -56,24 +60,32 @@ export default function DashboardPage() {
   };
 
   const handleConfirmAction = async () => {
-    if (!confirmModal) return;
+    if (!confirmModal || isSubmittingRequest) return;
+    setIsSubmittingRequest(true);
     try {
       await updateRequestStatus(confirmModal.id, confirmModal.type);
       await loadData();
-      closeModal();
+      setConfirmModal(null);
     } catch (err) {
       console.error(err);
       alert('Gagal memproses permintaan');
+    } finally {
+      setIsSubmittingRequest(false);
     }
   };
 
   const handleUserApproval = async (id: number, status: 'APPROVED' | 'REJECTED') => {
+    const actionKey = `${id}-${status}`;
+    if (processingUserAction) return;
+    setProcessingUserAction(actionKey);
     try {
       await updateUserApproval(id, status);
       await loadData();
     } catch (err) {
       console.error(err);
       alert('Gagal memproses akun guru');
+    } finally {
+      setProcessingUserAction(null);
     }
   };
 
@@ -179,12 +191,24 @@ export default function DashboardPage() {
                 <small>{user.department} • {new Date(user.request_date).toLocaleDateString('id-ID')}</small>
               </div>
               <div className={styles.actionBtns}>
-                <button className={styles.btnApprove} onClick={() => handleUserApproval(user.id, 'APPROVED')}>
+                <LoadingButton
+                  className={styles.btnApprove}
+                  onClick={() => handleUserApproval(user.id, 'APPROVED')}
+                  isLoading={processingUserAction === `${user.id}-APPROVED`}
+                  disabled={processingUserAction !== null}
+                  loadingText="Memproses..."
+                >
                   Setujui
-                </button>
-                <button className={styles.btnReject} onClick={() => handleUserApproval(user.id, 'REJECTED')}>
+                </LoadingButton>
+                <LoadingButton
+                  className={styles.btnReject}
+                  onClick={() => handleUserApproval(user.id, 'REJECTED')}
+                  isLoading={processingUserAction === `${user.id}-REJECTED`}
+                  disabled={processingUserAction !== null}
+                  loadingText="Memproses..."
+                >
                   Tolak
-                </button>
+                </LoadingButton>
               </div>
             </div>
           ))
@@ -320,16 +344,19 @@ export default function DashboardPage() {
             <button 
               className="globalModalBtnCancel" 
               onClick={closeModal}
+              disabled={isSubmittingRequest}
             >
               Batal
             </button>
-            <button 
+            <LoadingButton
               className="globalModalBtnConfirm" 
               onClick={handleConfirmAction}
+              isLoading={isSubmittingRequest}
+              loadingText="Memproses..."
               style={confirmModal?.type === 'REJECTED' ? { backgroundColor: 'var(--error-red)', borderColor: 'var(--error-red)' } : {}}
             >
               Ya, Lanjutkan
-            </button>
+            </LoadingButton>
           </div>
         </div>
       </Modal>

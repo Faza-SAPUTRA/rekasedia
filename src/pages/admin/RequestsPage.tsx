@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import styles from '../../styles/adminRequests.module.css';
 import { fetchRequests, updateRequestStatus, getUser } from '../../services/api';
 import Modal from '../../components/Modal';
+import LoadingButton from '../../components/LoadingButton';
 
 export default function AdminRequestsPage() {
   const [requests, setRequests] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('Semua');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Modal State
   const [confirmModal, setConfirmModal] = useState<{ id: number, type: 'APPROVED' | 'REJECTED', name: string } | null>(null);
@@ -50,19 +52,23 @@ export default function AdminRequestsPage() {
   };
 
   const closeModal = () => {
+    if (isSubmitting) return;
     setConfirmModal(null);
   };
 
   const handleConfirmAction = async () => {
-    if (!confirmModal) return;
+    if (!confirmModal || isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const user = getUser();
       await updateRequestStatus(confirmModal.id, confirmModal.type, user?.id);
       setRequests(prev => prev.map(req => req.id === confirmModal.id ? { ...req, status: confirmModal.type } : req));
-      closeModal();
+      setConfirmModal(null);
     } catch (err) {
       console.error(err);
       alert('Gagal mengupdate status: ' + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -168,16 +174,19 @@ export default function AdminRequestsPage() {
             <button 
               className="globalModalBtnCancel" 
               onClick={closeModal}
+              disabled={isSubmitting}
             >
               Batal
             </button>
-            <button 
+            <LoadingButton
               className="globalModalBtnConfirm" 
               onClick={handleConfirmAction}
+              isLoading={isSubmitting}
+              loadingText="Memproses..."
               style={confirmModal?.type === 'REJECTED' ? { backgroundColor: 'var(--error-red)', borderColor: 'var(--error-red)' } : {}}
             >
               Ya, Lanjutkan
-            </button>
+            </LoadingButton>
           </div>
         </div>
       </Modal>

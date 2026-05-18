@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { fetchLoans, returnLoan, getUser } from '../../services/api';
 import styles from '../../styles/loans.module.css';
 import Modal from '../../components/Modal';
+import LoadingButton from '../../components/LoadingButton';
 import { getItemImage } from '../../utils/itemImages';
 
 export default function TeacherLoansPage() {
@@ -11,6 +12,7 @@ export default function TeacherLoansPage() {
   const [confirmModal, setConfirmModal] = useState<any | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successItemName, setSuccessItemName] = useState('');
+  const [isSubmittingReturn, setIsSubmittingReturn] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -80,11 +82,13 @@ export default function TeacherLoansPage() {
   };
 
   const closeModal = () => {
+    if (isSubmittingReturn) return;
     setConfirmModal(null);
   };
 
   const handleConfirmReturn = async () => {
-    if (confirmModal) {
+    if (confirmModal && !isSubmittingReturn) {
+      setIsSubmittingReturn(true);
       try {
         await returnLoan(confirmModal.id);
         setLoanList((prev) =>
@@ -93,12 +97,14 @@ export default function TeacherLoansPage() {
           )
         );
         setSuccessItemName(confirmModal.item_name);
-        closeModal();
+        setConfirmModal(null);
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
       } catch (err) {
         console.error('Gagal mengembalikan aset', err);
         alert('Gagal memproses pengembalian');
+      } finally {
+        setIsSubmittingReturn(false);
       }
     }
   };
@@ -196,8 +202,15 @@ export default function TeacherLoansPage() {
                 Apakah Anda yakin ingin mengembalikan <strong>{confirmModal?.item_name}</strong> sekarang? Pastikan kelengkapan unit sudah sesuai.
             </p>
             <div className="globalModalBtns">
-                <button className="globalModalBtnCancel" onClick={closeModal}>Batal</button>
-                <button className="globalModalBtnConfirm" onClick={handleConfirmReturn}>Ya, Kembalikan</button>
+                <button className="globalModalBtnCancel" onClick={closeModal} disabled={isSubmittingReturn}>Batal</button>
+                <LoadingButton
+                  className="globalModalBtnConfirm"
+                  onClick={handleConfirmReturn}
+                  isLoading={isSubmittingReturn}
+                  loadingText="Memproses..."
+                >
+                  Ya, Kembalikan
+                </LoadingButton>
             </div>
         </div>
       </Modal>

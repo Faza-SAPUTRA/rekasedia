@@ -4,6 +4,7 @@ import styles from '../../styles/adminInventory.module.css';
 import { fetchItems, fetchCategories, addItem, updateItem, deleteItem } from '../../services/api';
 import Modal from '../../components/Modal';
 import CustomSelect from '../../components/CustomSelect';
+import LoadingButton from '../../components/LoadingButton';
 import { getItemImage } from '../../utils/itemImages';
 
 const ITEMS_PER_PAGE = 10;
@@ -52,6 +53,7 @@ export default function InventoryPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [imageError, setImageError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form State (for Add/Edit)
   const [formData, setFormData] = useState<InventoryFormData>(emptyFormData);
@@ -156,6 +158,7 @@ export default function InventoryPage() {
   };
 
   const closeModal = () => {
+    if (isSubmitting) return;
     setActiveModal(null);
     setSelectedItem(null);
     setImageError('');
@@ -212,23 +215,45 @@ export default function InventoryPage() {
   };
 
   const handleSaveItem = async () => {
-    if (activeModal === 'add') {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      if (activeModal === 'add') {
         const newItem = await addItem(formData);
         setItems([newItem, ...items]);
         triggerSuccess('Barang berhasil ditambahkan ke sistem.');
-    } else if (activeModal === 'edit') {
+      } else if (activeModal === 'edit') {
         const updatedItem = await updateItem(selectedItem.id, formData);
         setItems(items.map(i => i.id === selectedItem.id ? updatedItem : i));
         triggerSuccess('Data barang berhasil diperbarui.');
+      }
+      setActiveModal(null);
+      setSelectedItem(null);
+      setImageError('');
+    } catch (err) {
+      console.error('Gagal menyimpan barang', err);
+      alert('Gagal menyimpan barang: ' + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsSubmitting(false);
     }
-    closeModal();
   };
 
   const handleDeleteItem = async () => {
-    await deleteItem(selectedItem.id);
-    setItems(items.filter(i => i.id !== selectedItem.id));
-    triggerSuccess(`Barang "${selectedItem.name}" berhasil dihapus.`);
-    closeModal();
+    if (isSubmitting || !selectedItem) return;
+    setIsSubmitting(true);
+    try {
+      await deleteItem(selectedItem.id);
+      setItems(items.filter(i => i.id !== selectedItem.id));
+      triggerSuccess(`Barang "${selectedItem.name}" berhasil dihapus.`);
+      setActiveModal(null);
+      setSelectedItem(null);
+      setImageError('');
+    } catch (err) {
+      console.error('Gagal menghapus barang', err);
+      alert('Gagal menghapus barang: ' + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // --- Modal Renderer ---
@@ -323,8 +348,15 @@ export default function InventoryPage() {
               </div>
               
               <div className={`globalModalBtns ${styles.modalActionBar}`}>
-                <button className="globalModalBtnCancel" onClick={closeModal}>Batal</button>
-                <button className="globalModalBtnConfirm" onClick={handleSaveItem}>Simpan Perubahan</button>
+                <button className="globalModalBtnCancel" onClick={closeModal} disabled={isSubmitting}>Batal</button>
+                <LoadingButton
+                  className="globalModalBtnConfirm"
+                  onClick={handleSaveItem}
+                  isLoading={isSubmitting}
+                  loadingText={activeModal === 'add' ? 'Menambahkan...' : 'Menyimpan...'}
+                >
+                  {activeModal === 'add' ? 'Tambah Barang' : 'Simpan Perubahan'}
+                </LoadingButton>
               </div>
             </div>
           )}
@@ -340,8 +372,16 @@ export default function InventoryPage() {
                 Apakah Anda yakin ingin menghapus <span className={styles.deleteItemName}>{selectedItem?.name}</span> dari daftar inventaris? Tindakan ini tidak dapat dibatalkan.
               </div>
               <div className="globalModalBtns">
-                <button className="globalModalBtnCancel" onClick={closeModal}>Batal</button>
-                <button className="globalModalBtnConfirm" style={{ background: 'var(--error-red)', borderColor: 'var(--error-red)' }} onClick={handleDeleteItem}>Ya, Hapus Barang</button>
+                <button className="globalModalBtnCancel" onClick={closeModal} disabled={isSubmitting}>Batal</button>
+                <LoadingButton
+                  className="globalModalBtnConfirm"
+                  style={{ background: 'var(--error-red)', borderColor: 'var(--error-red)' }}
+                  onClick={handleDeleteItem}
+                  isLoading={isSubmitting}
+                  loadingText="Menghapus..."
+                >
+                  Ya, Hapus Barang
+                </LoadingButton>
               </div>
             </div>
           )}
