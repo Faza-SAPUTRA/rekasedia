@@ -202,14 +202,23 @@ export default function InventoryPage() {
     setFormData({...formData, stock: Math.max(0, parseInt(value) || 0)});
   };
 
+  const handleCategoryChange = (categoryName: string) => {
+    const category = categories.find((cat) => cat.name === categoryName);
+    setFormData({
+      ...formData,
+      category_name: categoryName,
+      category_id: category?.id || formData.category_id
+    });
+  };
+
   const handleSaveItem = async () => {
     if (activeModal === 'add') {
         const newItem = await addItem(formData);
         setItems([newItem, ...items]);
         triggerSuccess('Barang berhasil ditambahkan ke sistem.');
     } else if (activeModal === 'edit') {
-        await updateItem(selectedItem.id, formData);
-        setItems(items.map(i => i.id === selectedItem.id ? { ...i, ...formData } : i));
+        const updatedItem = await updateItem(selectedItem.id, formData);
+        setItems(items.map(i => i.id === selectedItem.id ? updatedItem : i));
         triggerSuccess('Data barang berhasil diperbarui.');
     }
     closeModal();
@@ -254,7 +263,7 @@ export default function InventoryPage() {
                     <label>Kategori</label>
                     <CustomSelect
                       value={formData.category_name}
-                      onChange={val => setFormData({...formData, category_name: val})}
+                      onChange={handleCategoryChange}
                       options={categories.map(c => ({ value: c.name, label: c.name }))}
                     />
                   </div>
