@@ -8,7 +8,7 @@ interface ModalProps {
   className?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ children, isOpen, onClose }) => {
+const Modal: React.FC<ModalProps> = ({ children, isOpen, onClose, className = '' }) => {
   // Prevent scrolling when modal is open
   useEffect(() => {
     if (isOpen) {
@@ -26,7 +26,7 @@ const Modal: React.FC<ModalProps> = ({ children, isOpen, onClose }) => {
   return createPortal(
     <div className="globalModalOverlay animate-fade-in" onClick={onClose} style={{ zIndex: 10000 }}>
       <div 
-        className="globalModal" 
+        className={`globalModal ${className}`.trim()} 
         onClick={(e) => e.stopPropagation()}
         style={{ animation: 'fadeInUp 0.4s ease both' }}
       >
