@@ -150,6 +150,7 @@ export default function ReportsPage() {
           ]}
           value={selectedSemester}
           onChange={setSelectedSemester}
+          className={styles.semesterSelect}
         />
       </div>
 
