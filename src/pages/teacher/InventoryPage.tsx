@@ -43,8 +43,6 @@ export default function TeacherInventoryPage() {
         setCategories(catsData);
       } catch (err) {
         console.error('Gagal memuat inventaris', err);
-      } finally {
-        setIsLoading(false);
       }
     };
     loadData();

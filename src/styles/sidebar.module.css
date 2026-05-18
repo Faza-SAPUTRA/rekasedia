@@ -12,7 +12,7 @@
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  z-index: 100;
+  z-index: 10;
   overflow-y: auto;
 }
 
@@ -110,6 +110,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  position: relative;
 }
 
 .userAvatar {
@@ -125,6 +126,10 @@
   flex-shrink: 0;
 }
 
+.userInfo {
+  flex: 1;
+}
+
 .userInfo h4 {
   font-size: 13px;
   font-weight: 600;
@@ -135,6 +140,27 @@
 .userInfo span {
   font-size: 11px;
   color: var(--gray-text);
+}
+
+.logoutBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--error-red);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: 16px;
+}
+
+.logoutBtn:hover {
+  background: var(--badge-red-bg);
+  border-color: rgba(217, 83, 79, 0.2);
+  transform: scale(1.05);
 }
 
 /* --- Storage Bar --- */
