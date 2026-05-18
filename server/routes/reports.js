@@ -12,6 +12,21 @@ const DEFAULT_MONTHLY_REPORTS = [
   ['Semester Ganjil 2025/2026', 'Juni', 6, 95, 9],
 ];
 
+const MONTH_NAMES = [
+  'Januari',
+  'Februari',
+  'Maret',
+  'April',
+  'Mei',
+  'Juni',
+  'Juli',
+  'Agustus',
+  'September',
+  'Oktober',
+  'November',
+  'Desember',
+];
+
 async function ensureMonthlyReportsSeeded() {
   const { rows } = await pool.query('SELECT COUNT(*)::int AS total FROM monthly_reports');
   if (rows[0].total > 0) return;
@@ -38,6 +53,107 @@ router.get('/', async (req, res) => {
   } catch (err) {
     console.error('Get reports error:', err);
     res.status(500).json({ error: 'Gagal mengambil data laporan.' });
+  }
+});
+
+// GET /api/reports/teacher/:userId - Laporan personal guru dari Supabase
+router.get('/teacher/:userId', async (req, res) => {
+  try {
+    const userId = Number(req.params.userId);
+    if (!userId) {
+      return res.status(400).json({ error: 'User guru tidak valid.' });
+    }
+
+    const { rows: requestRows } = await pool.query(
+      `
+        SELECT
+          EXTRACT(MONTH FROM request_date)::int AS month_order,
+          COALESCE(SUM(quantity), 0)::int AS total_items_requested,
+          COUNT(*)::int AS request_count,
+          COUNT(*) FILTER (WHERE status = 'PENDING')::int AS pending_count,
+          COUNT(*) FILTER (WHERE status <> 'PENDING')::int AS completed_request_count
+        FROM requests
+        WHERE requester_id = $1
+        GROUP BY month_order
+      `,
+      [userId]
+    );
+
+    const { rows: loanRows } = await pool.query(
+      `
+        SELECT
+          EXTRACT(MONTH FROM borrow_date)::int AS month_order,
+          COUNT(*)::int AS loan_count,
+          COUNT(*) FILTER (WHERE status = 'DIPINJAM')::int AS active_loan_count,
+          COUNT(*) FILTER (WHERE status = 'DIKEMBALIKAN')::int AS returned_loan_count
+        FROM loans
+        WHERE borrower_id = $1
+        GROUP BY month_order
+      `,
+      [userId]
+    );
+
+    const monthMap = new Map();
+
+    for (const row of requestRows) {
+      monthMap.set(row.month_order, {
+        month_order: row.month_order,
+        month_name: MONTH_NAMES[row.month_order - 1],
+        total_items_requested: row.total_items_requested,
+        request_count: row.request_count,
+        pending_count: row.pending_count,
+        completed_request_count: row.completed_request_count,
+        loan_count: 0,
+        active_loan_count: 0,
+        returned_loan_count: 0,
+      });
+    }
+
+    for (const row of loanRows) {
+      const existing = monthMap.get(row.month_order) || {
+        month_order: row.month_order,
+        month_name: MONTH_NAMES[row.month_order - 1],
+        total_items_requested: 0,
+        request_count: 0,
+        pending_count: 0,
+        completed_request_count: 0,
+        loan_count: 0,
+        active_loan_count: 0,
+        returned_loan_count: 0,
+      };
+
+      existing.loan_count = row.loan_count;
+      existing.active_loan_count = row.active_loan_count;
+      existing.returned_loan_count = row.returned_loan_count;
+      monthMap.set(row.month_order, existing);
+    }
+
+    const reports = Array.from(monthMap.values())
+      .sort((a, b) => a.month_order - b.month_order)
+      .map((row) => ({
+        ...row,
+        status: row.pending_count > 0 ? 'Menunggu Validasi' : 'Tervalidasi',
+      }));
+
+    const stats = reports.reduce(
+      (acc, row) => ({
+        totalItemsRequested: acc.totalItemsRequested + row.total_items_requested,
+        activeLoansCount: acc.activeLoansCount + row.active_loan_count,
+        pendingRequestsCount: acc.pendingRequestsCount + row.pending_count,
+        historyCount: acc.historyCount + row.completed_request_count + row.returned_loan_count,
+      }),
+      {
+        totalItemsRequested: 0,
+        activeLoansCount: 0,
+        pendingRequestsCount: 0,
+        historyCount: 0,
+      }
+    );
+
+    res.json({ stats, reports });
+  } catch (err) {
+    console.error('Get teacher report error:', err);
+    res.status(500).json({ error: 'Gagal mengambil laporan guru.' });
   }
 });
 
