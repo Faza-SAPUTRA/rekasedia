@@ -106,6 +106,20 @@ export default function TeacherLoansPage() {
                 )}
               </div>
 
+              <div className={styles.loanDetails} style={{ flex: 1, padding: '0 8px' }}>
+                <div className={styles.loanItemName} style={{ fontWeight: 600, fontSize: '16px', color: 'var(--dark-text)', marginBottom: '4px' }}>{loan.item_name}</div>
+                <div className={styles.loanDates} style={{ fontSize: '12px', color: 'var(--medium-text)', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <span><strong>Tanggal Pinjam:</strong> {formatDate(loan.borrow_date)}</span>
+                  <span><strong>Batas Kembali:</strong> {formatDate(loan.due_date)}</span>
+                </div>
+                {!returned && overdue && (
+                  <span style={{ display: 'inline-block', marginTop: '6px', fontSize: '11px', color: 'var(--error-red)', fontWeight: 600 }}>
+                    <i className="fas fa-exclamation-triangle" style={{ marginRight: '4px' }}></i>
+                    Harus dikembalikan hari ini!
+                  </span>
+                )}
+              </div>
+
               {returned ? (
                 <div className={styles.returnedBadge}>
                   <i className="fas fa-check-circle"></i>
@@ -121,8 +135,9 @@ export default function TeacherLoansPage() {
                 </button>
               )}
             </div>
-          );
-        })}
+          </div>
+        );
+      })}
       </div>
 
       {loanList.length === 0 && (

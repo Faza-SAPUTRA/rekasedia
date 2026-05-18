@@ -13,7 +13,6 @@ import * as XLSX from 'xlsx';
 import { fetchReports } from '../../services/api';
 import styles from '../../styles/reports.module.css';
 import Modal from '../../components/Modal';
-import CustomSelect from '../../components/CustomSelect';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
@@ -23,7 +22,6 @@ export default function ReportsPage() {
 
   // Modal State
   const [isExportOpen, setIsExportOpen] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
   const [selectedSemester, setSelectedSemester] = useState('ganjil-2025');
 
   const closeExportModal = () => {

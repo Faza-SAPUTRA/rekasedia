@@ -1,9 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import CustomSelect from '../../components/CustomSelect';
-import styles from '../../styles/inventory.module.css';
-import CartDrawer, { type CartItem } from '../../components/CartDrawer';
+import styles from '../../styles/adminInventory.module.css';
 import { fetchItems, fetchCategories } from '../../services/api';
-import { getItemImage } from '../../utils/itemImages';
+import Modal from '../../components/Modal';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -12,7 +11,7 @@ type ModalType = 'add' | 'edit' | 'delete' | 'filter' | null;
 export default function InventoryPage() {
   const [items, setItems] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Table Filters State
   const [search, setSearch] = useState('');
@@ -58,11 +57,10 @@ export default function InventoryPage() {
 
 
   const sortOptions = [
-    { value: 'Terpopuler', label: 'Urutkan: Terpopuler' },
-    { value: 'A-Z', label: 'Nama A-Z' },
-    { value: 'Z-A', label: 'Nama Z-A' },
+    { value: 'Nama A-Z', label: 'Nama A-Z' },
+    { value: 'Nama Z-A', label: 'Nama Z-A' },
     { value: 'Stok Terbanyak', label: 'Stok Terbanyak' },
-    { value: 'Stok Terdikit', label: 'Stok Sedikit' }
+    { value: 'Stok Sedikit', label: 'Stok Sedikit' }
   ];
 
   const filteredItems = useMemo(() => {
@@ -102,9 +100,8 @@ export default function InventoryPage() {
     currentPage * ITEMS_PER_PAGE
   );
 
-  const categoryOptions = ['Semua Kategori', ...categories.map((c) => c.name)];
-  const statusOptions = ['Semua Status', 'Stok Tersedia', 'Stok Tipis', 'Habis'];
-  const sortOptions = ['Nama A-Z', 'Nama Z-A', 'Stok Terbanyak', 'Stok Sedikit'];
+  const categoryOptions = ['Semua Kategori', ...categories.map((c) => c.name)].map(name => ({ value: name, label: name }));
+  const statusOptions = ['Semua Status', 'Stok Tersedia', 'Stok Tipis', 'Habis'].map(status => ({ value: status, label: status }));
 
   if (isLoading) {
     return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--gray-text)' }}>Memuat data inventaris...</div>;
@@ -259,12 +256,12 @@ export default function InventoryPage() {
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {statusOptions.map(opt => (
                         <button 
-                            key={opt} 
-                            onClick={() => setStatusFilter(opt)}
+                            key={opt.value} 
+                            onClick={() => setStatusFilter(opt.value)}
                             className={styles.pageBtn} 
-                            style={{ width: 'auto', padding: '0 12px', borderColor: statusFilter === opt ? 'var(--sage-green)' : 'var(--border-color)', color: statusFilter === opt ? 'var(--sage-green)' : 'var(--medium-text)' }}
+                            style={{ width: 'auto', padding: '0 12px', borderColor: statusFilter === opt.value ? 'var(--sage-green)' : 'var(--border-color)', color: statusFilter === opt.value ? 'var(--sage-green)' : 'var(--medium-text)' }}
                         >
-                            {opt}
+                            {opt.label}
                         </button>
                     ))}
                   </div>
@@ -297,29 +294,20 @@ export default function InventoryPage() {
         </button>
       </div>
 
-      {/* Filters Row */}
-      <div className={styles.filtersRow}>
-        <div className={styles.categoryPills}>
-          {categoryList.map((cat) => (
-            <button
-              key={cat}
-              className={`${styles.pill} ${activeCategory === cat ? styles.active : ''}`}
-              onClick={() => handleCategoryChange(cat)}
-            >
-              {cat}
-            </button>
-          ))}
+      {/* Filter Section */}
+      <div className={styles.filterContainer}>
+        <div className={styles.searchBarWrapper}>
+          <i className="fas fa-search"></i>
+          <input
+            type="text"
+            placeholder="Cari berdasarkan nama atau SKU barang..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
+          />
         </div>
-        <CustomSelect 
-          options={sortOptions}
-          value={sortOrder}
-          onChange={(newVal) => {
-            setSortOrder(newVal);
-            setCurrentPage(1);
-          }}
-          icon="fa-sliders-h"
-        />
-      </div>
 
         <div className={styles.filterRows}>
           <div className={styles.filterGroup}>
@@ -332,32 +320,15 @@ export default function InventoryPage() {
               options={categoryOptions}
             />
 
-          return (
-            <div
-              key={item.id}
-              className={`${styles.productCard} ${isLow ? styles.lowStock : ''}`}
-            >
-              <div className={`${styles.productImage} ${bgClass}`}>
-                {isLow && <span className={styles.lowStockBadge}>STOK TIPIS</span>}
-                <img src={getItemImage(item)} alt={item.name} className={styles.productImg} />
-              </div>
-              <div className={styles.productInfo}>
-                <div className={styles.productName}>{item.name}</div>
-                <div className={`${styles.stockInfo} ${isLow ? styles.low : ''}`}>
-                  Sisa Stok: {item.stock}
-                </div>
-              </div>
-              <button 
-                className={styles.addToCartBtn} 
-                onClick={() => handleAddToCart(item)}
-              >
-                <i className="fas fa-cart-plus"></i>
-                Tambah ke Keranjang
-              </button>
-            </div>
-          );
-        })}
-      </div>
+            <CustomSelect
+              value={statusFilter}
+              onChange={(val) => {
+                setStatusFilter(val);
+                setCurrentPage(1);
+              }}
+              options={statusOptions}
+            />
+          </div>
 
           <div className={styles.advancedFilter} onClick={() => setActiveModal('filter')}>
             <i className="fas fa-cog"></i>
