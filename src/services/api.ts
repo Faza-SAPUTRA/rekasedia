@@ -7,7 +7,7 @@
 import * as mockData from '../data/mockData';
 
 const API_BASE = '/api';
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false';
 const MOCK_ITEMS_KEY = 'mock_items';
 const MOCK_REQUESTS_KEY = 'mock_requests';
 const MOCK_LOANS_KEY = 'mock_loans';
