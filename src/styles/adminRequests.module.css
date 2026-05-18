@@ -5,20 +5,22 @@
 /* --- Horizontal Filter Tabs (Reused from Teacher) --- */
 .tabsContainer {
   display: flex;
-  gap: 12px;
-  background: var(--white);
-  padding: 16px 24px;
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-color);
+  gap: 6px;
+  background: var(--cream);
+  padding: 6px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--cream-dark);
   margin-bottom: 24px;
   overflow-x: auto;
+  width: max-content;
+  max-width: 100%;
 }
 
 .tab {
-  padding: 8px 16px;
-  border-radius: var(--radius-xl);
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
   color: var(--medium-text);
@@ -26,33 +28,36 @@
   background: transparent;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.tab:hover {
+.tab:hover:not(.active) {
   color: var(--dark-text);
-  background: var(--cream);
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .tab.active {
+  background: var(--white);
+  color: var(--sage-green);
+  box-shadow: var(--shadow-sm);
+}
+
+.tabCount {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  transition: all var(--transition-fast);
+}
+
+.tab.active .tabCount {
   background: var(--sage-green);
   color: var(--white);
 }
 
-.tabCount {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 2px 6px;
-  border-radius: 10px;
-  font-size: 11px;
-}
-
-.tab.active .tabCount {
-  background: rgba(255, 255, 255, 0.3);
-}
-
 .tab:not(.active) .tabCount {
-  background: var(--cream-dark);
-  color: var(--gray-text);
+  background: var(--light-gray);
+  color: var(--dark-text);
 }
 
 /* --- Table Styles (From Admin Dashboard) --- */
