@@ -1,12 +1,38 @@
-import { useState, useMemo, useEffect } from 'react';
-import CustomSelect from '../../components/CustomSelect';
+import { useState, useMemo, useEffect, type ChangeEvent, type DragEvent } from 'react';
+import { Link } from 'react-router-dom';
 import styles from '../../styles/adminInventory.module.css';
-import { fetchItems, fetchCategories } from '../../services/api';
+import { fetchItems, fetchCategories, addItem, updateItem, deleteItem } from '../../services/api';
 import Modal from '../../components/Modal';
+import CustomSelect from '../../components/CustomSelect';
+import { getItemImage } from '../../utils/itemImages';
 
 const ITEMS_PER_PAGE = 10;
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
 
 type ModalType = 'add' | 'edit' | 'delete' | 'filter' | null;
+type InventoryFormData = {
+  name: string;
+  sku: string;
+  category_id: number;
+  category_name: string;
+  stock: number;
+  unit: string;
+  description: string;
+  image_url: string | null;
+  is_loanable: boolean;
+};
+
+const emptyFormData = (): InventoryFormData => ({
+  name: '',
+  sku: `SKU-${new Date().getFullYear()}-${Math.floor(Math.random()*900)+100}`,
+  category_id: 1,
+  category_name: 'ATK',
+  stock: 0,
+  unit: 'Unit',
+  description: '',
+  image_url: null,
+  is_loanable: false
+});
 
 export default function InventoryPage() {
   const [items, setItems] = useState<any[]>([]);
@@ -25,17 +51,10 @@ export default function InventoryPage() {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [imageError, setImageError] = useState('');
 
   // Form State (for Add/Edit)
-  const [formData, setFormData] = useState({
-    name: '',
-    sku: '',
-    category_id: 1,
-    category_name: 'ATK',
-    stock: 0,
-    unit: 'Unit',
-    description: ''
-  });
+  const [formData, setFormData] = useState<InventoryFormData>(emptyFormData);
 
   useEffect(() => {
     const loadData = async () => {
@@ -109,13 +128,25 @@ export default function InventoryPage() {
 
   // --- Handlers ---
   const openAddModal = () => {
-    setFormData({ name: '', sku: `SKU-${new Date().getFullYear()}-${Math.floor(Math.random()*900)+100}`, category_id: 1, category_name: 'ATK', stock: 0, unit: 'Unit', description: '' });
+    setFormData(emptyFormData());
+    setImageError('');
     setActiveModal('add');
   };
 
   const openEditModal = (item: any) => {
     setSelectedItem(item);
-    setFormData({ ...item });
+    setFormData({
+      name: item.name || '',
+      sku: item.sku || '',
+      category_id: item.category_id || 1,
+      category_name: item.category_name || 'ATK',
+      stock: item.stock || 0,
+      unit: item.unit || 'Unit',
+      description: item.description || '',
+      image_url: item.image_url || null,
+      is_loanable: Boolean(item.is_loanable),
+    });
+    setImageError('');
     setActiveModal('edit');
   };
 
@@ -127,6 +158,7 @@ export default function InventoryPage() {
   const closeModal = () => {
     setActiveModal(null);
     setSelectedItem(null);
+    setImageError('');
   };
 
   const triggerSuccess = (msg: string) => {
@@ -135,19 +167,56 @@ export default function InventoryPage() {
     setTimeout(() => setShowSuccess(false), 2500);
   };
 
-  const handleSaveItem = () => {
+  const handleImageFile = (file?: File) => {
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setImageError('File harus berupa gambar.');
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      setImageError('Ukuran gambar maksimal 2MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFormData(prev => ({ ...prev, image_url: String(reader.result) }));
+      setImageError('');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleImageInput = (event: ChangeEvent<HTMLInputElement>) => {
+    handleImageFile(event.target.files?.[0]);
+    event.target.value = '';
+  };
+
+  const handleImageDrop = (event: DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    handleImageFile(event.dataTransfer.files?.[0]);
+  };
+
+  const handleStockChange = (value: string) => {
+    setFormData({...formData, stock: Math.max(0, parseInt(value) || 0)});
+  };
+
+  const handleSaveItem = async () => {
     if (activeModal === 'add') {
-        const newItem = { id: Date.now(), ...formData };
+        const newItem = await addItem(formData);
         setItems([newItem, ...items]);
         triggerSuccess('Barang berhasil ditambahkan ke sistem.');
     } else if (activeModal === 'edit') {
-        setItems(items.map(i => i.id === selectedItem.id ? { ...formData } : i));
+        await updateItem(selectedItem.id, formData);
+        setItems(items.map(i => i.id === selectedItem.id ? { ...i, ...formData } : i));
         triggerSuccess('Data barang berhasil diperbarui.');
     }
     closeModal();
   };
 
-  const handleDeleteItem = () => {
+  const handleDeleteItem = async () => {
+    await deleteItem(selectedItem.id);
     setItems(items.filter(i => i.id !== selectedItem.id));
     triggerSuccess(`Barang "${selectedItem.name}" berhasil dihapus.`);
     closeModal();
@@ -157,7 +226,7 @@ export default function InventoryPage() {
   const renderModals = () => {
     return (
       <Modal isOpen={activeModal !== null} onClose={closeModal}>
-        <div style={{ maxWidth: activeModal === 'add' || activeModal === 'edit' ? '600px' : '420px', width: '100%', margin: '0 auto' }}>
+        <div className={activeModal === 'add' || activeModal === 'edit' ? styles.itemModalShell : styles.smallModalShell}>
           <button className="globalModalClose" onClick={closeModal} title="Tutup">
             <i className="fas fa-times"></i>
           </button>
@@ -165,51 +234,85 @@ export default function InventoryPage() {
           {/* Add / Edit Modal */}
           {(activeModal === 'add' || activeModal === 'edit') && (
             <div className={styles.modalForm}>
-              <div className="globalModalIcon" style={{ margin: '0 0 16px 0', width: '48px', height: '48px', fontSize: '20px' }}>
-                <i className={`fas fa-${activeModal === 'add' ? 'plus' : 'edit'}`}></i>
+              <div className={styles.modalScrollArea}>
+                <div className="globalModalIcon" style={{ margin: '0 0 16px 0', width: '48px', height: '48px', fontSize: '20px' }}>
+                  <i className={`fas fa-${activeModal === 'add' ? 'plus' : 'edit'}`}></i>
+                </div>
+                <h3>{activeModal === 'add' ? 'Tambah Barang Baru' : 'Edit Data Barang'}</h3>
+                <p>Pastikan informasi barang yang dimasukkan sudah sesuai dengan fisik inventaris.</p>
+                
+                <div className={styles.modalFormGrid}>
+                  <div className={styles.formGroup} style={{ gridColumn: 'span 12' }}>
+                    <label>Nama Barang</label>
+                    <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Contoh: Kertas HVS A4" />
+                  </div>
+                  <div className={styles.formGroup} style={{ gridColumn: 'span 6' }}>
+                    <label>SKU Barang</label>
+                    <input type="text" value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value})} placeholder="SKU-2023-XXX" />
+                  </div>
+                  <div className={styles.formGroup} style={{ gridColumn: 'span 6' }}>
+                    <label>Kategori</label>
+                    <CustomSelect
+                      value={formData.category_name}
+                      onChange={val => setFormData({...formData, category_name: val})}
+                      options={categories.map(c => ({ value: c.name, label: c.name }))}
+                    />
+                  </div>
+                  <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
+                    <label>Stok Awal</label>
+                    <input type="number" min="0" value={formData.stock} onChange={e => handleStockChange(e.target.value)} />
+                  </div>
+                  <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
+                    <label>Satuan</label>
+                    <input type="text" value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} placeholder="Pcs, Rim, dsb." />
+                  </div>
+                  <div className={styles.formGroup} style={{ gridColumn: 'span 6' }}>
+                    <label>Dapat Dipinjam?</label>
+                    <CustomSelect
+                      value={String(formData.is_loanable)}
+                      onChange={val => setFormData({...formData, is_loanable: val === 'true'})}
+                      options={[
+                        { value: 'false', label: 'Tidak (Habis Pakai)' },
+                        { value: 'true', label: 'Ya (Aset/Pinjaman)' }
+                      ]}
+                    />
+                  </div>
+                  <div className={styles.formGroup} style={{ gridColumn: 'span 12' }}>
+                    <label>Foto Barang</label>
+                    <label
+                      className={`${styles.imageDropzone} ${formData.image_url ? styles.hasImage : ''}`}
+                      onDragOver={(event) => event.preventDefault()}
+                      onDrop={handleImageDrop}
+                    >
+                      {formData.image_url ? (
+                        <>
+                          <img src={formData.image_url} alt="Preview foto barang" className={styles.imagePreview} />
+                          <span className={styles.imageUploadText}>Klik atau drop gambar lain untuk mengganti foto.</span>
+                        </>
+                      ) : (
+                        <>
+                          <i className="fas fa-cloud-upload-alt"></i>
+                          <span className={styles.imageUploadText}>Drag and drop gambar ke sini, atau klik untuk pilih file.</span>
+                          <span className={styles.imageUploadHint}>Format gambar, maksimal 2MB.</span>
+                        </>
+                      )}
+                      <input type="file" accept="image/*" onChange={handleImageInput} />
+                    </label>
+                    {formData.image_url && (
+                      <button
+                        type="button"
+                        className={styles.removeImageBtn}
+                        onClick={() => setFormData({...formData, image_url: null})}
+                      >
+                        Hapus gambar
+                      </button>
+                    )}
+                    {imageError && <div className={styles.imageError}>{imageError}</div>}
+                  </div>
+                </div>
               </div>
-              <h3>{activeModal === 'add' ? 'Tambah Barang Baru' : 'Edit Data Barang'}</h3>
-              <p>Pastikan informasi barang yang dimasukkan sudah sesuai dengan fisik inventaris.</p>
               
-              <div className={styles.modalFormGrid}>
-                <div className={styles.formGroup} style={{ gridColumn: 'span 12' }}>
-                  <label>Nama Barang</label>
-                  <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Contoh: Kertas HVS A4" />
-                </div>
-                <div className={styles.formGroup} style={{ gridColumn: 'span 6' }}>
-                  <label>SKU Barang</label>
-                  <input type="text" value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value})} placeholder="SKU-2023-XXX" />
-                </div>
-                <div className={styles.formGroup} style={{ gridColumn: 'span 6' }}>
-                  <label>Kategori</label>
-                  <CustomSelect
-                    value={formData.category_name}
-                    onChange={val => setFormData({...formData, category_name: val})}
-                    options={categories.map(c => ({ value: c.name, label: c.name }))}
-                  />
-                </div>
-                <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
-                  <label>Stok Awal</label>
-                  <input type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: parseInt(e.target.value) || 0})} />
-                </div>
-                <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
-                  <label>Satuan</label>
-                  <input type="text" value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} placeholder="Pcs, Rim, dsb." />
-                </div>
-                <div className={styles.formGroup} style={{ gridColumn: 'span 6' }}>
-                  <label>Dapat Dipinjam?</label>
-                  <CustomSelect
-                    value="false"
-                    onChange={() => {}}
-                    options={[
-                      { value: 'false', label: 'Tidak (Habis Pakai)' },
-                      { value: 'true', label: 'Ya (Aset/Pinjaman)' }
-                    ]}
-                  />
-                </div>
-              </div>
-              
-              <div className="globalModalBtns" style={{ marginTop: '32px' }}>
+              <div className={`globalModalBtns ${styles.modalActionBar}`}>
                 <button className="globalModalBtnCancel" onClick={closeModal}>Batal</button>
                 <button className="globalModalBtnConfirm" onClick={handleSaveItem}>Simpan Perubahan</button>
               </div>
@@ -284,7 +387,9 @@ export default function InventoryPage() {
       <div className={styles.inventoryHeader}>
         <div>
             <div className={styles.breadcrumb}>
-                Dashboard &rsaquo; <span>Manajemen Inventaris</span>
+                <Link to="/admin">Dashboard</Link>
+                <span aria-hidden="true">&rsaquo;</span>
+                <span>Manajemen Inventaris</span>
             </div>
             <h1 className={styles.inventoryTitle}>Manajemen Inventaris Barang</h1>
         </div>
@@ -359,7 +464,7 @@ export default function InventoryPage() {
                 <tr key={item.id} className={styles.itemRow}>
                   <td>
                     <div className={styles.itemThumb}>
-                      <i className="fas fa-box" style={{ color: 'rgba(255,255,255,0.2)', fontSize: '20px' }}></i>
+                      <img src={getItemImage(item)} alt={item.name} />
                     </div>
                   </td>
                   <td>

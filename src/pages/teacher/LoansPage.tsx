@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { fetchLoans, returnLoan, getUser } from '../../services/api';
 import styles from '../../styles/loans.module.css';
 import Modal from '../../components/Modal';
+import { getItemImage } from '../../utils/itemImages';
 
 export default function TeacherLoansPage() {
   const [loanList, setLoanList] = useState<any[]>([]);
@@ -28,21 +29,50 @@ export default function TeacherLoansPage() {
   }, []);
 
   const isDueToday = (dueDateStr: string) => {
-    const dueDate = new Date(dueDateStr);
+    const dueDate = parseDisplayDate(dueDateStr);
     const today = new Date();
+    if (!dueDate) return false;
     return dueDate.setHours(0,0,0,0) === today.setHours(0,0,0,0);
   };
 
+  const parseDisplayDate = (dateString: string) => {
+    const parsed = new Date(dateString);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+
+    const match = dateString.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
+    if (!match) return null;
+
+    const months: Record<string, number> = {
+      jan: 0, januari: 0,
+      feb: 1, februari: 1,
+      mar: 2, maret: 2,
+      apr: 3, april: 3,
+      mei: 4,
+      jun: 5, juni: 5,
+      jul: 6, juli: 6,
+      agu: 7, agustus: 7,
+      sep: 8, september: 8,
+      okt: 9, oktober: 9,
+      nov: 10, november: 10,
+      des: 11, desember: 11,
+    };
+
+    const [, day, monthName, year] = match;
+    const month = months[monthName.toLowerCase()];
+    if (month === undefined) return null;
+
+    return new Date(Number(year), month, Number(day));
+  };
+
   const formatDate = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleDateString('id-ID', {
+    const parsed = parseDisplayDate(dateString);
+    if (!parsed) return dateString;
+
+    return parsed.toLocaleDateString('id-ID', {
         day: 'numeric',
-        month: 'long',
+        month: 'short',
         year: 'numeric'
-      });
-    } catch {
-      return dateString;
-    }
+    });
   };
 
   const handleReturnClick = (loan: any) => {
@@ -88,33 +118,27 @@ export default function TeacherLoansPage() {
       </div>
 
       {/* Loan Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '20px' }}>
+      <div className={styles.loanGrid}>
         {loanList.map((loan) => {
           const overdue = isDueToday(loan.due_date);
           const returned = loan.status === 'DIKEMBALIKAN';
 
-        return (
-          <div key={loan.id} className={styles.loanCard}>
-            <div className={styles.loanCardContent}>
-              <div className={styles.loanImage}>
-                {loan.item_image ? (
-                  <img src={loan.item_image} alt={loan.item_name} className={styles.loanImg} />
-                ) : (
-                  <div className={styles.loanImagePlaceholder}>
-                    <i className={loan.item_name.toLowerCase().includes('proyektor') ? "fas fa-video" : "fas fa-laptop"}></i>
-                  </div>
-                )}
-              </div>
+          return (
+            <div key={loan.id} className={styles.loanCard}>
+              <div className={styles.loanCardContent}>
+                <div className={styles.loanImage}>
+                  <img src={getItemImage({ name: loan.item_name, image_url: loan.item_image, category_name: 'Elektronik' })} alt={loan.item_name} />
+                </div>
 
-              <div className={styles.loanDetails} style={{ flex: 1, padding: '0 8px' }}>
-                <div className={styles.loanItemName} style={{ fontWeight: 600, fontSize: '16px', color: 'var(--dark-text)', marginBottom: '4px' }}>{loan.item_name}</div>
-                <div className={styles.loanDates} style={{ fontSize: '12px', color: 'var(--medium-text)', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <div className={styles.loanDetails}>
+                <div className={styles.loanItemName}>{loan.item_name}</div>
+                <div className={styles.loanDates}>
                   <span><strong>Tanggal Pinjam:</strong> {formatDate(loan.borrow_date)}</span>
                   <span><strong>Batas Kembali:</strong> {formatDate(loan.due_date)}</span>
                 </div>
                 {!returned && overdue && (
-                  <span style={{ display: 'inline-block', marginTop: '6px', fontSize: '11px', color: 'var(--error-red)', fontWeight: 600 }}>
-                    <i className="fas fa-exclamation-triangle" style={{ marginRight: '4px' }}></i>
+                  <span className={styles.dueTodayWarning}>
+                    <i className="fas fa-exclamation-triangle"></i>
                     Harus dikembalikan hari ini!
                   </span>
                 )}

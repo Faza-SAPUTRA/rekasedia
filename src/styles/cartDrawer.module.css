@@ -128,13 +128,17 @@
 .itemImage {
   width: 72px;
   height: 72px;
-  background: #F0ECE3; /* Base cream */
+  background: #F0ECE3;
   border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  color: var(--light-text);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.itemImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .itemDetails {

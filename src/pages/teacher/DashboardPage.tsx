@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from '../../styles/teacherDashboard.module.css';
 import { fetchItems, fetchTeacherStats, getUser, type TeacherStats } from '../../services/api';
+import { getItemImage } from '../../utils/itemImages';
 
 export default function TeacherDashboardPage() {
   const [frequentItems, setFrequentItems] = useState<any[]>([]);
@@ -53,7 +54,7 @@ export default function TeacherDashboardPage() {
             <span className={styles.statTitle}>Permintaan Diproses</span>
             <span className={`${styles.badge} ${styles.proses}`}>PROSES</span>
           </div>
-          <div className={styles.statValue}>4</div>
+          <div className={styles.statValue}>{stats?.pendingRequestsCount || '0'}</div>
         </div>
 
         {/* TOTAL */}
@@ -78,7 +79,7 @@ export default function TeacherDashboardPage() {
         {frequentItems.map((item, idx) => (
           <div key={`${item.id}-${idx}`} className={styles.itemCard}>
             <div className={styles.itemImage}>
-              <i className={`fas fa-${item.is_loanable ? 'laptop' : 'box-open'}`}></i>
+              <img src={getItemImage(item)} alt={item.name} />
             </div>
             <div className={styles.itemName}>{item.name}</div>
             <div className={styles.itemCategory}>{item.category_name}</div>

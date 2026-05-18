@@ -1,178 +1,172 @@
-# 📦 RekaSedia — Sistem Manajemen Inventaris Sekolah
+# RekaSedia
 
-![React](https://img.shields.io/badge/React-19.x-61DAFB?logo=react&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-6.x-3178C6?logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-8.x-646CFF?logo=vite&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green)
+RekaSedia adalah aplikasi inventaris sekolah untuk membantu admin Sarpras dan guru mengelola kebutuhan barang harian: mulai dari melihat stok, mengajukan permintaan, memvalidasi permintaan, sampai memantau peminjaman aset.
 
-**RekaSedia** adalah aplikasi web manajemen inventaris dan perlengkapan sekolah yang dirancang untuk memudahkan pengelolaan aset antara **Admin (Sarpras)** dan **Guru**. Dibangun dengan standar desain modern berbasis Figma, aplikasi ini menyediakan antarmuka yang bersih, responsif, dan intuitif untuk seluruh proses — mulai dari permintaan barang hingga pelacakan peminjaman.
+Project ini sedang difokuskan untuk kebutuhan demo dan testing dengan data dummy. Jadi aplikasi bisa langsung dicoba tanpa setup database atau backend dulu.
 
----
+## Tampilan Aplikasi
 
-## ✨ Fitur Utama
+Beberapa tampilan berikut dipilih karena mewakili alur utama RekaSedia: user masuk, guru mengajukan barang, lalu admin memantau dan memproses permintaan.
 
-### 🔐 Autentikasi
-- **Halaman Login** — Validasi form real-time, toggle visibilitas password, dan navigasi berbasis peran (Admin / Guru).
-- **Halaman Registrasi** — Form multi-field dengan validasi ketat (nama, email, password, konfirmasi password, peran).
+### Login
 
-### 👨‍💼 Dashboard Admin (`/admin`)
-| Modul | Deskripsi |
-|---|---|
-| **Dashboard** | Ringkasan statistik (Total Barang, Peminjaman Aktif, Stok Kritis), tabel permintaan masuk terkini, dan daftar stok kritis. |
-| **Inventaris** | Katalog barang bergaya kartu berwarna-warni dengan pencarian, filter kategori (ATK, Kertas, Elektronik, Kebersihan), pagination, dan keranjang permintaan interaktif. |
-| **Permintaan** | Tabel manajemen permintaan dari guru dengan filter status (Menunggu, Disetujui, Ditolak) dan tombol aksi Setujui/Tolak per baris. |
-| **Laporan** | Grafik distribusi kategori (Chart.js), statistik ringkasan, dan tabel log aktivitas lengkap. |
+Halaman awal untuk masuk sebagai admin atau guru. Di mode dummy, gunakan email demo yang tersedia.
 
-### 👩‍🏫 Dashboard Guru (`/teacher`)
-| Modul | Deskripsi |
-|---|---|
-| **Dashboard** | Greeting personal ("Halo, Bapak/Ibu Guru! 👋"), stat cards (Sedang Dipinjam, Permintaan Diproses, Riwayat Ambil), dan grid akses cepat "Sering Dibutuhkan". |
-| **Inventaris** | Katalog barang dengan tombol "Tambah ke Keranjang" / "Pinjam Barang", Cart Drawer overlay, dan modal konfirmasi "Tinjau Permintaan Anda" sebelum pengajuan. |
-| **Peminjaman** | Daftar barang yang sedang dipinjam dengan indikator tenggat waktu dan tombol pengembalian. |
-| **Laporan** | Ringkasan aktivitas personal guru. |
+![Halaman login RekaSedia](docs/images/login.png)
 
-### 🛒 Sistem Keranjang (Cart Drawer)
-- Slide-in drawer dari kanan dengan animasi **smooth** (masuk & keluar).
-- Stepper kuantitas (+/−), hapus item, dan ringkasan total.
-- Modal konfirmasi **"Tinjau Permintaan Anda"** menampilkan daftar item sebelum pengajuan final.
-- Success modal setelah permintaan berhasil dikirim.
+### Dashboard Admin
 
----
+Admin bisa melihat kondisi inventaris secara cepat: permintaan terbaru, stok kritis, dan ringkasan aktivitas.
 
-## 🛠️ Tech Stack
+![Dashboard admin RekaSedia](docs/images/admin-dashboard.png)
 
-| Layer | Teknologi |
-|---|---|
-| **Framework** | React 19 + TypeScript |
-| **Build Tool** | Vite 8 |
-| **Routing** | React Router DOM v7 |
-| **Charting** | Chart.js + react-chartjs-2 |
-| **Styling** | CSS Modules + CSS Variables (Design Tokens) |
-| **Icons** | Font Awesome 6 |
-| **Font** | Google Fonts (Inter) |
+### Katalog Guru dan Keranjang
 
----
+Guru memilih barang dari katalog, memasukkannya ke keranjang, lalu mengirim permintaan untuk divalidasi admin.
 
-## 📁 Struktur Proyek
+![Katalog inventaris guru dengan keranjang](docs/images/teacher-inventory-cart.png)
 
-```
-src/
-├── components/            # Komponen UI reusable
-│   ├── AuthLayout.tsx     # Layout halaman autentikasi
-│   ├── BrandLogo.tsx      # Logo RekaSedia
-│   ├── CartDrawer.tsx     # Overlay keranjang permintaan
-│   ├── DashboardLayout.tsx # Layout dashboard admin
-│   ├── InputField.tsx     # Input field dengan validasi
-│   ├── Sidebar.tsx        # Sidebar navigasi admin
-│   ├── TeacherLayout.tsx  # Layout dashboard guru
-│   └── TeacherSidebar.tsx # Sidebar navigasi guru
-├── data/
-│   └── mockData.ts        # Data dummy untuk development
-├── pages/
-│   ├── LoginPage.tsx      # Halaman login
-│   ├── RegisterPage.tsx   # Halaman registrasi
-│   ├── admin/             # Halaman-halaman admin
-│   │   ├── DashboardPage.tsx
-│   │   ├── InventoryPage.tsx
-│   │   ├── LoansPage.tsx
-│   │   ├── ReportsPage.tsx
-│   │   └── RequestsPage.tsx
-│   └── teacher/           # Halaman-halaman guru
-│       ├── DashboardPage.tsx
-│       ├── InventoryPage.tsx
-│       ├── LoansPage.tsx
-│       ├── ReportsPage.tsx
-│       └── RequestsPage.tsx
-├── styles/                # CSS Modules & global styles
-│   ├── variables.css      # Design tokens (warna, radius, shadow)
-│   ├── global.css         # Global styles & modal system
-│   ├── auth.module.css    # Styling halaman autentikasi
-│   ├── sidebar.module.css
-│   ├── adminDashboard.module.css
-│   ├── adminRequests.module.css
-│   ├── inventory.module.css
-│   ├── cartDrawer.module.css
-│   ├── loans.module.css
-│   ├── reports.module.css
-│   ├── teacherDashboard.module.css
-│   └── teacherRequests.module.css
-├── App.tsx                # Root routing configuration
-└── main.tsx               # Entry point
+### Status Pesanan Guru
+
+Setelah permintaan dikirim, guru bisa memantau apakah pesanan masih menunggu validasi, disetujui, atau ditolak.
+
+![Halaman pesanan guru](docs/images/teacher-requests.png)
+
+## Yang Bisa Dicoba
+
+Ada dua peran utama di aplikasi ini:
+
+| Peran | Fungsi utama |
+| --- | --- |
+| Admin | Melihat ringkasan dashboard, mengelola inventaris, menyetujui atau menolak permintaan guru, dan melihat laporan. |
+| Guru | Melihat katalog barang, memasukkan barang ke keranjang, mengirim permintaan, melihat status pesanan, dan memantau peminjaman. |
+
+Alur dummy-nya sudah saling terhubung:
+
+- Guru membuat permintaan dari katalog.
+- Permintaan muncul di dashboard dan halaman validasi admin.
+- Admin menyetujui atau menolak permintaan.
+- Kalau disetujui, stok barang dummy ikut berkurang.
+- Dashboard admin dan guru membaca data dummy yang sama selama sesi browser masih aktif.
+
+## Mode Data Dummy
+
+Saat ini aplikasi berjalan dalam mock mode lewat `src/services/api.ts`.
+
+Data awalnya berasal dari:
+
+```text
+src/data/mockData.ts
 ```
 
----
+Perubahan saat testing disimpan sementara di `sessionStorage`, bukan database. Artinya:
 
-## 🚀 Cara Menjalankan
+- Selama tab browser masih aktif, perubahan tetap tersimpan.
+- Kalau tab/browser ditutup lalu dibuka lagi, data kembali ke dummy default.
+- Tidak perlu clear database atau seed ulang setiap kali demo.
 
-### Prasyarat
-- **Node.js** ≥ 18.x
-- **npm** ≥ 9.x
+Ini sengaja dibuat begitu supaya testing terasa ringan dan gampang diulang.
 
-### Instalasi & Development
+## Akun Demo
+
+Di mock mode, password bebas. Login tetap harus memakai format email atau NIP angka.
+
+| Login | Masuk sebagai |
+| --- | --- |
+| `admin@rekasedia.sch.id` | Admin Sarpras |
+| `sarah.putri@rekasedia.sch.id` | Guru |
+
+## Cara Menjalankan
+
+Pastikan sudah ada Node.js dan npm.
+
 ```bash
-# Clone repository
-git clone https://github.com/Faza-SAPUTRA/rekasedia.git
-
-# Masuk ke direktori proyek
-cd rekasedia
-
-# Install dependencies
 npm install
-
-# Jalankan development server
 npm run dev
 ```
 
-Aplikasi akan berjalan di `http://localhost:5173/`
+Buka aplikasi di:
 
-### Build Production
+```text
+http://localhost:5173
+```
+
+Untuk memastikan build production aman:
+
 ```bash
 npm run build
 ```
 
----
+## Tech Stack
 
-## 🎨 Design System
+| Bagian | Teknologi |
+| --- | --- |
+| Frontend | React 19 + TypeScript |
+| Build tool | Vite |
+| Routing | React Router |
+| Chart | Chart.js + react-chartjs-2 |
+| Styling | CSS Modules + CSS variables |
+| Icons | Font Awesome |
 
-Aplikasi ini menggunakan **design tokens** terpusat yang didefinisikan di `variables.css`:
+## Struktur Singkat
 
-| Token | Contoh Penggunaan |
-|---|---|
-| `--sage-green` / `--sage-green-hover` | Warna utama (tombol, sidebar aktif, badge) |
-| `--cream` / `--cream-dark` | Background halaman & elemen sekunder |
-| `--dark-text` / `--medium-text` | Hierarki tipografi |
-| `--error-red` | Badge stok kritis & validasi error |
-| `--radius-sm` hingga `--radius-full` | Konsistensi border-radius |
-| `--shadow-sm` hingga `--shadow-lg` | Elevasi & depth |
+```text
+src/
+  components/        Komponen UI reusable
+  data/              Data dummy untuk demo
+  pages/
+    admin/           Halaman dashboard admin
+    teacher/         Halaman dashboard guru
+  services/          Mock API dan API wrapper
+  styles/            CSS Modules dan design tokens
+  utils/             Helper kecil, termasuk gambar item otomatis
+```
 
----
+File penting:
 
-## 🗄️ Database
+| File | Fungsi |
+| --- | --- |
+| `src/services/api.ts` | Pusat mock API. Di sini data dummy dibaca, diubah, dan disimpan sementara ke session. |
+| `src/data/mockData.ts` | Seed data awal untuk user, item, request, loan, dan report. |
+| `src/utils/itemImages.ts` | Generator gambar item berdasarkan nama barang. |
+| `src/App.tsx` | Konfigurasi route utama. |
 
-File `rekasedia_db.sql` sudah disertakan di root proyek untuk keperluan setup database MySQL di tahap integrasi backend.
+## Alur Demo yang Disarankan
 
----
+1. Login sebagai `sarah.putri@rekasedia.sch.id`.
+2. Buka katalog inventaris.
+3. Tambahkan beberapa barang ke keranjang dan ajukan permintaan.
+4. Logout, lalu login sebagai `admin@rekasedia.sch.id`.
+5. Buka dashboard atau menu permintaan.
+6. Setujui salah satu permintaan.
+7. Cek stok di inventaris admin atau katalog guru.
 
-## 📌 Roadmap
+Dengan alur ini, hubungan antar data dummy kelihatan jelas tanpa perlu backend.
 
-- [x] UI Autentikasi (Login & Register)
-- [x] Dashboard Admin (Statistik, Inventaris, Laporan)
-- [x] Dashboard Guru (Permintaan, Peminjaman, Katalog)
-- [x] Sistem Keranjang & Modal Konfirmasi
-- [x] Halaman Permintaan Admin (Approve/Reject)
-- [ ] Integrasi Backend API (MySQL)
-- [ ] Autentikasi JWT & Role-Based Redirect
-- [ ] Notifikasi Real-time
-- [ ] Export Laporan (PDF/Excel)
+## Catatan Backend
 
----
+Folder `server/` dan file SQL masih ada untuk arah integrasi backend, tapi versi demo saat ini tidak bergantung ke backend. Kalau nanti ingin kembali ke API sungguhan, mock mode di `src/services/api.ts` bisa dimatikan dan endpoint backend bisa dipakai lagi.
 
-## 👥 Tim
+## Status
 
-Dikembangkan sebagai bagian dari tugas mata kuliah **Dasar UI/UX** — Desain antarmuka berdasarkan prototipe Figma.
+Yang sudah ada:
 
----
+- Login dan register UI.
+- Dashboard admin dan guru.
+- Katalog inventaris dengan gambar item otomatis.
+- Keranjang permintaan guru.
+- Validasi permintaan oleh admin.
+- Data dummy yang terhubung antar halaman.
+- Penyimpanan dummy sementara per sesi browser.
 
-## 📄 Lisensi
+Yang bisa dikembangkan berikutnya:
 
-Proyek ini dibuat untuk keperluan akademis.
+- Integrasi database penuh.
+- Upload gambar barang asli.
+- Export laporan.
+- Notifikasi untuk perubahan status permintaan.
+- Hak akses dan validasi backend yang lebih lengkap.
+
+## Lisensi
+
+Project ini dibuat untuk kebutuhan akademis dan demo pengembangan aplikasi inventaris sekolah.

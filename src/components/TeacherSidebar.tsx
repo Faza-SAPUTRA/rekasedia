@@ -31,9 +31,7 @@ export default function TeacherSidebar() {
     <aside className={styles.sidebar}>
       {/* Brand */}
       <div className={styles.brand}>
-        <div className={styles.brandIcon}>
-          <i className="fas fa-clipboard-check"></i>
-        </div>
+        <img className={styles.brandIcon} src="/logorekasedia.png" alt="Logo RekaSedia" />
         <div className={styles.brandText}>
           <h1>RekaSedia</h1>
           <span>School Inventory</span>

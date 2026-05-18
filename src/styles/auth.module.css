@@ -49,13 +49,9 @@
 .brandIcon {
   width: 32px;
   height: 32px;
-  background-color: var(--sage-green);
   border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--white);
-  font-size: 1rem;
+  display: block;
+  object-fit: cover;
 }
 
 .brandName {
@@ -168,6 +164,41 @@
 .forgotLink:hover {
   color: var(--link-color);
   text-decoration: underline;
+}
+
+.resetSuccessBox {
+  padding: var(--space-xl);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--cream);
+  text-align: center;
+}
+
+.resetSuccessIcon {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-full);
+  background: var(--badge-green-bg);
+  color: var(--sage-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  margin: 0 auto var(--space-md);
+}
+
+.resetSuccessBox h3 {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  color: var(--dark-text);
+  margin-bottom: var(--space-sm);
+}
+
+.resetSuccessBox p {
+  color: var(--medium-text);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: var(--space-lg);
 }
 
 /* --- Accessibility Badge --- */

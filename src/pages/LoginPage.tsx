@@ -15,11 +15,17 @@ const LoginPage: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
+    const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    const isValidNip = (value: string) => /^\d{8,20}$/.test(value);
+
     const validate = (): boolean => {
         const newErrors: Record<string, string> = {};
+        const trimmedLogin = nipEmail.trim();
 
-        if (!nipEmail.trim()) {
+        if (!trimmedLogin) {
             newErrors.nipEmail = 'NIP atau Email wajib diisi.';
+        } else if (!isValidEmail(trimmedLogin) && !isValidNip(trimmedLogin)) {
+            newErrors.nipEmail = 'Masukkan email valid atau NIP angka 8-20 digit.';
         }
         if (!password.trim()) {
             newErrors.password = 'Password wajib diisi.';
@@ -101,13 +107,15 @@ const LoginPage: React.FC = () => {
                     <InputField
                         id="nipEmail"
                         label="NIP / Email"
-                        placeholder="Contoh: 19850101XXXXXXXX"
+                        placeholder="admin@rekasedia.sch.id atau NIP angka"
                         icon="fa-regular fa-user"
                         autoComplete="username"
+                        inputMode="email"
+                        pattern="(^[^\s@]+@[^\s@]+\.[^\s@]+$)|(^\d{8,20}$)"
                         required
                         value={nipEmail}
                         onChange={(val) => {
-                            setNipEmail(val);
+                            setNipEmail(val.replace(/[^\w.@+-]/g, ''));
                             if (errors.nipEmail) setErrors((prev) => ({ ...prev, nipEmail: '' }));
                         }}
                         error={errors.nipEmail}
@@ -137,9 +145,9 @@ const LoginPage: React.FC = () => {
                         <input type="checkbox" id="rememberMe" />
                         <label htmlFor="rememberMe">Ingat Saya</label>
                     </div>
-                    <a href="#" className={styles.forgotLink}>
+                    <Link to="/forgot-password" className={styles.forgotLink}>
                         Lupa Password?
-                    </a>
+                    </Link>
                 </div>
 
                 {/* Submit */}

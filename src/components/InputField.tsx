@@ -14,6 +14,8 @@ interface InputFieldProps {
     onChange: (value: string) => void;
     error?: string;
     isPassword?: boolean;
+    inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
+    pattern?: string;
 }
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -29,6 +31,8 @@ const InputField: React.FC<InputFieldProps> = ({
     onChange,
     error,
     isPassword = false,
+    inputMode,
+    pattern,
 }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [shaking, setShaking] = useState(false);
@@ -66,6 +70,8 @@ const InputField: React.FC<InputFieldProps> = ({
                     autoComplete={autoComplete}
                     minLength={minLength}
                     required={required}
+                    inputMode={inputMode}
+                    pattern={pattern}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     className={error ? styles.inputError : ''}
