@@ -87,9 +87,13 @@ export default function TeacherLoansPage() {
           <div key={loan.id} className={styles.loanCard}>
             <div className={styles.loanCardContent}>
               <div className={styles.loanImage}>
-                <div className={styles.loanImagePlaceholder}>
-                  <i className="fas fa-laptop"></i>
-                </div>
+                {loan.item_image ? (
+                  <img src={loan.item_image} alt={loan.item_name} className={styles.loanImg} />
+                ) : (
+                  <div className={styles.loanImagePlaceholder}>
+                    <i className={loan.item_name.toLowerCase().includes('proyektor') ? "fas fa-video" : "fas fa-laptop"}></i>
+                  </div>
+                )}
               </div>
 
               <div className={styles.loanDetails}>

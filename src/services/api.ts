@@ -47,6 +47,19 @@ export async function register(data: { full_name: string; email: string; passwor
   return res.json();
 }
 
+export async function forgotPassword(email: string): Promise<{ message: string }> {
+  const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Gagal mengirim instruksi');
+  }
+  return res.json();
+}
+
 // --- Items ---
 export async function fetchItems() {
   const res = await fetch(`${API_BASE}/items`, { headers: authHeaders() });
@@ -115,7 +128,7 @@ export interface DashboardStats {
   activeLoans: number;
   pendingRequests: number;
   criticalStockCount: number;
-  criticalItems: Array<{ id: number; name: string; stock: number; category_name: string; unit: string }>;
+  criticalItems: Array<{ id: number; name: string; stock: number; category_name: string; unit: string; image_url?: string }>;
 }
 
 export async function fetchStats(): Promise<DashboardStats> {

@@ -55,8 +55,9 @@
 .pill {
   padding: 8px 20px;
   border-radius: var(--radius-xl);
+  font-family: var(--font-interactive);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--fw-semibold);
   cursor: pointer;
   transition: all var(--transition-fast);
   border: 1.5px solid var(--border-color);
@@ -75,18 +76,6 @@
   border-color: var(--sage-green);
 }
 
-.sortDropdown {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--gray-text);
-  cursor: pointer;
-}
-
-.sortDropdown i {
-  font-size: 12px;
-}
 
 /* --- Product Grid --- */
 .productGrid {
@@ -274,8 +263,9 @@
   border: 1px solid var(--border-color);
   background: var(--white);
   color: var(--medium-text);
+  font-family: var(--font-interactive);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--fw-semibold);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -305,7 +295,9 @@
   border: 1px solid var(--border-color);
   background: var(--white);
   color: var(--medium-text);
+  font-family: var(--font-interactive);
   font-size: 13px;
+  font-weight: var(--fw-semibold);
   cursor: pointer;
   display: flex;
   align-items: center;

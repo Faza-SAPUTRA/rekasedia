@@ -6,7 +6,7 @@ const router = Router();
 // GET /api/requests — Semua permintaan + nama barang & pemohon
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await pool.query(`
+    const { rows } = await pool.query(`
       SELECT r.*, 
              i.name AS item_name, 
              u.full_name AS requester_name, 
@@ -36,17 +36,17 @@ router.post('/', async (req, res) => {
     const results = [];
     for (const item of items) {
       // Generate req_code
-      const [countResult] = await pool.query('SELECT COUNT(*) AS total FROM requests');
-      const nextNum = countResult[0].total + 1;
+      const { rows: countResult } = await pool.query('SELECT COUNT(*) AS total FROM requests');
+      const nextNum = parseInt(countResult[0].total) + 1;
       const req_code = `REQ-${String(nextNum).padStart(3, '0')}`;
 
-      const [result] = await pool.query(
+      const result = await pool.query(
         `INSERT INTO requests (req_code, item_id, requester_id, quantity, request_date, status, priority)
-         VALUES (?, ?, ?, ?, CURDATE(), 'PENDING', 'REGULER')`,
+         VALUES ($1, $2, $3, $4, CURRENT_DATE, 'PENDING', 'REGULER') RETURNING id`,
         [req_code, item.item_id, requester_id, item.quantity]
       );
 
-      results.push({ id: result.insertId, req_code });
+      results.push({ id: result.rows[0].id, req_code });
     }
 
     res.status(201).json({ message: 'Permintaan berhasil dikirim!', requests: results });
@@ -66,7 +66,7 @@ router.put('/:id', async (req, res) => {
     }
 
     await pool.query(
-      'UPDATE requests SET status = ?, reviewed_by = ?, reviewed_at = NOW() WHERE id = ?',
+      'UPDATE requests SET status = $1, reviewed_by = $2, reviewed_at = NOW() WHERE id = $3',
       [status, reviewed_by || null, req.params.id]
     );
 

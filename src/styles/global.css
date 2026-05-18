@@ -172,8 +172,9 @@ img {
   flex: 1;
   padding: 12px;
   border-radius: var(--radius-md);
+  font-family: var(--font-interactive);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   cursor: pointer;
   transition: all var(--transition-fast);
 }

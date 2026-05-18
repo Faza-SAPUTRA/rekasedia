@@ -61,28 +61,6 @@
   margin-bottom: 8px;
 }
 
-.semesterSelect {
-  appearance: none;
-  background: var(--white);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 12px 40px 12px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--dark-text);
-  font-family: var(--font-primary);
-  cursor: pointer;
-  min-width: 280px;
-  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%237A7A7A' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-  transition: border-color var(--transition-fast);
-}
-
-.semesterSelect:focus {
-  outline: none;
-  border-color: var(--sage-green);
-}
 
 /* --- Data Table --- */
 .reportTable {
