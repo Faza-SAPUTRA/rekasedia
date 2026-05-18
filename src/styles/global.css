@@ -223,3 +223,20 @@ img {
 .globalModalBtnConfirm:hover {
   background: var(--sage-green-hover);
 }
+
+button[aria-busy='true'] {
+  cursor: wait !important;
+  pointer-events: none;
+  opacity: 0.82;
+}
+
+.isButtonLoading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.loadingButtonSpinner {
+  font-size: 0.95em;
+}
