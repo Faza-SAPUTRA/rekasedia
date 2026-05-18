@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import styles from '../styles/cartDrawer.module.css';
+import { getItemImage } from '../utils/itemImages';
 
 export interface CartItem {
   id: number;
   name: string;
   category: string;
+  image_url?: string | null;
   quantity: number;
 }
 
@@ -68,7 +70,7 @@ export default function CartDrawer({
             items.map((item) => (
               <div key={item.id} className={styles.itemRow}>
                 <div className={styles.itemImage}>
-                  <i className="fas fa-box-open"></i>
+                  <img src={getItemImage({ name: item.name, category_name: item.category, image_url: item.image_url })} alt={item.name} />
                 </div>
                 <div className={styles.itemDetails}>
                   <div className={styles.itemName}>{item.name}</div>

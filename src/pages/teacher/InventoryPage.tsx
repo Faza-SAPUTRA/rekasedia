@@ -95,7 +95,7 @@ export default function TeacherInventoryPage() {
       if (existing) {
         return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return [...prev, { id: item.id, name: item.name, category: item.category_name, quantity: 1 }];
+      return [...prev, { id: item.id, name: item.name, category: item.category_name, image_url: item.image_url, quantity: 1 }];
     });
     // Buka keranjang tiap tambah item biar terasa responsif
     setIsCartOpen(true);

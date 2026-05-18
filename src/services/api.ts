@@ -7,7 +7,136 @@
 import * as mockData from '../data/mockData';
 
 const API_BASE = '/api';
-const USE_MOCK = false; // Set to false to use real backend API
+const USE_MOCK = true; // FORCE MOCK MODE FOR PRESENTATION
+const MOCK_ITEMS_KEY = 'mock_items';
+const MOCK_REQUESTS_KEY = 'mock_requests';
+const MOCK_LOANS_KEY = 'mock_loans';
+const MOCK_PENDING_USERS_KEY = 'mock_pending_users';
+const MOCK_APPROVED_USERS_KEY = 'mock_approved_users';
+
+function getMockStorage() {
+  localStorage.removeItem(MOCK_ITEMS_KEY);
+  localStorage.removeItem(MOCK_REQUESTS_KEY);
+  localStorage.removeItem(MOCK_LOANS_KEY);
+  localStorage.removeItem(MOCK_PENDING_USERS_KEY);
+  localStorage.removeItem(MOCK_APPROVED_USERS_KEY);
+  return sessionStorage;
+}
+
+function readMockItems() {
+  const saved = getMockStorage().getItem(MOCK_ITEMS_KEY);
+  return saved ? JSON.parse(saved) : mockData.items;
+}
+
+function writeMockItems(items: any[]) {
+  getMockStorage().setItem(MOCK_ITEMS_KEY, JSON.stringify(items));
+}
+
+function readMockRequests() {
+  const saved = getMockStorage().getItem(MOCK_REQUESTS_KEY);
+  const baseRequests = saved ? JSON.parse(saved) : mockData.requests;
+
+  return baseRequests.map((request: any) => {
+    if (request.requester_id) {
+      return {
+        ...request,
+        request_date: normalizeMockDate(request.request_date),
+      };
+    }
+
+    const matchedUser = [...mockData.users, ...readApprovedUsers()].find((user) => user.full_name === request.requester_name);
+    return {
+      ...request,
+      requester_id: matchedUser?.id || 6,
+      request_date: normalizeMockDate(request.request_date),
+    };
+  });
+}
+
+function writeMockRequests(requests: any[]) {
+  getMockStorage().setItem(MOCK_REQUESTS_KEY, JSON.stringify(requests));
+}
+
+function readMockLoans() {
+  const saved = getMockStorage().getItem(MOCK_LOANS_KEY);
+  return saved ? JSON.parse(saved) : mockData.loans;
+}
+
+function writeMockLoans(loans: any[]) {
+  getMockStorage().setItem(MOCK_LOANS_KEY, JSON.stringify(loans));
+}
+
+function readPendingUsers() {
+  const saved = getMockStorage().getItem(MOCK_PENDING_USERS_KEY);
+  return saved ? JSON.parse(saved) : [];
+}
+
+function writePendingUsers(users: any[]) {
+  getMockStorage().setItem(MOCK_PENDING_USERS_KEY, JSON.stringify(users));
+}
+
+function readApprovedUsers() {
+  const saved = getMockStorage().getItem(MOCK_APPROVED_USERS_KEY);
+  return saved ? JSON.parse(saved) : [];
+}
+
+function writeApprovedUsers(users: any[]) {
+  getMockStorage().setItem(MOCK_APPROVED_USERS_KEY, JSON.stringify(users));
+}
+
+function formatMockDate(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function parseMockDate(dateValue: string) {
+  const parsed = new Date(dateValue);
+  if (!Number.isNaN(parsed.getTime())) return parsed;
+
+  const match = dateValue.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
+  if (!match) return null;
+
+  const monthMap: Record<string, number> = {
+    jan: 0,
+    januari: 0,
+    feb: 1,
+    februari: 1,
+    mar: 2,
+    maret: 2,
+    apr: 3,
+    april: 3,
+    mei: 4,
+    jun: 5,
+    juni: 5,
+    jul: 6,
+    juli: 6,
+    agu: 7,
+    agustus: 7,
+    sep: 8,
+    september: 8,
+    okt: 9,
+    oktober: 9,
+    nov: 10,
+    november: 10,
+    des: 11,
+    desember: 11,
+  };
+
+  const [, day, monthName, year] = match;
+  const month = monthMap[monthName.toLowerCase()];
+  if (month === undefined) return null;
+
+  return new Date(Number(year), month, Number(day));
+}
+
+function normalizeMockDate(dateValue: string) {
+  const parsed = parseMockDate(dateValue);
+  return parsed ? formatMockDate(parsed) : dateValue;
+}
+
+function isToday(dateValue: string) {
+  const parsed = parseMockDate(dateValue);
+  return parsed ? formatMockDate(parsed) === formatMockDate(new Date()) : false;
+}
 
 // --- Helper: get token dari localStorage ---
 function getToken(): string | null {
@@ -19,22 +148,64 @@ function authHeaders(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
 }
 
+async function parseJsonResponse<T>(res: Response, fallbackError: string): Promise<T> {
+  const text = await res.text();
+  let data: any = {};
+
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(`${fallbackError}. Server tidak mengembalikan JSON valid.`);
+    }
+  }
+
+  if (!res.ok) {
+    throw new Error(data.error || data.message || fallbackError);
+  }
+
+  return data as T;
+}
+
 // --- Auth ---
 export interface LoginResponse {
   token: string;
   user: { id: number; full_name: string; email: string; role: string; department: string };
 }
 
+export interface PendingUser {
+  id: number;
+  full_name: string;
+  email: string;
+  role: 'guru';
+  department: string;
+  request_date: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+}
+
 export async function login(email: string, password: string): Promise<LoginResponse> {
   if (USE_MOCK) {
     console.log('[MOCK] Login attempt:', email);
     
-    // Support simple aliases for easier demos
-    let targetEmail = email;
-    if (email.toLowerCase() === 'admin') targetEmail = 'admin@rekasedia.sch.id';
-    if (email.toLowerCase() === 'guru') targetEmail = 'sarah.putri@rekasedia.sch.id';
+    const loginValue = email.trim().toLowerCase();
+    let targetEmail = loginValue;
+    if (/^\d{8,20}$/.test(loginValue)) {
+      const matchedByNip = [...mockData.users, ...readApprovedUsers()]
+        .find((u: any) => String(u.department || '').includes(loginValue));
+      if (!matchedByNip) throw new Error('NIP tidak ditemukan atau belum disetujui admin.');
+      targetEmail = matchedByNip.email;
+    }
 
-    const user = mockData.users.find(u => u.email === targetEmail) || mockData.users[0];
+    const pendingUser = readPendingUsers().find((u: PendingUser) => u.email === targetEmail && u.status === 'PENDING');
+    if (pendingUser) {
+      throw new Error('Akun Anda masih menunggu persetujuan admin.');
+    }
+
+    const approvedUser = readApprovedUsers().find((u: PendingUser) => u.email === targetEmail && u.status === 'APPROVED');
+    const user = approvedUser || mockData.users.find(u => u.email === targetEmail);
+    if (!user) {
+      throw new Error('Akun tidak ditemukan atau belum disetujui admin.');
+    }
     return {
       token: 'mock-jwt-token-12345',
       user: { ...user }
@@ -46,18 +217,34 @@ export async function login(email: string, password: string): Promise<LoginRespo
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || 'Login gagal');
-  }
-  return res.json();
+  return parseJsonResponse<LoginResponse>(res, 'Login gagal');
 }
 
 export async function register(data: { full_name: string; email: string; password: string; role?: string; department?: string }): Promise<LoginResponse> {
   if (USE_MOCK) {
+    const normalizedEmail = data.email.trim().toLowerCase();
+    const existingBaseUser = mockData.users.find((u) => u.email.toLowerCase() === normalizedEmail);
+    const existingApprovedUser = readApprovedUsers().find((u: PendingUser) => u.email.toLowerCase() === normalizedEmail);
+    const existingPendingUser = readPendingUsers().find((u: PendingUser) => u.email.toLowerCase() === normalizedEmail && u.status === 'PENDING');
+
+    if (existingBaseUser || existingApprovedUser || existingPendingUser) {
+      throw new Error('Email sudah terdaftar atau sedang menunggu persetujuan.');
+    }
+
+    const newUser: PendingUser = {
+      id: Date.now(),
+      full_name: data.full_name,
+      email: normalizedEmail,
+      role: 'guru',
+      department: data.department || 'Guru',
+      request_date: formatMockDate(new Date()),
+      status: 'PENDING'
+    };
+    writePendingUsers([newUser, ...readPendingUsers()]);
+
     return {
       token: 'mock-jwt-token-new',
-      user: { id: Date.now(), full_name: data.full_name, email: data.email, role: (data.role as any) || 'guru', department: data.department || 'Umum' }
+      user: newUser
     };
   }
 
@@ -66,29 +253,58 @@ export async function register(data: { full_name: string; email: string; passwor
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || 'Registrasi gagal');
-  }
-  return res.json();
+  return parseJsonResponse<LoginResponse>(res, 'Registrasi gagal');
 }
 
 export async function forgotPassword(email: string): Promise<{ message: string }> {
+  if (USE_MOCK) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const knownUser = [...mockData.users, ...readApprovedUsers()]
+      .find((user) => user.email.toLowerCase() === normalizedEmail);
+
+    return {
+      message: knownUser
+        ? 'Instruksi pemulihan dikirim dalam mode demo.'
+        : 'Jika email terdaftar, instruksi akan dikirim.'
+    };
+  }
+
   const res = await fetch(`${API_BASE}/auth/forgot-password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
   });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || 'Gagal mengirim instruksi');
+  return parseJsonResponse<{ message: string }>(res, 'Gagal mengirim instruksi');
+}
+
+export async function fetchPendingUsers(): Promise<PendingUser[]> {
+  if (USE_MOCK) {
+    return readPendingUsers().filter((user: PendingUser) => user.status === 'PENDING');
   }
-  return res.json();
+  return [];
+}
+
+export async function updateUserApproval(id: number, status: 'APPROVED' | 'REJECTED') {
+  if (USE_MOCK) {
+    const pendingUsers = readPendingUsers();
+    const targetUser = pendingUsers.find((user: PendingUser) => user.id === id);
+    const updatedPendingUsers = pendingUsers
+      .map((user: PendingUser) => user.id === id ? { ...user, status } : user)
+      .filter((user: PendingUser) => user.status === 'PENDING');
+    writePendingUsers(updatedPendingUsers);
+
+    if (status === 'APPROVED' && targetUser) {
+      writeApprovedUsers([{ ...targetUser, status: 'APPROVED' }, ...readApprovedUsers()]);
+    }
+
+    return { message: `Akun ${status === 'APPROVED' ? 'disetujui' : 'ditolak'} (MOCK)` };
+  }
+  return { message: 'OK' };
 }
 
 // --- Items ---
 export async function fetchItems() {
-  if (USE_MOCK) return mockData.items;
+  if (USE_MOCK) return readMockItems();
 
   const res = await fetch(`${API_BASE}/items`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Gagal mengambil data barang');
@@ -106,7 +322,10 @@ export async function fetchCategories() {
 export async function addItem(data: any) {
   if (USE_MOCK) {
     console.log('[MOCK] Add item:', data);
-    return { id: Date.now(), ...data, message: 'Barang berhasil ditambahkan (MOCK)' };
+    const items = readMockItems();
+    const newItem = { id: Date.now(), image_url: null, is_loanable: false, ...data, stock: Math.max(0, Number(data.stock) || 0) };
+    writeMockItems([newItem, ...items]);
+    return { ...newItem, message: 'Barang berhasil ditambahkan (MOCK)' };
   }
   const res = await fetch(`${API_BASE}/items`, {
     method: 'POST',
@@ -120,6 +339,9 @@ export async function addItem(data: any) {
 export async function updateItem(id: number, data: any) {
   if (USE_MOCK) {
     console.log('[MOCK] Update item:', id, data);
+    const items = readMockItems();
+    const normalizedData = { ...data, stock: Math.max(0, Number(data.stock) || 0) };
+    writeMockItems(items.map((item: any) => (item.id === id ? { ...item, ...normalizedData } : item)));
     return { message: 'Barang berhasil diperbarui (MOCK)' };
   }
   const res = await fetch(`${API_BASE}/items/${id}`, {
@@ -134,6 +356,7 @@ export async function updateItem(id: number, data: any) {
 export async function deleteItem(id: number) {
   if (USE_MOCK) {
     console.log('[MOCK] Delete item:', id);
+    writeMockItems(readMockItems().filter((item: any) => item.id !== id));
     return { message: 'Barang berhasil dihapus (MOCK)' };
   }
   const res = await fetch(`${API_BASE}/items/${id}`, {
@@ -147,8 +370,7 @@ export async function deleteItem(id: number) {
 // --- Requests ---
 export async function fetchRequests() {
   if (USE_MOCK) {
-    const saved = localStorage.getItem('mock_requests');
-    return saved ? JSON.parse(saved) : mockData.requests;
+    return readMockRequests();
   }
 
   const res = await fetch(`${API_BASE}/requests`, { headers: authHeaders() });
@@ -159,25 +381,31 @@ export async function fetchRequests() {
 export async function createRequest(items: { item_id: number; quantity: number }[], requester_id: number) {
   if (USE_MOCK) {
     console.log('[MOCK] Create request:', items);
-    const existingRaw = localStorage.getItem('mock_requests');
-    const existing = existingRaw ? JSON.parse(existingRaw) : [...mockData.requests];
+    const existing = readMockRequests();
+    const inventoryItems = readMockItems();
+    const requester = [...mockData.users, ...readApprovedUsers()].find((user) => user.id === requester_id);
+    const today = formatMockDate(new Date());
     
-    // Add new (simplified mock)
-    const newReq = {
-        id: Date.now(),
-        req_code: `REQ-MOCK-${Date.now().toString().slice(-4)}`,
-        item_id: items[0].item_id,
-        item_name: mockData.items.find(i => i.id === items[0].item_id)?.name || 'Unknown Item',
-        requester_name: 'User Mock',
-        requester_role: 'guru',
-        quantity: items[0].quantity,
-        request_date: new Date().toLocaleDateString(),
-        status: 'PENDING',
-        priority: 'REGULER'
-    };
+    const newRequests = items.map((requestedItem, index) => {
+      const item = inventoryItems.find((inventoryItem: any) => inventoryItem.id === requestedItem.item_id);
+      const timestamp = Date.now() + index;
+
+      return {
+          id: timestamp,
+          req_code: `REQ-MOCK-${timestamp.toString().slice(-4)}`,
+          item_id: requestedItem.item_id,
+          item_name: item?.name || 'Unknown Item',
+          requester_id,
+          requester_name: requester?.full_name || 'User Mock',
+          requester_role: requester?.department || requester?.role || 'Guru',
+          quantity: requestedItem.quantity,
+          request_date: today,
+          status: 'PENDING',
+          priority: item?.stock <= 5 ? 'URGENT' : 'REGULER'
+      };
+    });
     
-    const updated = [newReq, ...existing];
-    localStorage.setItem('mock_requests', JSON.stringify(updated));
+    writeMockRequests([...newRequests, ...existing]);
     return { message: 'Permintaan berhasil (MOCK)' };
   }
 
@@ -192,10 +420,25 @@ export async function createRequest(items: { item_id: number; quantity: number }
 
 export async function updateRequestStatus(id: number, status: 'APPROVED' | 'REJECTED', reviewed_by?: number) {
   if (USE_MOCK) {
-    const existingRaw = localStorage.getItem('mock_requests');
-    let existing = existingRaw ? JSON.parse(existingRaw) : [...mockData.requests];
-    existing = existing.map((r: any) => r.id === id ? { ...r, status } : r);
-    localStorage.setItem('mock_requests', JSON.stringify(existing));
+    const existing = readMockRequests();
+    const targetRequest = existing.find((request: any) => request.id === id);
+
+    const updatedRequests = existing.map((request: any) => 
+      request.id === id
+        ? { ...request, status, reviewed_by, reviewed_at: formatMockDate(new Date()) }
+        : request
+    );
+    writeMockRequests(updatedRequests);
+
+    if (status === 'APPROVED' && targetRequest && targetRequest.status !== 'APPROVED') {
+      const updatedItems = readMockItems().map((item: any) => 
+        item.id === targetRequest.item_id
+          ? { ...item, stock: Math.max(0, item.stock - targetRequest.quantity) }
+          : item
+      );
+      writeMockItems(updatedItems);
+    }
+
     return { message: 'Status diupdate (MOCK)' };
   }
 
@@ -210,7 +453,16 @@ export async function updateRequestStatus(id: number, status: 'APPROVED' | 'REJE
 
 // --- Loans ---
 export async function fetchLoans() {
-  if (USE_MOCK) return mockData.loans;
+  if (USE_MOCK) {
+    const items = readMockItems();
+    return readMockLoans().map((loan: any) => {
+      const item = items.find((inventoryItem: any) => inventoryItem.id === loan.item_id);
+      return {
+        ...loan,
+        item_image: item?.image_url || loan.item_image,
+      };
+    });
+  }
 
   const res = await fetch(`${API_BASE}/loans`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Gagal mengambil data peminjaman');
@@ -218,7 +470,13 @@ export async function fetchLoans() {
 }
 
 export async function returnLoan(id: number) {
-  if (USE_MOCK) return { message: 'Barang dikembalikan (MOCK)' };
+  if (USE_MOCK) {
+    const loans = readMockLoans();
+    writeMockLoans(loans.map((loan: any) => (
+      loan.id === id ? { ...loan, status: 'DIKEMBALIKAN', returned_at: formatMockDate(new Date()) } : loan
+    )));
+    return { message: 'Barang dikembalikan (MOCK)' };
+  }
 
   const res = await fetch(`${API_BASE}/loans/${id}/return`, {
     method: 'PUT',
@@ -241,18 +499,24 @@ export interface DashboardStats {
   totalItems: number;
   activeLoans: number;
   pendingRequests: number;
+  todayRequests: number;
   criticalStockCount: number;
   criticalItems: Array<{ id: number; name: string; stock: number; category_name: string; unit: string; image_url?: string }>;
 }
 
 export async function fetchStats(): Promise<DashboardStats> {
   if (USE_MOCK) {
+    const items = readMockItems();
+    const requests = readMockRequests();
+    const criticalItems = items.filter((item: any) => item.stock <= 3 && !item.is_loanable);
+
     return {
-      totalItems: mockData.getTotalItemsCount(),
-      activeLoans: mockData.loans.length,
-      pendingRequests: mockData.requests.filter(r => r.status === 'PENDING').length,
-      criticalStockCount: mockData.getCriticalStockItems().length,
-      criticalItems: mockData.getCriticalStockItems().map(i => ({
+      totalItems: items.reduce((sum: number, item: any) => sum + item.stock, 0),
+      activeLoans: readMockLoans().filter((loan: any) => loan.status === 'DIPINJAM').length,
+      pendingRequests: requests.filter((request: any) => request.status === 'PENDING').length,
+      todayRequests: requests.filter((request: any) => isToday(request.request_date)).length,
+      criticalStockCount: criticalItems.length,
+      criticalItems: criticalItems.map((i: any) => ({
         id: i.id,
         name: i.name,
         stock: i.stock,
@@ -271,20 +535,25 @@ export async function fetchStats(): Promise<DashboardStats> {
 export interface TeacherStats {
   totalItemsRequested: number;
   activeLoansCount: number;
+  pendingRequestsCount: number;
   historyCount: number;
 }
 
 export async function fetchTeacherStats(userId: number): Promise<TeacherStats> {
   if (USE_MOCK) {
-    const userLoans = mockData.loans.filter(l => l.borrower_id === userId);
+    const userLoans = readMockLoans().filter((loan: any) => loan.borrower_id === userId);
+    const userRequests = readMockRequests().filter((request: any) => request.requester_id === userId);
+    const completedRequests = userRequests.filter((request: any) => request.status !== 'PENDING');
+
     return {
-      totalItemsRequested: 42, // Mock total consumable items ever requested
-      activeLoansCount: userLoans.filter(l => l.status === 'DIPINJAM').length,
-      historyCount: 15
+      totalItemsRequested: userRequests.reduce((sum: number, request: any) => sum + request.quantity, 0),
+      activeLoansCount: userLoans.filter((loan: any) => loan.status === 'DIPINJAM').length,
+      pendingRequestsCount: userRequests.filter((request: any) => request.status === 'PENDING').length,
+      historyCount: userLoans.length + completedRequests.length
     };
   }
   // In real backend, this would be a filtered endpoint
-  return { totalItemsRequested: 0, activeLoansCount: 0, historyCount: 0 };
+  return { totalItemsRequested: 0, activeLoansCount: 0, pendingRequestsCount: 0, historyCount: 0 };
 }
 
 // --- Session helpers ---

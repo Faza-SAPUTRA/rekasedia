@@ -7,7 +7,7 @@ import {
   BarElement,
   Tooltip,
 } from 'chart.js';
-import { fetchStats, fetchRequests, updateRequestStatus, type DashboardStats } from '../../services/api';
+import { fetchStats, fetchRequests, updateRequestStatus, fetchPendingUsers, updateUserApproval, type DashboardStats, type PendingUser } from '../../services/api';
 import styles from '../../styles/adminDashboard.module.css';
 import Modal from '../../components/Modal';
 
@@ -15,6 +15,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
 export default function DashboardPage() {
   const [reqs, setReqs] = useState<any[]>([]);
+  const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -25,21 +26,24 @@ export default function DashboardPage() {
     setConfirmModal(null);
   };
 
+  const loadData = async () => {
+    try {
+      const [statsData, reqsData, pendingUsersData] = await Promise.all([
+        fetchStats(),
+        fetchRequests(),
+        fetchPendingUsers()
+      ]);
+      setStats(statsData);
+      setReqs(reqsData.slice(0, 5));
+      setPendingUsers(pendingUsersData);
+    } catch (err) {
+      console.error('Gagal mengambil data dashboard', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [statsData, reqsData] = await Promise.all([
-          fetchStats(),
-          fetchRequests()
-        ]);
-        setStats(statsData);
-        setReqs(reqsData.slice(0, 5));
-      } catch (err) {
-        console.error('Gagal mengambil data dashboard', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     loadData();
   }, []);
 
@@ -55,7 +59,7 @@ export default function DashboardPage() {
     if (!confirmModal) return;
     try {
       await updateRequestStatus(confirmModal.id, confirmModal.type);
-      setReqs(prev => prev.map(r => (r.id === confirmModal.id ? { ...r, status: confirmModal.type } : r)));
+      await loadData();
       closeModal();
     } catch (err) {
       console.error(err);
@@ -63,17 +67,29 @@ export default function DashboardPage() {
     }
   };
 
+  const handleUserApproval = async (id: number, status: 'APPROVED' | 'REJECTED') => {
+    try {
+      await updateUserApproval(id, status);
+      await loadData();
+    } catch (err) {
+      console.error(err);
+      alert('Gagal memproses akun guru');
+    }
+  };
+
   if (isLoading || !stats) {
     return <div style={{ padding: '24px' }}>Memuat data dashboard...</div>;
   }
 
-  const { pendingRequests, criticalStockCount, criticalItems } = stats;
+  const { pendingRequests, todayRequests, criticalStockCount, criticalItems } = stats;
+  const approvedRequests = reqs.filter((req) => req.status === 'APPROVED').length;
+  const pendingRecentRequests = reqs.filter((req) => req.status === 'PENDING').length;
 
   const chartData = {
-    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum'],
+    labels: ['Hari Ini', 'Menunggu', 'Disetujui', 'Stok Kritis'],
     datasets: [
       {
-        data: [18, 25, 15, 30, 22],
+        data: [todayRequests, pendingRequests, approvedRequests, criticalStockCount],
         backgroundColor: ['#B8C9B8', '#8A9E8A', '#B8C9B8', '#6B8F71', '#8A9E8A'],
         borderRadius: 6,
         barThickness: 32,
@@ -108,8 +124,8 @@ export default function DashboardPage() {
               <i className="fas fa-calendar-check"></i>
             </div>
           </div>
-          <div className={styles.statValue}>24</div>
-          <div className={styles.statTrend}>↗ +12% dari kemarin</div>
+          <div className={styles.statValue}>{todayRequests}</div>
+          <div className={styles.statTrend}>Tersambung dari data dummy</div>
         </div>
 
         <div className={`${styles.statCard} ${styles.alert}`}>
@@ -139,10 +155,46 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* New Account Approvals */}
+      <div className={styles.sectionHeader}>
+        <h3 className={styles.sectionTitle}>Persetujuan Akun Guru</h3>
+        <span className={styles.sectionCount}>{pendingUsers.length} Menunggu</span>
+      </div>
+
+      <div className={styles.approvalPanel}>
+        {pendingUsers.length === 0 ? (
+          <div className={styles.emptyApproval}>
+            <i className="fas fa-user-check"></i>
+            Tidak ada akun guru baru yang menunggu persetujuan.
+          </div>
+        ) : (
+          pendingUsers.map((user) => (
+            <div key={user.id} className={styles.approvalItem}>
+              <div className={styles.approvalAvatar}>
+                <i className="fas fa-user-graduate"></i>
+              </div>
+              <div className={styles.approvalInfo}>
+                <strong>{user.full_name}</strong>
+                <span>{user.email}</span>
+                <small>{user.department} • {new Date(user.request_date).toLocaleDateString('id-ID')}</small>
+              </div>
+              <div className={styles.actionBtns}>
+                <button className={styles.btnApprove} onClick={() => handleUserApproval(user.id, 'APPROVED')}>
+                  Setujui
+                </button>
+                <button className={styles.btnReject} onClick={() => handleUserApproval(user.id, 'REJECTED')}>
+                  Tolak
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       {/* Recent Requests */}
       <div className={styles.sectionHeader}>
         <h3 className={styles.sectionTitle}>Permintaan Terbaru</h3>
-        <a href="#" className={styles.sectionLink}>Lihat Semua</a>
+        <a href="/admin/requests" className={styles.sectionLink}>Lihat Semua</a>
       </div>
 
       <div className={styles.tableWrapper}>
@@ -243,7 +295,7 @@ export default function DashboardPage() {
         <div className={styles.activityCard}>
           <div className={styles.activityHeader}>
             <h3>Ringkasan Aktivitas</h3>
-            <p>Penggunaan inventaris minggu ini</p>
+            <p>{pendingRecentRequests} permintaan terbaru masih menunggu validasi</p>
           </div>
           <div className={styles.chartContainer}>
             <Bar data={chartData} options={chartOptions} />

@@ -82,7 +82,7 @@ const RegisterPage: React.FC = () => {
         if (isSuccess) {
             return (
                 <>
-                    <i className="fa-solid fa-check"></i> Akun Terdaftar!
+                    <i className="fa-solid fa-clock"></i> Menunggu Persetujuan
                 </>
             );
         }
@@ -107,7 +107,7 @@ const RegisterPage: React.FC = () => {
             {/* Heading */}
             <h1 className={`${styles.formHeading} animate-fade-in-up`}>Daftar Akun RekaSedia</h1>
             <p className={`${styles.formSubtitle} animate-fade-in-up delay-1`}>
-                Lengkapi data diri Anda untuk memulai.
+                Lengkapi data diri Anda. Akun guru baru akan aktif setelah disetujui admin.
             </p>
 
             {/* Form */}
