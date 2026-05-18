@@ -10,7 +10,6 @@ const ITEMS_PER_PAGE = 6;
 export default function TeacherInventoryPage() {
   const [items, setItems] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [, setIsLoading] = useState(true);
 
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('Semua');
