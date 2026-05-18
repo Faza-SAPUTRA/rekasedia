@@ -7,7 +7,7 @@
 import * as mockData from '../data/mockData';
 
 const API_BASE = '/api';
-const USE_MOCK = true; // FORCE MOCK MODE FOR PRESENTATION
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 const MOCK_ITEMS_KEY = 'mock_items';
 const MOCK_REQUESTS_KEY = 'mock_requests';
 const MOCK_LOANS_KEY = 'mock_loans';
@@ -303,20 +303,18 @@ export async function updateUserApproval(id: number, status: 'APPROVED' | 'REJEC
 }
 
 // --- Items ---
-export async function fetchItems() {
+export async function fetchItems(): Promise<any[]> {
   if (USE_MOCK) return readMockItems();
 
   const res = await fetch(`${API_BASE}/items`, { headers: authHeaders() });
-  if (!res.ok) throw new Error('Gagal mengambil data barang');
-  return res.json();
+  return parseJsonResponse<any[]>(res, 'Gagal mengambil data barang');
 }
 
-export async function fetchCategories() {
+export async function fetchCategories(): Promise<any[]> {
   if (USE_MOCK) return mockData.categories;
 
   const res = await fetch(`${API_BASE}/items/categories/all`, { headers: authHeaders() });
-  if (!res.ok) throw new Error('Gagal mengambil data kategori');
-  return res.json();
+  return parseJsonResponse<any[]>(res, 'Gagal mengambil data kategori');
 }
 
 export async function addItem(data: any) {
@@ -332,8 +330,7 @@ export async function addItem(data: any) {
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Gagal menambah barang');
-  return res.json();
+  return parseJsonResponse(res, 'Gagal menambah barang');
 }
 
 export async function updateItem(id: number, data: any) {
@@ -349,8 +346,7 @@ export async function updateItem(id: number, data: any) {
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Gagal memperbarui barang');
-  return res.json();
+  return parseJsonResponse(res, 'Gagal memperbarui barang');
 }
 
 export async function deleteItem(id: number) {
@@ -363,19 +359,17 @@ export async function deleteItem(id: number) {
     method: 'DELETE',
     headers: authHeaders(),
   });
-  if (!res.ok) throw new Error('Gagal menghapus barang');
-  return res.json();
+  return parseJsonResponse(res, 'Gagal menghapus barang');
 }
 
 // --- Requests ---
-export async function fetchRequests() {
+export async function fetchRequests(): Promise<any[]> {
   if (USE_MOCK) {
     return readMockRequests();
   }
 
   const res = await fetch(`${API_BASE}/requests`, { headers: authHeaders() });
-  if (!res.ok) throw new Error('Gagal mengambil data permintaan');
-  return res.json();
+  return parseJsonResponse<any[]>(res, 'Gagal mengambil data permintaan');
 }
 
 export async function createRequest(items: { item_id: number; quantity: number }[], requester_id: number) {
@@ -414,8 +408,7 @@ export async function createRequest(items: { item_id: number; quantity: number }
     headers: authHeaders(),
     body: JSON.stringify({ items, requester_id }),
   });
-  if (!res.ok) throw new Error('Gagal membuat permintaan');
-  return res.json();
+  return parseJsonResponse(res, 'Gagal membuat permintaan');
 }
 
 export async function updateRequestStatus(id: number, status: 'APPROVED' | 'REJECTED', reviewed_by?: number) {
@@ -447,12 +440,11 @@ export async function updateRequestStatus(id: number, status: 'APPROVED' | 'REJE
     headers: authHeaders(),
     body: JSON.stringify({ status, reviewed_by }),
   });
-  if (!res.ok) throw new Error('Gagal mengupdate permintaan');
-  return res.json();
+  return parseJsonResponse(res, 'Gagal mengupdate permintaan');
 }
 
 // --- Loans ---
-export async function fetchLoans() {
+export async function fetchLoans(): Promise<any[]> {
   if (USE_MOCK) {
     const items = readMockItems();
     return readMockLoans().map((loan: any) => {
@@ -465,8 +457,7 @@ export async function fetchLoans() {
   }
 
   const res = await fetch(`${API_BASE}/loans`, { headers: authHeaders() });
-  if (!res.ok) throw new Error('Gagal mengambil data peminjaman');
-  return res.json();
+  return parseJsonResponse<any[]>(res, 'Gagal mengambil data peminjaman');
 }
 
 export async function returnLoan(id: number) {
@@ -482,17 +473,15 @@ export async function returnLoan(id: number) {
     method: 'PUT',
     headers: authHeaders(),
   });
-  if (!res.ok) throw new Error('Gagal mengembalikan barang');
-  return res.json();
+  return parseJsonResponse(res, 'Gagal mengembalikan barang');
 }
 
 // --- Reports & Stats ---
-export async function fetchReports() {
+export async function fetchReports(): Promise<any[]> {
   if (USE_MOCK) return mockData.monthlyReports;
 
   const res = await fetch(`${API_BASE}/reports`, { headers: authHeaders() });
-  if (!res.ok) throw new Error('Gagal mengambil data laporan');
-  return res.json();
+  return parseJsonResponse<any[]>(res, 'Gagal mengambil data laporan');
 }
 
 export interface DashboardStats {
@@ -527,8 +516,7 @@ export async function fetchStats(): Promise<DashboardStats> {
   }
 
   const res = await fetch(`${API_BASE}/reports/stats`, { headers: authHeaders() });
-  if (!res.ok) throw new Error('Gagal mengambil statistik');
-  return res.json();
+  return parseJsonResponse(res, 'Gagal mengambil statistik');
 }
 
 // --- Teacher Specific Mock ---
