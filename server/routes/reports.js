@@ -6,7 +6,7 @@ const router = Router();
 // GET /api/reports — Data laporan bulanan
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM monthly_reports ORDER BY month_order ASC');
+    const { rows } = await pool.query('SELECT * FROM monthly_reports ORDER BY month_order ASC');
     res.json(rows);
   } catch (err) {
     console.error('Get reports error:', err);
@@ -18,31 +18,31 @@ router.get('/', async (req, res) => {
 router.get('/stats', async (req, res) => {
   try {
     // Total semua stok
-    const [totalItems] = await pool.query('SELECT SUM(stock) AS total FROM items');
+    const { rows: totalItems } = await pool.query('SELECT SUM(stock) AS total FROM items');
 
     // Peminjaman aktif
-    const [activeLoans] = await pool.query("SELECT COUNT(*) AS total FROM loans WHERE status = 'DIPINJAM'");
+    const { rows: activeLoans } = await pool.query("SELECT COUNT(*) AS total FROM loans WHERE status = 'DIPINJAM'");
 
     // Permintaan pending
-    const [pendingRequests] = await pool.query("SELECT COUNT(*) AS total FROM requests WHERE status = 'PENDING'");
+    const { rows: pendingRequests } = await pool.query("SELECT COUNT(*) AS total FROM requests WHERE status = 'PENDING'");
 
     // Item stok kritis (≤ 5, non-loanable)
-    const [criticalStock] = await pool.query('SELECT COUNT(*) AS total FROM items WHERE stock <= 5 AND is_loanable = 0');
+    const { rows: criticalStock } = await pool.query('SELECT COUNT(*) AS total FROM items WHERE stock <= 5 AND is_loanable = FALSE');
 
     // Item stok kritis detail
-    const [criticalItems] = await pool.query(`
+    const { rows: criticalItems } = await pool.query(`
       SELECT i.*, c.name AS category_name 
       FROM items i 
       JOIN categories c ON i.category_id = c.id
-      WHERE i.stock <= 5 AND i.is_loanable = 0
+      WHERE i.stock <= 5 AND i.is_loanable = FALSE
       ORDER BY i.stock ASC
     `);
 
     res.json({
-      totalItems: totalItems[0].total || 0,
-      activeLoans: activeLoans[0].total || 0,
-      pendingRequests: pendingRequests[0].total || 0,
-      criticalStockCount: criticalStock[0].total || 0,
+      totalItems: parseInt(totalItems[0].total || '0', 10),
+      activeLoans: parseInt(activeLoans[0].total || '0', 10),
+      pendingRequests: parseInt(pendingRequests[0].total || '0', 10),
+      criticalStockCount: parseInt(criticalStock[0].total || '0', 10),
       criticalItems,
     });
   } catch (err) {

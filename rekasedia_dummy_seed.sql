@@ -13,6 +13,9 @@ SET time_zone = "+00:00";
 -- Matikan cek foreign key sementara agar mudah insert data
 SET FOREIGN_KEY_CHECKS = 0;
 
+-- Pastikan kolom image_url ada di tabel items
+ALTER TABLE `items` ADD COLUMN IF NOT EXISTS `image_url` VARCHAR(255) DEFAULT NULL;
+
 -- 1. Kosongkan tabel (Hati-Hati, pastikan ini database testing)
 DELETE FROM `monthly_reports`;
 DELETE FROM `loans`;
@@ -44,18 +47,18 @@ INSERT INTO `users` (`id`, `full_name`, `email`, `password_hash`, `role`, `depar
 (4, 'Bapak Budi Santoso (Matematika)', 'budi@rekasedia.sch.id', '$2b$10$YourHashedPasswordHere', 'guru', 'Matematika');
 
 -- 4. Insert Items
-INSERT INTO `items` (`id`, `category_id`, `name`, `stock`, `unit`, `is_loanable`) VALUES
-(1, 2, 'Kertas HVS A4 80gsm', 4, 'Rim', 0),
-(2, 1, 'Spidol Boardmarker Hitam', 120, 'Pcs', 0),
-(3, 1, 'Spidol Boardmarker Merah', 20, 'Pcs', 0),
-(4, 3, 'Tinta Printer Epson L3110 Hitam', 12, 'Botol', 0),
-(5, 5, 'Proyektor Epson LCD K12', 3, 'Unit', 1),
-(6, 5, 'Kabel HDMI 15 Meter', 8, 'Pcs', 1),
-(7, 5, 'Speaker Aktif Portable JBL', 2, 'Unit', 1),
-(8, 4, 'Penghapus Papan Tulis', 45, 'Pcs', 0),
-(9, 2, 'Kertas Folio F4 70gsm', 2, 'Rim', 0),
-(10, 1, 'Pulpen Gel Hitam', 200, 'Pack', 0),
-(11, 5, 'Kabel Roll Terminal 10M', 5, 'Unit', 1);
+INSERT INTO `items` (`id`, `category_id`, `name`, `stock`, `unit`, `is_loanable`, `image_url`) VALUES
+(1, 2, 'Kertas HVS A4 80gsm', 4, 'Rim', 0, '/assets/items/kertas_hvs_a4.png'),
+(2, 1, 'Spidol Boardmarker Hitam', 120, 'Pcs', 0, '/assets/items/spidol_hitam.png'),
+(3, 1, 'Spidol Boardmarker Merah', 20, 'Pcs', 0, '/assets/items/spidol_merah.png'),
+(4, 3, 'Tinta Printer Epson L3110 Hitam', 12, 'Botol', 0, '/assets/items/tinta_printer.png'),
+(5, 5, 'Proyektor Epson LCD K12', 3, 'Unit', 1, '/assets/items/proyektor_epson.png'),
+(6, 5, 'Kabel HDMI 15 Meter', 8, 'Pcs', 1, '/assets/items/kabel_hdmi.png'),
+(7, 5, 'Speaker Aktif Portable JBL', 2, 'Unit', 1, '/assets/items/speaker_jbl.png'),
+(8, 4, 'Penghapus Papan Tulis', 45, 'Pcs', 0, '/assets/items/penghapus_papan.png'),
+(9, 2, 'Kertas Folio F4 70gsm', 2, 'Rim', 0, '/assets/items/kertas_folio.png'),
+(10, 1, 'Pulpen Gel Hitam', 200, 'Pack', 0, '/assets/items/pulpen_hitam.png'),
+(11, 5, 'Kabel Roll Terminal 10M', 5, 'Unit', 1, '/assets/items/kabel_roll.png');
 
 -- 5. Insert Requests (Permintaan Barang)
 INSERT INTO `requests` (`id`, `requester_id`, `item_id`, `quantity`, `req_code`, `status`, `priority`, `request_date`) VALUES

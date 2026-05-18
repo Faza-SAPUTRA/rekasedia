@@ -6,7 +6,7 @@ const router = Router();
 // GET /api/items — Semua barang + nama kategori
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await pool.query(`
+    const { rows } = await pool.query(`
       SELECT i.*, c.name AS category_name 
       FROM items i 
       JOIN categories c ON i.category_id = c.id
@@ -22,11 +22,11 @@ router.get('/', async (req, res) => {
 // GET /api/items/:id — Detail satu barang
 router.get('/:id', async (req, res) => {
   try {
-    const [rows] = await pool.query(`
+    const { rows } = await pool.query(`
       SELECT i.*, c.name AS category_name 
       FROM items i 
       JOIN categories c ON i.category_id = c.id
-      WHERE i.id = ?
+      WHERE i.id = $1
     `, [req.params.id]);
 
     if (rows.length === 0) {
@@ -42,7 +42,7 @@ router.get('/:id', async (req, res) => {
 // GET /api/categories — Semua kategori
 router.get('/categories/all', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM categories ORDER BY id ASC');
+    const { rows } = await pool.query('SELECT * FROM categories ORDER BY id ASC');
     res.json(rows);
   } catch (err) {
     console.error('Get categories error:', err);

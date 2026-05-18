@@ -6,7 +6,7 @@ const router = Router();
 // GET /api/loans — Semua peminjaman + nama barang & peminjam
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await pool.query(`
+    const { rows } = await pool.query(`
       SELECT l.*, 
              i.name AS item_name,
              i.image_url AS item_image,
@@ -27,7 +27,7 @@ router.get('/', async (req, res) => {
 router.put('/:id/return', async (req, res) => {
   try {
     await pool.query(
-      "UPDATE loans SET status = 'DIKEMBALIKAN', return_date = CURDATE() WHERE id = ?",
+      "UPDATE loans SET status = 'DIKEMBALIKAN', return_date = CURRENT_DATE WHERE id = $1",
       [req.params.id]
     );
     res.json({ message: 'Barang berhasil dikembalikan.' });

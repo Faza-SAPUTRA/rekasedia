@@ -1,14 +1,16 @@
 import { useState, useMemo, useEffect } from 'react';
+import CustomSelect from '../../components/CustomSelect';
 import styles from '../../styles/inventory.module.css';
 import CartDrawer, { type CartItem } from '../../components/CartDrawer';
 import { fetchItems, fetchCategories, createRequest, getUser } from '../../services/api';
+import { getItemImage } from '../../utils/itemImages';
 
 const ITEMS_PER_PAGE = 6;
 
 export default function TeacherInventoryPage() {
   const [items, setItems] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [, setIsLoading] = useState(true);
 
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('Semua');
@@ -47,6 +49,15 @@ export default function TeacherInventoryPage() {
     };
     loadData();
   }, []);
+
+
+  const sortOptions = [
+    { value: 'Terpopuler', label: 'Urutkan: Terpopuler' },
+    { value: 'A-Z', label: 'Nama A-Z' },
+    { value: 'Z-A', label: 'Nama Z-A' },
+    { value: 'Stok Terbanyak', label: 'Stok Terbanyak' },
+    { value: 'Stok Terdikit', label: 'Stok Sedikit' }
+  ];
 
   const filteredItems = useMemo(() => {
     let result = items.filter((item) => {
@@ -205,23 +216,15 @@ export default function TeacherInventoryPage() {
             </button>
           ))}
         </div>
-        <div className={styles.sortDropdown}>
-          <i className="fas fa-sliders-h"></i>
-          <select 
-            value={sortOrder} 
-            onChange={(e) => {
-              setSortOrder(e.target.value);
-              setCurrentPage(1);
-            }}
-            style={{ border: 'none', background: 'transparent', outline: 'none', color: 'inherit', fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}
-          >
-            <option value="Terpopuler">Urutkan: Terpopuler</option>
-            <option value="A-Z">Nama A-Z</option>
-            <option value="Z-A">Nama Z-A</option>
-            <option value="Stok Terbanyak">Stok Terbanyak</option>
-            <option value="Stok Terdikit">Stok Sedikit</option>
-          </select>
-        </div>
+        <CustomSelect 
+          options={sortOptions}
+          value={sortOrder}
+          onChange={(newVal) => {
+            setSortOrder(newVal);
+            setCurrentPage(1);
+          }}
+          icon="fa-sliders-h"
+        />
       </div>
 
       {/* Product Grid */}
@@ -245,10 +248,7 @@ export default function TeacherInventoryPage() {
             >
               <div className={`${styles.productImage} ${bgClass}`}>
                 {isLow && <span className={styles.lowStockBadge}>STOK TIPIS</span>}
-                <div className={styles.imagePlaceholder}>
-                  <i className="fas fa-box-open"></i>
-                  <span>{item.category_name}</span>
-                </div>
+                <img src={getItemImage(item)} alt={item.name} className={styles.productImg} />
               </div>
               <div className={styles.productInfo}>
                 <div className={styles.productName}>{item.name}</div>

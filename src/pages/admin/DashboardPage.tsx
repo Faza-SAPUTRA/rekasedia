@@ -234,7 +234,16 @@ export default function DashboardPage() {
           <div className={styles.criticalList}>
             {criticalItems.map((item) => (
               <div key={item.id} className={styles.criticalItem}>
-                <span className={styles.criticalItemName}>{item.name}</span>
+                <div className={styles.criticalItemLeft}>
+                  {item.image_url ? (
+                    <img src={item.image_url} alt={item.name} className={styles.criticalThumb} />
+                  ) : (
+                    <div className={styles.criticalPlaceholder}>
+                      <i className="fas fa-box"></i>
+                    </div>
+                  )}
+                  <span className={styles.criticalItemName}>{item.name}</span>
+                </div>
                 <span className={styles.criticalBadge}>Sisa {item.stock}</span>
               </div>
             ))}

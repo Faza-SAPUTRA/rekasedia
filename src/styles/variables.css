@@ -56,6 +56,12 @@
   /* --- Typography --- */
   --font-primary: 'Inter', 'Segoe UI', system-ui, sans-serif;
   --font-heading: 'Poppins', 'Segoe UI', system-ui, sans-serif;
+  --font-interactive: var(--font-heading);
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
 
   /* --- Spacing --- */
   --space-xs: 0.25rem;

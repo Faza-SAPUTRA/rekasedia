@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import CustomSelect from '../../components/CustomSelect';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -21,6 +22,7 @@ export default function ReportsPage() {
   // Modal State
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [selectedSemester, setSelectedSemester] = useState('ganjil-2025');
 
   const closeExportModal = () => {
     setIsClosing(true);
@@ -145,10 +147,14 @@ export default function ReportsPage() {
       {/* Semester Selector */}
       <div className={styles.semesterSection}>
         <div className={styles.semesterLabel}>Pilih Semester</div>
-        <select className={styles.semesterSelect} defaultValue="ganjil-2025">
-          <option value="ganjil-2025">Semester Ganjil 2025/2026</option>
-          <option value="genap-2024">Semester Genap 2024/2025</option>
-        </select>
+        <CustomSelect 
+          options={[
+            { value: 'ganjil-2025', label: 'Semester Ganjil 2025/2026' },
+            { value: 'genap-2024', label: 'Semester Genap 2024/2025' }
+          ]}
+          value={selectedSemester}
+          onChange={setSelectedSemester}
+        />
       </div>
 
       {/* Data Table */}
