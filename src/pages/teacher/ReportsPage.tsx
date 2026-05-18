@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
-import { fetchReports, fetchTeacherStats, getUser, type TeacherStats } from '../../services/api';
+import { fetchTeacherReport, getUser, type TeacherStats } from '../../services/api';
 import styles from '../../styles/teacherReports.module.css';
 
 export default function TeacherReportsPage() {
@@ -13,12 +13,9 @@ export default function TeacherReportsPage() {
       try {
         const user = getUser();
         if (user) {
-          const [statsData, reportsData] = await Promise.all([
-            fetchTeacherStats(user.id),
-            fetchReports()
-          ]);
-          setStats(statsData);
-          setReports(reportsData);
+          const reportData = await fetchTeacherReport(user.id);
+          setStats(reportData.stats);
+          setReports(reportData.reports);
         }
       } catch (err) {
         console.error('Gagal mengambil data laporan', err);
@@ -35,9 +32,9 @@ export default function TeacherReportsPage() {
 
   const reportRows = reports.map((report) => ({
     bulan: report.month_name,
-    permintaan: Math.floor(report.total_items_ordered / 5),
-    peminjaman: Math.floor(report.total_assets_borrowed / 3),
-    status: 'Tervalidasi'
+    permintaan: report.request_count,
+    peminjaman: report.loan_count,
+    status: report.status
   }));
   const totalRequests = reportRows.reduce((sum, row) => sum + row.permintaan, 0);
   const totalLoans = reportRows.reduce((sum, row) => sum + row.peminjaman, 0);

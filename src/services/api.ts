@@ -527,6 +527,46 @@ export interface TeacherStats {
   historyCount: number;
 }
 
+export interface TeacherReportResponse {
+  stats: TeacherStats;
+  reports: Array<{
+    month_name: string;
+    month_order: number;
+    total_items_requested: number;
+    request_count: number;
+    loan_count: number;
+    status: string;
+  }>;
+}
+
+export async function fetchTeacherReport(userId: number): Promise<TeacherReportResponse> {
+  if (USE_MOCK) {
+    const userLoans = readMockLoans().filter((loan: any) => loan.borrower_id === userId);
+    const userRequests = readMockRequests().filter((request: any) => request.requester_id === userId);
+    const completedRequests = userRequests.filter((request: any) => request.status !== 'PENDING');
+
+    return {
+      stats: {
+        totalItemsRequested: userRequests.reduce((sum: number, request: any) => sum + request.quantity, 0),
+        activeLoansCount: userLoans.filter((loan: any) => loan.status === 'DIPINJAM').length,
+        pendingRequestsCount: userRequests.filter((request: any) => request.status === 'PENDING').length,
+        historyCount: userLoans.length + completedRequests.length
+      },
+      reports: mockData.monthlyReports.map((report) => ({
+        month_name: report.month_name,
+        month_order: report.month_order,
+        total_items_requested: Math.floor(report.total_items_ordered / 5),
+        request_count: Math.floor(report.total_items_ordered / 25),
+        loan_count: Math.floor(report.total_assets_borrowed / 3),
+        status: 'Tervalidasi'
+      }))
+    };
+  }
+
+  const res = await fetch(`${API_BASE}/reports/teacher/${userId}`, { headers: authHeaders() });
+  return parseJsonResponse<TeacherReportResponse>(res, 'Gagal mengambil laporan guru');
+}
+
 export async function fetchTeacherStats(userId: number): Promise<TeacherStats> {
   if (USE_MOCK) {
     const userLoans = readMockLoans().filter((loan: any) => loan.borrower_id === userId);
@@ -540,8 +580,8 @@ export async function fetchTeacherStats(userId: number): Promise<TeacherStats> {
       historyCount: userLoans.length + completedRequests.length
     };
   }
-  // In real backend, this would be a filtered endpoint
-  return { totalItemsRequested: 0, activeLoansCount: 0, pendingRequestsCount: 0, historyCount: 0 };
+  const report = await fetchTeacherReport(userId);
+  return report.stats;
 }
 
 // --- Session helpers ---
