@@ -374,6 +374,7 @@
 
 .formGroup {
   margin-bottom: 0;
+  min-width: 0;
 }
 
 .formGroup label {
@@ -403,6 +404,10 @@
 .formGroup textarea:focus {
   border-color: var(--sage-green);
   box-shadow: 0 0 0 4px rgba(138, 158, 138, 0.1);
+}
+
+.loanableSelect {
+  max-width: 360px;
 }
 
 .imageDropzone {
