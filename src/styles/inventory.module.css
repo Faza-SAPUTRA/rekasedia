@@ -49,6 +49,11 @@
   flex-wrap: wrap;
 }
 
+.sortSelect {
+  width: 240px;
+  flex: 0 0 240px;
+}
+
 .pill {
   appearance: none;
   padding: 10px 22px;
@@ -76,6 +81,21 @@
   color: var(--white);
   border-color: var(--sage-green);
   box-shadow: 0 4px 10px rgba(138, 158, 138, 0.18);
+}
+
+@media (max-width: 720px) {
+  .filtersRow {
+    align-items: stretch;
+  }
+
+  .categoryPills {
+    width: 100%;
+  }
+
+  .sortSelect {
+    width: min(100%, 260px);
+    flex: 0 1 260px;
+  }
 }
 
 /* --- Product Grid --- */

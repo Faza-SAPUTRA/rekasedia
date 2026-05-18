@@ -221,6 +221,7 @@ export default function TeacherInventoryPage() {
             setCurrentPage(1);
           }}
           icon="fa-sliders-h"
+          className={styles.sortSelect}
         />
       </div>
 
