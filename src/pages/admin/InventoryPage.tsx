@@ -266,11 +266,12 @@ export default function InventoryPage() {
                     <label>Satuan</label>
                     <input type="text" value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} placeholder="Pcs, Rim, dsb." />
                   </div>
-                  <div className={styles.formGroup} style={{ gridColumn: 'span 6' }}>
+                  <div className={styles.formGroup} style={{ gridColumn: 'span 12' }}>
                     <label>Dapat Dipinjam?</label>
                     <CustomSelect
                       value={String(formData.is_loanable)}
                       onChange={val => setFormData({...formData, is_loanable: val === 'true'})}
+                      className={styles.loanableSelect}
                       options={[
                         { value: 'false', label: 'Tidak (Habis Pakai)' },
                         { value: 'true', label: 'Ya (Aset/Pinjaman)' }
