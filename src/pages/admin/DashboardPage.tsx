@@ -125,7 +125,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className={styles.statValue}>{todayRequests}</div>
-          <div className={styles.statTrend}>Tersambung ke data Supabase</div>
+          <div className={styles.statTrend}>Diperbarui otomatis</div>
         </div>
 
         <div className={`${styles.statCard} ${styles.alert}`}>
