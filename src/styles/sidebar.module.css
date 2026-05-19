@@ -103,10 +103,19 @@
 .userCard {
   padding: 16px 20px;
   border-top: 1px solid var(--border-color);
+  position: relative;
+}
+
+.userProfileBtn {
   display: flex;
   align-items: center;
   gap: 12px;
-  position: relative;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
 }
 
 .userAvatar {
@@ -119,11 +128,14 @@
   justify-content: center;
   color: var(--sage-green);
   font-size: 14px;
+  font-weight: 700;
   flex-shrink: 0;
+  color: var(--white);
 }
 
 .userInfo {
   flex: 1;
+  min-width: 0;
 }
 
 .userInfo h4 {
@@ -131,11 +143,73 @@
   font-weight: 600;
   color: var(--dark-text);
   line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .userInfo span {
   font-size: 11px;
   color: var(--gray-text);
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userMenuChevron {
+  color: var(--light-text);
+  font-size: 11px;
+  transition: transform var(--transition-fast);
+}
+
+.userProfileBtn[aria-expanded='true'] .userMenuChevron {
+  transform: rotate(180deg);
+}
+
+.userProfileBtn:hover .userInfo h4,
+.userProfileBtn:hover .userMenuChevron {
+  color: var(--sage-green);
+}
+
+.userMenu {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: calc(100% - 8px);
+  z-index: 30;
+  padding: 8px;
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.userMenu button {
+  width: 100%;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--medium-text);
+  font-family: var(--font-interactive);
+  font-size: 13px;
+  font-weight: var(--fw-semibold);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.userMenu button:hover {
+  background: var(--cream);
+  color: var(--dark-text);
+}
+
+.userMenuDanger {
+  color: var(--error-red) !important;
 }
 
 .logoutBtn {
@@ -157,6 +231,99 @@
   background: var(--badge-red-bg);
   border-color: rgba(217, 83, 79, 0.2);
   transform: scale(1.05);
+}
+
+.profileModal {
+  max-width: 460px;
+  text-align: left;
+}
+
+.profileModal h3,
+.profileModal p {
+  text-align: center;
+}
+
+.profileModalAvatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  margin: 0 auto 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.profileForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.profileForm label,
+.colorField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: var(--font-interactive);
+  font-size: 13px;
+  font-weight: var(--fw-semibold);
+  color: var(--dark-text);
+}
+
+.profileForm input {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font: inherit;
+  font-weight: var(--fw-medium);
+  color: var(--dark-text);
+  background: var(--white);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.profileForm input:focus {
+  border-color: var(--sage-green);
+  box-shadow: 0 0 0 3px rgba(138, 158, 138, 0.18);
+}
+
+.profileForm input:disabled {
+  background: var(--cream);
+  color: var(--gray-text);
+  cursor: not-allowed;
+}
+
+.colorOptions {
+  display: flex;
+  gap: 10px;
+}
+
+.colorOptions button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.colorOptions .colorOptionActive {
+  border-color: var(--dark-text);
+  box-shadow: 0 0 0 3px var(--cream-dark);
+}
+
+.profileError {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--badge-red-bg);
+  color: var(--error-red);
+  font-size: 12px;
+  font-weight: var(--fw-semibold);
 }
 
 /* --- Storage Bar --- */
