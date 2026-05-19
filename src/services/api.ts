@@ -13,6 +13,7 @@ const MOCK_REQUESTS_KEY = 'mock_requests';
 const MOCK_LOANS_KEY = 'mock_loans';
 const MOCK_PENDING_USERS_KEY = 'mock_pending_users';
 const MOCK_APPROVED_USERS_KEY = 'mock_approved_users';
+const PROFILE_OVERRIDES_KEY = 'rekasedia_profile_overrides';
 
 function getMockStorage() {
   localStorage.removeItem(MOCK_ITEMS_KEY);
@@ -138,6 +139,26 @@ function isToday(dateValue: string) {
   return parsed ? formatMockDate(parsed) === formatMockDate(new Date()) : false;
 }
 
+function readProfileOverrides(): Record<string, Partial<UserProfile>> {
+  const saved = localStorage.getItem(PROFILE_OVERRIDES_KEY);
+  if (!saved) return {};
+
+  try {
+    return JSON.parse(saved);
+  } catch {
+    return {};
+  }
+}
+
+function writeProfileOverrides(overrides: Record<string, Partial<UserProfile>>) {
+  localStorage.setItem(PROFILE_OVERRIDES_KEY, JSON.stringify(overrides));
+}
+
+function applyProfileOverride<T extends UserProfile>(user: T): T {
+  const override = readProfileOverrides()[String(user.id)];
+  return override ? { ...user, ...override, id: user.id, email: user.email, role: user.role } : user;
+}
+
 // --- Helper: get token dari localStorage ---
 function getToken(): string | null {
   return localStorage.getItem('rekasedia_token');
@@ -170,8 +191,19 @@ async function parseJsonResponse<T>(res: Response, fallbackError: string): Promi
 // --- Auth ---
 export interface LoginResponse {
   token: string;
-  user: { id: number; full_name: string; email: string; role: string; department: string };
+  user: UserProfile;
 }
+
+export interface UserProfile {
+  id: number;
+  full_name: string;
+  email: string;
+  role: string;
+  department: string;
+  avatar_color?: string;
+}
+
+export type EditableUserProfile = Pick<UserProfile, 'full_name' | 'department' | 'avatar_color'>;
 
 export interface PendingUser {
   id: number;
@@ -208,7 +240,7 @@ export async function login(email: string, password: string): Promise<LoginRespo
     }
     return {
       token: 'mock-jwt-token-12345',
-      user: { ...user }
+      user: applyProfileOverride({ ...user })
     };
   }
 
@@ -587,12 +619,40 @@ export async function fetchTeacherStats(userId: number): Promise<TeacherStats> {
 // --- Session helpers ---
 export function saveSession(token: string, user: LoginResponse['user']) {
   localStorage.setItem('rekasedia_token', token);
-  localStorage.setItem('rekasedia_user', JSON.stringify(user));
+  localStorage.setItem('rekasedia_user', JSON.stringify(applyProfileOverride(user)));
 }
 
 export function getUser(): LoginResponse['user'] | null {
   const raw = localStorage.getItem('rekasedia_user');
-  return raw ? JSON.parse(raw) : null;
+  return raw ? applyProfileOverride(JSON.parse(raw)) : null;
+}
+
+export function updateCurrentUserProfile(data: EditableUserProfile): LoginResponse['user'] {
+  const currentUser = getUser();
+  if (!currentUser) {
+    throw new Error('User belum login.');
+  }
+
+  const normalizedProfile = {
+    full_name: data.full_name.trim(),
+    department: data.department.trim(),
+    avatar_color: data.avatar_color,
+  };
+
+  if (!normalizedProfile.full_name || !normalizedProfile.department) {
+    throw new Error('Nama dan jabatan tidak boleh kosong.');
+  }
+
+  const overrides = readProfileOverrides();
+  overrides[String(currentUser.id)] = {
+    ...overrides[String(currentUser.id)],
+    ...normalizedProfile,
+  };
+  writeProfileOverrides(overrides);
+
+  const updatedUser = applyProfileOverride({ ...currentUser, ...normalizedProfile });
+  localStorage.setItem('rekasedia_user', JSON.stringify(updatedUser));
+  return updatedUser;
 }
 
 export function logout() {
