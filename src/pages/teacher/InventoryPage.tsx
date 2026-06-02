@@ -347,7 +347,7 @@ export default function TeacherInventoryPage() {
                 onClick={handleConfirmSubmit}
                 isLoading={isSubmittingRequest}
                 loadingText="Mengajukan..."
-                style={{ flex: 1, padding: '14px', background: '#8A9E8A', border: 'none', color: '#fff', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(138,158,138,0.2)' }}
+                style={{ flex: 1, padding: '14px', background: '#5B7A6A', border: 'none', color: '#fff', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(91,122,106,0.24)' }}
               >
                 Ya, Ajukan!
               </LoadingButton>
