@@ -267,9 +267,11 @@ export default function InventoryPage() {
         className={activeModal === 'add' || activeModal === 'edit' ? styles.inventoryModal : ''}
       >
         <div className={activeModal === 'add' || activeModal === 'edit' ? styles.itemModalShell : styles.smallModalShell}>
-          <button className="globalModalClose" onClick={closeModal} title="Tutup">
-            <i className="fas fa-times"></i>
-          </button>
+          {activeModal !== 'add' && activeModal !== 'edit' && (
+            <button className="globalModalClose" onClick={closeModal} title="Tutup">
+              <i className="fas fa-times"></i>
+            </button>
+          )}
           
           {/* Add / Edit Modal */}
           {(activeModal === 'add' || activeModal === 'edit') && (
