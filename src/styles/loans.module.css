@@ -22,7 +22,7 @@
 
 .loanGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr));
   gap: 18px;
 }
 
@@ -41,15 +41,15 @@
 
 .loanCardContent {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr) minmax(190px, 220px);
+  grid-template-columns: 104px minmax(0, 1fr);
   align-items: center;
   gap: 16px;
   min-width: 0;
 }
 
 .loanImage {
-  width: 96px;
-  height: 96px;
+  width: 104px;
+  height: 104px;
   border-radius: var(--radius-md);
   overflow: hidden;
   flex-shrink: 0;
@@ -196,9 +196,10 @@
 
 /* --- Return Button --- */
 .returnBtn {
+  grid-column: 1 / -1;
   width: 100%;
   min-width: 0;
-  padding: 10px 12px;
+  padding: 11px 14px;
   background: var(--white);
   color: var(--sage-green);
   border: 1.5px solid var(--sage-green);
@@ -351,10 +352,11 @@
 }
 
 .returnedBadge {
+  grid-column: 1 / -1;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 24px;
+  padding: 11px 14px;
   background: var(--badge-green-bg);
   color: var(--success-green);
   border-radius: var(--radius-md);
@@ -372,6 +374,10 @@
 }
 
 @media (max-width: 640px) {
+  .loanGrid {
+    grid-template-columns: 1fr;
+  }
+
   .loanCardContent {
     grid-template-columns: 72px minmax(0, 1fr);
     align-items: center;
