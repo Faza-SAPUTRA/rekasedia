@@ -12,6 +12,7 @@ import styles from '../../styles/adminDashboard.module.css';
 import Modal from '../../components/Modal';
 import LoadingButton from '../../components/LoadingButton';
 import PageSkeleton from '../../components/PageSkeleton';
+import ErrorModal from '../../components/ErrorModal';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
@@ -22,6 +23,7 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
   const [processingUserAction, setProcessingUserAction] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState('');
   
   // Modal State
   const [confirmModal, setConfirmModal] = useState<{ id: number, type: 'APPROVED' | 'REJECTED', name: string } | null>(null);
@@ -69,7 +71,7 @@ export default function DashboardPage() {
       setConfirmModal(null);
     } catch (err) {
       console.error(err);
-      alert('Gagal memproses permintaan');
+      setErrorMessage(err instanceof Error ? err.message : 'Gagal memproses permintaan.');
     } finally {
       setIsSubmittingRequest(false);
     }
@@ -84,7 +86,7 @@ export default function DashboardPage() {
       await loadData();
     } catch (err) {
       console.error(err);
-      alert('Gagal memproses akun guru');
+      setErrorMessage(err instanceof Error ? err.message : 'Gagal memproses akun guru.');
     } finally {
       setProcessingUserAction(null);
     }
@@ -361,6 +363,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </Modal>
+      <ErrorModal message={errorMessage} onClose={() => setErrorMessage('')} />
     </div>
   );
 }

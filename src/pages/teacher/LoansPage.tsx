@@ -5,6 +5,7 @@ import Modal from '../../components/Modal';
 import LoadingButton from '../../components/LoadingButton';
 import { getItemImage } from '../../utils/itemImages';
 import PageSkeleton from '../../components/PageSkeleton';
+import ErrorModal from '../../components/ErrorModal';
 
 export default function TeacherLoansPage() {
   const [loanList, setLoanList] = useState<any[]>([]);
@@ -14,6 +15,7 @@ export default function TeacherLoansPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successItemName, setSuccessItemName] = useState('');
   const [isSubmittingReturn, setIsSubmittingReturn] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -103,7 +105,7 @@ export default function TeacherLoansPage() {
         setTimeout(() => setShowSuccess(false), 3000);
       } catch (err) {
         console.error('Gagal mengembalikan aset', err);
-        alert('Gagal memproses pengembalian');
+        setErrorMessage(err instanceof Error ? err.message : 'Gagal memproses pengembalian.');
       } finally {
         setIsSubmittingReturn(false);
       }
@@ -229,6 +231,7 @@ export default function TeacherLoansPage() {
             Permintaan pengembalian <strong>{successItemName}</strong> telah dikirim ke sistem. Silakan bawa fisik barang ke ruang Sarpras.
         </p>
       </Modal>
+      <ErrorModal message={errorMessage} onClose={() => setErrorMessage('')} />
     </div>
   );
 }

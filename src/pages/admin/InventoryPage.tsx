@@ -7,6 +7,7 @@ import CustomSelect from '../../components/CustomSelect';
 import LoadingButton from '../../components/LoadingButton';
 import { getItemImage } from '../../utils/itemImages';
 import PageSkeleton from '../../components/PageSkeleton';
+import ErrorModal from '../../components/ErrorModal';
 
 const ITEMS_PER_PAGE = 10;
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
@@ -55,6 +56,7 @@ export default function InventoryPage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [imageError, setImageError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Form State (for Add/Edit)
   const [formData, setFormData] = useState<InventoryFormData>(emptyFormData);
@@ -234,7 +236,7 @@ export default function InventoryPage() {
       setImageError('');
     } catch (err) {
       console.error('Gagal menyimpan barang', err);
-      alert('Gagal menyimpan barang: ' + (err instanceof Error ? err.message : String(err)));
+      setErrorMessage('Gagal menyimpan barang: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setIsSubmitting(false);
     }
@@ -252,7 +254,7 @@ export default function InventoryPage() {
       setImageError('');
     } catch (err) {
       console.error('Gagal menghapus barang', err);
-      alert('Gagal menghapus barang: ' + (err instanceof Error ? err.message : String(err)));
+      setErrorMessage('Gagal menghapus barang: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setIsSubmitting(false);
     }
@@ -607,6 +609,7 @@ export default function InventoryPage() {
         <h3>Berhasil!</h3>
         <p>{successMessage}</p>
       </Modal>
+      <ErrorModal message={errorMessage} onClose={() => setErrorMessage('')} />
     </div>
   );
 }
