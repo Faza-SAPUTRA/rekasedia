@@ -64,17 +64,18 @@ export default function TeacherInventoryPage() {
   ];
 
   const filteredItems = useMemo(() => {
+    const normalizedSearch = search.toLowerCase();
     let result = items.filter((item) => {
-      const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
+      const matchesSearch = String(item.name || '').toLowerCase().includes(normalizedSearch);
       const matchesCategory =
         activeCategory === 'Semua' || item.category_name === activeCategory;
       return matchesSearch && matchesCategory;
     });
 
     if (sortOrder === 'A-Z') {
-      result.sort((a, b) => a.name.localeCompare(b.name));
+      result.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
     } else if (sortOrder === 'Z-A') {
-      result.sort((a, b) => b.name.localeCompare(a.name));
+      result.sort((a, b) => String(b.name || '').localeCompare(String(a.name || '')));
     } else if (sortOrder === 'Stok Terbanyak') {
       result.sort((a, b) => b.stock - a.stock);
     } else if (sortOrder === 'Stok Terdikit') {

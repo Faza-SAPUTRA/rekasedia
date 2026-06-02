@@ -86,10 +86,11 @@ export default function InventoryPage() {
   ];
 
   const filteredItems = useMemo(() => {
+    const normalizedSearch = search.toLowerCase();
     let result = items.filter((item) => {
       const matchesSearch = 
-        item.name.toLowerCase().includes(search.toLowerCase()) || 
-        item.sku.toLowerCase().includes(search.toLowerCase());
+        String(item.name || '').toLowerCase().includes(normalizedSearch) ||
+        String(item.sku || '').toLowerCase().includes(normalizedSearch);
       
       const matchesCategory =
         activeCategory === 'Semua Kategori' || item.category_name === activeCategory;
@@ -104,9 +105,9 @@ export default function InventoryPage() {
     });
 
     if (sortOrder === 'Nama A-Z') {
-      result.sort((a, b) => a.name.localeCompare(b.name));
+      result.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
     } else if (sortOrder === 'Nama Z-A') {
-      result.sort((a, b) => b.name.localeCompare(a.name));
+      result.sort((a, b) => String(b.name || '').localeCompare(String(a.name || '')));
     } else if (sortOrder === 'Stok Terbanyak') {
       result.sort((a, b) => b.stock - a.stock);
     } else if (sortOrder === 'Stok Sedikit') {
