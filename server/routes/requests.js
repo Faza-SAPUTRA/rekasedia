@@ -58,22 +58,72 @@ router.post('/', async (req, res) => {
 
 // PUT /api/requests/:id — Update status (Admin Approve/Reject)
 router.put('/:id', async (req, res) => {
+  const client = await pool.connect();
   try {
     const { status, reviewed_by } = req.body;
 
-    if (!['APPROVED', 'REJECTED'].includes(status)) {
-      return res.status(400).json({ error: 'Status harus APPROVED atau REJECTED.' });
+    if (!['APPROVED', 'REJECTED', 'COMPLETED'].includes(status)) {
+      return res.status(400).json({ error: 'Status permintaan tidak valid.' });
     }
 
-    await pool.query(
-      'UPDATE requests SET status = $1, reviewed_by = $2, reviewed_at = NOW() WHERE id = $3',
-      [status, reviewed_by || null, req.params.id]
+    await client.query('BEGIN');
+    const { rows } = await client.query(
+      'SELECT id, item_id, quantity, status FROM requests WHERE id = $1 FOR UPDATE',
+      [req.params.id]
     );
+    const request = rows[0];
 
-    res.json({ message: `Permintaan berhasil di-${status === 'APPROVED' ? 'setujui' : 'tolak'}.` });
+    if (!request) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Permintaan tidak ditemukan.' });
+    }
+
+    if (status === 'COMPLETED') {
+      if (request.status !== 'APPROVED') {
+        await client.query('ROLLBACK');
+        return res.status(409).json({ error: 'Hanya permintaan siap diambil yang dapat diselesaikan.' });
+      }
+
+      await client.query(
+        "UPDATE requests SET status = 'COMPLETED', completed_at = NOW() WHERE id = $1",
+        [req.params.id]
+      );
+    } else {
+      if (request.status !== 'PENDING') {
+        await client.query('ROLLBACK');
+        return res.status(409).json({ error: 'Permintaan ini sudah diproses.' });
+      }
+
+      if (status === 'APPROVED') {
+        const stockUpdate = await client.query(
+          'UPDATE items SET stock = stock - $1, updated_at = NOW() WHERE id = $2 AND stock >= $1',
+          [request.quantity, request.item_id]
+        );
+        if (stockUpdate.rowCount === 0) {
+          await client.query('ROLLBACK');
+          return res.status(409).json({ error: 'Stok barang tidak mencukupi.' });
+        }
+      }
+
+      await client.query(
+        'UPDATE requests SET status = $1, reviewed_by = $2, reviewed_at = NOW() WHERE id = $3',
+        [status, reviewed_by || null, req.params.id]
+      );
+    }
+
+    await client.query('COMMIT');
+    const messages = {
+      APPROVED: 'Permintaan berhasil disetujui.',
+      REJECTED: 'Permintaan berhasil ditolak.',
+      COMPLETED: 'Barang berhasil ditandai sudah diambil.',
+    };
+    res.json({ message: messages[status] });
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error('Update request error:', err);
     res.status(500).json({ error: 'Gagal mengupdate permintaan.' });
+  } finally {
+    client.release();
   }
 });
 

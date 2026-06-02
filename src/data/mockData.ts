@@ -39,7 +39,7 @@ export interface Request {
   requester_role: string;
   quantity: number;
   request_date: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED';
   priority: 'REGULER' | 'URGENT';
 }
 

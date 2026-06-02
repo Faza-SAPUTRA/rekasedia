@@ -450,19 +450,36 @@ export async function createRequest(items: { item_id: number; quantity: number }
   return parseJsonResponse(res, 'Gagal membuat permintaan');
 }
 
-export async function updateRequestStatus(id: number, status: 'APPROVED' | 'REJECTED', reviewed_by?: number) {
+export async function updateRequestStatus(id: number, status: 'APPROVED' | 'REJECTED' | 'COMPLETED', reviewed_by?: number) {
   if (USE_MOCK) {
     const existing = readMockRequests();
     const targetRequest = existing.find((request: any) => request.id === id);
 
+    if (!targetRequest) {
+      throw new Error('Permintaan tidak ditemukan.');
+    }
+    if (status === 'COMPLETED' && targetRequest.status !== 'APPROVED') {
+      throw new Error('Hanya permintaan siap diambil yang dapat diselesaikan.');
+    }
+    if (status !== 'COMPLETED' && targetRequest.status !== 'PENDING') {
+      throw new Error('Permintaan ini sudah diproses.');
+    }
+
     const updatedRequests = existing.map((request: any) => 
       request.id === id
-        ? { ...request, status, reviewed_by, reviewed_at: formatMockDate(new Date()) }
+        ? {
+            ...request,
+            status,
+            reviewed_by,
+            ...(status === 'COMPLETED'
+              ? { completed_at: formatMockDate(new Date()) }
+              : { reviewed_at: formatMockDate(new Date()) }),
+          }
         : request
     );
     writeMockRequests(updatedRequests);
 
-    if (status === 'APPROVED' && targetRequest && targetRequest.status !== 'APPROVED') {
+    if (status === 'APPROVED' && targetRequest?.status === 'PENDING') {
       const updatedItems = readMockItems().map((item: any) => 
         item.id === targetRequest.item_id
           ? { ...item, stock: Math.max(0, item.stock - targetRequest.quantity) }

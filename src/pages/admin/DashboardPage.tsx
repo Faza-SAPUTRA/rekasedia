@@ -278,10 +278,10 @@ export default function DashboardPage() {
                   ) : (
                     <span
                       className={`${styles.badge} ${
-                        req.status === 'APPROVED' ? styles.reguler : styles.urgent
+                        req.status === 'APPROVED' ? styles.reguler : req.status === 'COMPLETED' ? styles.completed : styles.urgent
                       }`}
                     >
-                      {req.status === 'APPROVED' ? 'Disetujui' : 'Ditolak'}
+                      {req.status === 'APPROVED' ? 'Disetujui' : req.status === 'COMPLETED' ? 'Selesai' : 'Ditolak'}
                     </span>
                   )}
                 </td>

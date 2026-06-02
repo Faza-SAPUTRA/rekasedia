@@ -254,6 +254,19 @@
   background: var(--badge-red-text);
 }
 
+.statusPill.completed {
+  background: var(--cream);
+  color: var(--medium-text);
+}
+
+.statusPill.completed::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--medium-text);
+}
+
 .cardContent {
   display: flex;
   flex-direction: column;

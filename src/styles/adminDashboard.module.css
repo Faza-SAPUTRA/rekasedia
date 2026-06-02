@@ -294,6 +294,11 @@
   color: var(--badge-red-text);
 }
 
+.badge.completed {
+  background: var(--cream);
+  color: var(--medium-text);
+}
+
 /* --- Action Buttons --- */
 .actionBtns {
   display: flex;

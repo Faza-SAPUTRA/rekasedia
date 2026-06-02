@@ -38,6 +38,7 @@ export default function TeacherRequestsPage() {
     { label: 'Semua', count: requests.length },
     { label: 'Menunggu Validasi', count: requests.filter((r: any) => r.status === 'PENDING').length },
     { label: 'Siap Diambil', count: requests.filter((r: any) => r.status === 'APPROVED').length },
+    { label: 'Selesai', count: requests.filter((r: any) => r.status === 'COMPLETED').length },
     { label: 'Ditolak', count: requests.filter((r: any) => r.status === 'REJECTED').length },
   ];
 
@@ -52,6 +53,7 @@ export default function TeacherRequestsPage() {
     : requests.filter((r: any) => {
         if (activeRequestTab === 'Menunggu Validasi') return r.status === 'PENDING';
         if (activeRequestTab === 'Siap Diambil') return r.status === 'APPROVED';
+        if (activeRequestTab === 'Selesai') return r.status === 'COMPLETED';
         if (activeRequestTab === 'Ditolak') return r.status === 'REJECTED';
         return false;
       });
@@ -128,15 +130,15 @@ export default function TeacherRequestsPage() {
                       {formatDate(req.request_date)}
                     </span>
                   </div>
-                  <div className={`${styles.statusPill} ${req.status === 'PENDING' ? styles.pending : req.status === 'APPROVED' ? styles.ready : styles.rejected}`}>
-                    {req.status === 'PENDING' ? 'Menunggu Validasi' : (req.status === 'APPROVED' ? 'Siap Diambil' : 'Ditolak')}
+                  <div className={`${styles.statusPill} ${req.status === 'PENDING' ? styles.pending : req.status === 'APPROVED' ? styles.ready : req.status === 'COMPLETED' ? styles.completed : styles.rejected}`}>
+                    {req.status === 'PENDING' ? 'Menunggu Validasi' : req.status === 'APPROVED' ? 'Siap Diambil' : req.status === 'COMPLETED' ? 'Selesai' : 'Ditolak'}
                   </div>
                 </div>
                 <div className={styles.cardContent}>
                   <div className={styles.itemList}>{req.quantity}x {req.item_name}</div>
                   <div className={styles.destination}>
                     <i className="fas fa-map-marker-alt"></i>
-                    Pengambilan di Ruang Sarpras
+                    {req.status === 'COMPLETED' ? 'Barang sudah diambil' : 'Pengambilan di Ruang Sarpras'}
                   </div>
                 </div>
               </div>
