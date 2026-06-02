@@ -423,7 +423,7 @@
   max-width: 100%;
 }
 
-.imageDropzone {
+.formGroup .imageDropzone {
   min-height: 118px;
   border: 1.5px dashed var(--sage-green);
   border-radius: var(--radius-md);
@@ -439,9 +439,10 @@
   transition: all var(--transition-fast);
   text-align: center;
   overflow: hidden;
+  margin-bottom: 0;
 }
 
-.imageDropzone:hover {
+.formGroup .imageDropzone:hover {
   background: var(--cream);
   border-color: var(--sage-green-hover);
 }

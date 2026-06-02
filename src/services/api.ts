@@ -139,7 +139,7 @@ function isToday(dateValue: string) {
   return parsed ? formatMockDate(parsed) === formatMockDate(new Date()) : false;
 }
 
-function readProfileOverrides(): Record<string, Partial<UserProfile>> {
+function readProfileOverrides(): Record<string, UserProfileOverride> {
   const saved = localStorage.getItem(PROFILE_OVERRIDES_KEY);
   if (!saved) return {};
 
@@ -150,13 +150,19 @@ function readProfileOverrides(): Record<string, Partial<UserProfile>> {
   }
 }
 
-function writeProfileOverrides(overrides: Record<string, Partial<UserProfile>>) {
+function writeProfileOverrides(overrides: Record<string, UserProfileOverride>) {
   localStorage.setItem(PROFILE_OVERRIDES_KEY, JSON.stringify(overrides));
 }
 
 function applyProfileOverride<T extends UserProfile>(user: T): T {
   const override = readProfileOverrides()[String(user.id)];
-  return override ? { ...user, ...override, id: user.id, email: user.email, role: user.role } : user;
+  return override
+    ? {
+        ...user,
+        full_name: override.full_name ?? user.full_name,
+        avatar_color: override.avatar_color ?? user.avatar_color,
+      }
+    : user;
 }
 
 // --- Helper: get token dari localStorage ---
@@ -203,7 +209,8 @@ export interface UserProfile {
   avatar_color?: string;
 }
 
-export type EditableUserProfile = Pick<UserProfile, 'full_name' | 'department' | 'avatar_color'>;
+export type EditableUserProfile = Pick<UserProfile, 'full_name' | 'avatar_color'>;
+type UserProfileOverride = Partial<EditableUserProfile>;
 
 export interface PendingUser {
   id: number;
@@ -635,12 +642,11 @@ export function updateCurrentUserProfile(data: EditableUserProfile): LoginRespon
 
   const normalizedProfile = {
     full_name: data.full_name.trim(),
-    department: data.department.trim(),
     avatar_color: data.avatar_color,
   };
 
-  if (!normalizedProfile.full_name || !normalizedProfile.department) {
-    throw new Error('Nama dan jabatan tidak boleh kosong.');
+  if (!normalizedProfile.full_name) {
+    throw new Error('Nama tidak boleh kosong.');
   }
 
   const overrides = readProfileOverrides();

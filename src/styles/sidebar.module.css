@@ -298,6 +298,12 @@
   cursor: not-allowed;
 }
 
+.profileForm input:read-only {
+  background: var(--cream);
+  color: var(--gray-text);
+  cursor: not-allowed;
+}
+
 .colorOptions {
   display: flex;
   gap: 10px;

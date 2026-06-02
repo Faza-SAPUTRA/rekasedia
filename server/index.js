@@ -14,7 +14,8 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
-app.use(express.json());
+// A 2 MB image becomes larger after base64 encoding inside the JSON payload.
+app.use(express.json({ limit: '4mb' }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/items', itemRoutes);
