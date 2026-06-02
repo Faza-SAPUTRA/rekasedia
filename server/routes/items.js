@@ -3,6 +3,32 @@ import pool from '../db.js';
 
 const router = Router();
 
+let imageColumnReady;
+
+async function ensureImageColumnSupportsUploads() {
+  if (!imageColumnReady) {
+    imageColumnReady = (async () => {
+      const { rows } = await pool.query(
+        `SELECT data_type, character_maximum_length
+         FROM information_schema.columns
+         WHERE table_schema = 'public'
+           AND table_name = 'items'
+           AND column_name = 'image_url'`
+      );
+      const imageColumn = rows[0];
+
+      if (imageColumn?.data_type !== 'text') {
+        await pool.query('ALTER TABLE items ALTER COLUMN image_url TYPE TEXT');
+      }
+    })().catch((error) => {
+      imageColumnReady = undefined;
+      throw error;
+    });
+  }
+
+  return imageColumnReady;
+}
+
 async function resolveCategoryId(categoryId, categoryName) {
   if (categoryId) return Number(categoryId);
   if (!categoryName) return null;
@@ -84,6 +110,10 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Kategori tidak valid.' });
     }
 
+    if (image_url) {
+      await ensureImageColumnSupportsUploads();
+    }
+
     const { rows } = await pool.query(
       `INSERT INTO items (name, category_id, stock, unit, description, image_url, is_loanable)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -126,6 +156,10 @@ router.put('/:id', async (req, res) => {
     } = req.body;
 
     const resolvedCategoryId = await resolveCategoryId(category_id, category_name) || existing.category_id;
+
+    if (image_url) {
+      await ensureImageColumnSupportsUploads();
+    }
 
     await pool.query(
       `UPDATE items
