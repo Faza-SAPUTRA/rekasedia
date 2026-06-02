@@ -6,6 +6,7 @@ import LoadingButton from '../../components/LoadingButton';
 import { fetchItems, fetchCategories, createRequest, getUser } from '../../services/api';
 import { getItemImage } from '../../utils/itemImages';
 import PageSkeleton from '../../components/PageSkeleton';
+import ErrorModal from '../../components/ErrorModal';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -26,6 +27,7 @@ export default function TeacherInventoryPage() {
   const [successModal, setSuccessModal] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const closeModal = () => {
     if (isSubmittingRequest) return;
@@ -147,7 +149,7 @@ export default function TeacherInventoryPage() {
       setTimeout(() => setSuccessModal(false), 3000);
     } catch (err) {
       console.error(err);
-      alert('Gagal mengirim permintaan');
+      setErrorMessage(err instanceof Error ? err.message : 'Gagal mengirim permintaan.');
     } finally {
       setIsSubmittingRequest(false);
     }
@@ -371,6 +373,7 @@ export default function TeacherInventoryPage() {
           </div>
         </div>
       )}
+      <ErrorModal message={errorMessage} onClose={() => setErrorMessage('')} />
     </div>
   );
 }

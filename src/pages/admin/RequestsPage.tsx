@@ -4,12 +4,14 @@ import { fetchRequests, updateRequestStatus, getUser } from '../../services/api'
 import Modal from '../../components/Modal';
 import LoadingButton from '../../components/LoadingButton';
 import PageSkeleton from '../../components/PageSkeleton';
+import ErrorModal from '../../components/ErrorModal';
 
 export default function AdminRequestsPage() {
   const [requests, setRequests] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('Semua');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Modal State
   const [confirmModal, setConfirmModal] = useState<{ id: number, type: 'APPROVED' | 'REJECTED' | 'COMPLETED', name: string } | null>(null);
@@ -73,7 +75,7 @@ export default function AdminRequestsPage() {
       setConfirmModal(null);
     } catch (err) {
       console.error(err);
-      alert('Gagal mengupdate status: ' + (err instanceof Error ? err.message : String(err)));
+      setErrorMessage('Gagal mengupdate status: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setIsSubmitting(false);
     }
@@ -205,6 +207,7 @@ export default function AdminRequestsPage() {
           </div>
         </div>
       </Modal>
+      <ErrorModal message={errorMessage} onClose={() => setErrorMessage('')} />
     </div>
   );
 }
