@@ -3,6 +3,34 @@ import pool from '../db.js';
 
 const router = Router();
 
+let completedStatusReady;
+
+async function ensureCompletedStatusSupport(client) {
+  if (!completedStatusReady) {
+    completedStatusReady = (async () => {
+      await client.query('SAVEPOINT completed_status_migration');
+      try {
+        await client.query('ALTER TABLE requests DROP CONSTRAINT IF EXISTS requests_status_check');
+        await client.query(`
+          ALTER TABLE requests
+          ADD CONSTRAINT requests_status_check
+          CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED', 'COMPLETED'))
+        `);
+        await client.query('ALTER TABLE requests ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP DEFAULT NULL');
+        await client.query('RELEASE SAVEPOINT completed_status_migration');
+      } catch (error) {
+        await client.query('ROLLBACK TO SAVEPOINT completed_status_migration');
+        throw error;
+      }
+    })().catch((error) => {
+      completedStatusReady = undefined;
+      throw error;
+    });
+  }
+
+  return completedStatusReady;
+}
+
 // GET /api/requests — Semua permintaan + nama barang & pemohon
 router.get('/', async (req, res) => {
   try {
@@ -67,6 +95,10 @@ router.put('/:id', async (req, res) => {
     }
 
     await client.query('BEGIN');
+    if (status === 'COMPLETED') {
+      await ensureCompletedStatusSupport(client);
+    }
+
     const { rows } = await client.query(
       'SELECT id, item_id, quantity, status FROM requests WHERE id = $1 FOR UPDATE',
       [req.params.id]
