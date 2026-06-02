@@ -54,12 +54,15 @@ export default function UserProfileCard() {
 
   const handleSaveProfile = () => {
     try {
-      const updatedUser = updateCurrentUserProfile(form);
+      const updatedUser = updateCurrentUserProfile({
+        full_name: form.full_name,
+        avatar_color: form.avatar_color,
+      });
       setUser(updatedUser);
       setShowSettingsModal(false);
       setError('');
-    } catch (err: any) {
-      setError(err.message || 'Profile gagal disimpan.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Profile gagal disimpan.');
     }
   };
 
@@ -140,8 +143,8 @@ export default function UserProfileCard() {
             Jabatan atau Kelas
             <input
               value={form.department}
-              onChange={(event) => setForm((current) => ({ ...current, department: event.target.value }))}
-              placeholder="Masukkan jabatan atau kelas"
+              readOnly
+              aria-readonly="true"
             />
           </label>
           <div className={styles.colorField}>
