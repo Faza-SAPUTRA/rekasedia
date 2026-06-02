@@ -12,7 +12,7 @@ export default function AdminRequestsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Modal State
-  const [confirmModal, setConfirmModal] = useState<{ id: number, type: 'APPROVED' | 'REJECTED', name: string } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ id: number, type: 'APPROVED' | 'REJECTED' | 'COMPLETED', name: string } | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -32,6 +32,7 @@ export default function AdminRequestsPage() {
     { label: 'Semua', count: requests.length },
     { label: 'Menunggu Validasi', count: requests.filter(r => r.status === 'PENDING').length },
     { label: 'Disetujui', count: requests.filter(r => r.status === 'APPROVED').length },
+    { label: 'Selesai', count: requests.filter(r => r.status === 'COMPLETED').length },
     { label: 'Ditolak', count: requests.filter(r => r.status === 'REJECTED').length },
   ];
 
@@ -40,6 +41,7 @@ export default function AdminRequestsPage() {
     : requests.filter(r => {
         if (activeTab === 'Menunggu Validasi') return r.status === 'PENDING';
         if (activeTab === 'Disetujui') return r.status === 'APPROVED';
+        if (activeTab === 'Selesai') return r.status === 'COMPLETED';
         if (activeTab === 'Ditolak') return r.status === 'REJECTED';
         return false;
       });
@@ -50,6 +52,10 @@ export default function AdminRequestsPage() {
 
   const handleRejectClick = (id: number, name: string) => {
     setConfirmModal({ id, type: 'REJECTED', name });
+  };
+
+  const handleCompleteClick = (id: number, name: string) => {
+    setConfirmModal({ id, type: 'COMPLETED', name });
   };
 
   const closeModal = () => {
@@ -124,6 +130,7 @@ export default function AdminRequestsPage() {
                   {req.status === 'PENDING' && <span className={`${styles.badge} ${styles.reguler}`}>Menunggu</span>}
                   {req.status === 'APPROVED' && <span className={`${styles.badge} ${styles.approved}`}>Disetujui</span>}
                   {req.status === 'REJECTED' && <span className={`${styles.badge} ${styles.rejected}`}>Ditolak</span>}
+                  {req.status === 'COMPLETED' && <span className={`${styles.badge} ${styles.completed}`}>Selesai</span>}
                 </td>
                 <td>
                   {req.status === 'PENDING' ? (
@@ -141,6 +148,13 @@ export default function AdminRequestsPage() {
                         Tolak
                       </button>
                     </div>
+                  ) : req.status === 'APPROVED' ? (
+                    <button
+                      className={styles.btnComplete}
+                      onClick={() => handleCompleteClick(req.id, req.item_name)}
+                    >
+                      Tandai Diambil
+                    </button>
                   ) : (
                     <span style={{ fontSize: '12px', color: '#94a3b8' }}>Selesai diproses</span>
                   )}
@@ -164,12 +178,12 @@ export default function AdminRequestsPage() {
           <button className="globalModalClose" onClick={closeModal} title="Tutup">
               <i className="fas fa-times"></i>
           </button>
-          <div className={`globalModalIcon ${confirmModal?.type === 'APPROVED' ? 'success' : 'error'}`} style={confirmModal?.type === 'REJECTED' ? { background: 'var(--badge-red-bg)', color: 'var(--error-red)' } : {}}>
-            <i className={`fas ${confirmModal?.type === 'APPROVED' ? 'fa-check' : 'fa-times'}`}></i>
+          <div className={`globalModalIcon ${confirmModal?.type !== 'REJECTED' ? 'success' : 'error'}`} style={confirmModal?.type === 'REJECTED' ? { background: 'var(--badge-red-bg)', color: 'var(--error-red)' } : {}}>
+            <i className={`fas ${confirmModal?.type !== 'REJECTED' ? 'fa-check' : 'fa-times'}`}></i>
           </div>
           <h3>Konfirmasi Tindakan</h3>
           <p>
-            Apakah Anda yakin ingin <strong>{confirmModal?.type === 'APPROVED' ? 'MENYETUJUI' : 'MENOLAK'}</strong> permintaan untuk <strong>{confirmModal?.name}</strong>?
+            Apakah Anda yakin ingin <strong>{confirmModal?.type === 'APPROVED' ? 'MENYETUJUI' : confirmModal?.type === 'REJECTED' ? 'MENOLAK' : 'MENANDAI BARANG SUDAH DIAMBIL'}</strong> untuk <strong>{confirmModal?.name}</strong>?
           </p>
           <div className="globalModalBtns">
             <button 

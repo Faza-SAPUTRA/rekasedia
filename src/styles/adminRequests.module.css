@@ -190,6 +190,23 @@
   background: var(--badge-red-bg);
 }
 
+.btnComplete {
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--sage-green);
+  background: var(--badge-green-bg);
+  color: var(--sage-dark);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btnComplete:hover {
+  background: var(--sage-green);
+  color: var(--white);
+}
+
 .badge {
   display: inline-block;
   padding: 4px 12px;
@@ -213,4 +230,9 @@
 .badge.rejected {
   background: var(--badge-red-bg);
   color: var(--badge-red-text);
+}
+
+.badge.completed {
+  background: var(--cream);
+  color: var(--medium-text);
 }
