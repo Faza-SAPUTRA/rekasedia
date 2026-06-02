@@ -149,7 +149,7 @@ export default function TeacherReportsPage() {
                 <td><span className={styles.metricValue}>{report.permintaan}</span> Transaksi</td>
                 <td><span className={styles.metricValue}>{report.peminjaman}</span> Aset</td>
                 <td>
-                  <span className={`${styles.badge} ${styles.badgeInfo}`}>
+                  <span className={`${styles.badge} ${report.status === 'Menunggu Validasi' ? styles.badgePending : styles.badgeInfo}`}>
                     {report.status}
                   </span>
                 </td>

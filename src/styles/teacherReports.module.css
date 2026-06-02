@@ -196,16 +196,33 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 92px;
-  padding: 5px 12px;
-  border-radius: var(--radius-full);
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-xl);
   font-size: 11px;
   font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
 .badgeInfo {
   background: var(--badge-green-bg);
-  color: var(--sage-green);
+  color: var(--sage-dark);
+}
+
+.badgePending {
+  background: #FEF3C7;
+  color: #D97706;
 }
 
 .totalRow td {
