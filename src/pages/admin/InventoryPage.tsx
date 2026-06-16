@@ -112,9 +112,35 @@ export default function InventoryPage({ classification = 'modal' }: InventoryPag
     { value: 'Stok Sedikit', label: 'Stok Sedikit' }
   ];
 
+  const scopedItems = useMemo(() => {
+    return items.filter((item) => (
+      (classification === 'modal' && Boolean(item.is_loanable)) ||
+      (classification === 'persediaan' && !Boolean(item.is_loanable))
+    ));
+  }, [items, classification]);
+
+  const categoryOptions = useMemo(() => {
+    const activeCategoryNames = new Set(scopedItems.map((item) => item.category_name).filter(Boolean));
+    return ['Semua Kategori', ...categories
+      .filter((category) => activeCategoryNames.has(category.name))
+      .map((category) => category.name)
+    ].map(name => ({ value: name, label: name }));
+  }, [categories, scopedItems]);
+
+  const formCategoryOptions = useMemo(() => {
+    const categoryNames = new Set(
+      items
+        .filter((item) => Boolean(item.is_loanable) === formData.is_loanable)
+        .map((item) => item.category_name)
+        .filter(Boolean)
+    );
+    const matchedCategories = categories.filter((category) => categoryNames.has(category.name));
+    return (matchedCategories.length > 0 ? matchedCategories : categories).map(c => ({ value: c.name, label: c.name }));
+  }, [categories, items, formData.is_loanable]);
+
   const filteredItems = useMemo(() => {
     const normalizedSearch = search.toLowerCase();
-    let result = items.filter((item) => {
+    let result = scopedItems.filter((item) => {
       const matchesSearch = 
         String(item.name || '').toLowerCase().includes(normalizedSearch) ||
         String(item.sku || '').toLowerCase().includes(normalizedSearch);
@@ -128,11 +154,7 @@ export default function InventoryPage({ classification = 'modal' }: InventoryPag
         (statusFilter === 'Habis' && item.stock === 0) ||
         (statusFilter === 'Stok Tipis' && item.stock > 0 && item.stock <= 5);
 
-      const matchesClassification =
-        (classification === 'modal' && Boolean(item.is_loanable)) ||
-        (classification === 'persediaan' && !Boolean(item.is_loanable));
-
-      return matchesSearch && matchesCategory && matchesStatus && matchesClassification;
+      return matchesSearch && matchesCategory && matchesStatus;
     });
 
     if (sortOrder === 'Nama A-Z') {
@@ -146,7 +168,7 @@ export default function InventoryPage({ classification = 'modal' }: InventoryPag
     }
 
     return result;
-  }, [items, search, activeCategory, statusFilter, sortOrder, classification]);
+  }, [scopedItems, search, activeCategory, statusFilter, sortOrder]);
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PER_PAGE));
   const paginatedItems = filteredItems.slice(
@@ -154,7 +176,6 @@ export default function InventoryPage({ classification = 'modal' }: InventoryPag
     currentPage * ITEMS_PER_PAGE
   );
 
-  const categoryOptions = ['Semua Kategori', ...categories.map((c) => c.name)].map(name => ({ value: name, label: name }));
   const statusOptions = ['Semua Status', 'Stok Tersedia', 'Stok Tipis', 'Habis'].map(status => ({ value: status, label: status }));
   const totalModalItems = items.filter((item) => Boolean(item.is_loanable)).length;
   const totalPersediaanItems = items.filter((item) => !Boolean(item.is_loanable)).length;
@@ -165,6 +186,13 @@ export default function InventoryPage({ classification = 'modal' }: InventoryPag
       setCurrentPage(totalPages);
     }
   }, [currentPage, totalPages]);
+
+  useEffect(() => {
+    if (!categoryOptions.some((option) => option.value === activeCategory)) {
+      setActiveCategory('Semua Kategori');
+      setCurrentPage(1);
+    }
+  }, [activeCategory, categoryOptions]);
 
   if (isLoading) {
     return <PageSkeleton variant="table" rows={8} />;
@@ -349,7 +377,7 @@ export default function InventoryPage({ classification = 'modal' }: InventoryPag
                     <CustomSelect
                       value={formData.category_name}
                       onChange={handleCategoryChange}
-                      options={categories.map(c => ({ value: c.name, label: c.name }))}
+                      options={formCategoryOptions}
                     />
                   </div>
                   <div className={styles.formGroup} style={{ gridColumn: 'span 12' }}>
@@ -462,6 +490,17 @@ export default function InventoryPage({ classification = 'modal' }: InventoryPag
                     value={sortOrder} 
                     onChange={setSortOrder} 
                     options={sortOptions} 
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Kategori</label>
+                  <CustomSelect
+                    value={activeCategory}
+                    onChange={(val) => {
+                      setActiveCategory(val);
+                      setCurrentPage(1);
+                    }}
+                    options={categoryOptions}
                   />
                 </div>
                 <div className={styles.formGroup}>
