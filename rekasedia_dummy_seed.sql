@@ -37,7 +37,8 @@ INSERT INTO `categories` (`id`, `name`) VALUES
 (2, 'Kertas'),
 (3, 'Tinta & Toner'),
 (4, 'Peralatan Kelas'),
-(5, 'Elektronik');
+(5, 'Elektronik'),
+(6, 'Furnitur');
 
 -- 3. Insert Users (Password semua adalah 'password123' yang sudah di-hash bcrypt)
 INSERT INTO `users` (`id`, `full_name`, `email`, `password_hash`, `role`, `department`) VALUES
@@ -58,7 +59,10 @@ INSERT INTO `items` (`id`, `category_id`, `name`, `stock`, `unit`, `is_loanable`
 (8, 4, 'Penghapus Papan Tulis', 45, 'Pcs', 0, '/assets/items/penghapus_papan.png'),
 (9, 2, 'Kertas Folio F4 70gsm', 2, 'Rim', 0, '/assets/items/kertas_folio.png'),
 (10, 1, 'Pulpen Gel Hitam', 200, 'Pack', 0, '/assets/items/pulpen_hitam.png'),
-(11, 5, 'Kabel Roll Terminal 10M', 5, 'Unit', 1, '/assets/items/kabel_roll.png');
+(11, 5, 'Kabel Roll Terminal 10M', 5, 'Unit', 1, '/assets/items/kabel_roll.png'),
+(12, 6, 'Meja Kelas Kayu', 24, 'Unit', 1, NULL),
+(13, 6, 'Kursi Siswa', 36, 'Unit', 1, NULL),
+(14, 6, 'Papan Tulis Whiteboard', 6, 'Unit', 1, NULL);
 
 -- 5. Insert Requests (Permintaan Barang)
 INSERT INTO `requests` (`id`, `requester_id`, `item_id`, `quantity`, `req_code`, `status`, `priority`, `request_date`) VALUES

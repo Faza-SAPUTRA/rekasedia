@@ -31,6 +31,8 @@ function App() {
           <Route path="/admin" element={<DashboardLayout />}>
             <Route index element={<DashboardPage />} />
             <Route path="inventory" element={<InventoryPage />} />
+            <Route path="inventory/barang-modal" element={<InventoryPage classification="modal" />} />
+            <Route path="inventory/persediaan" element={<InventoryPage classification="persediaan" />} />
             {/* <Route path="loans" element={<LoansPage />} /> */}
             <Route path="requests" element={<AdminRequestsPage />} />
             <Route path="reports" element={<ReportsPage />} />

@@ -377,8 +377,9 @@ export async function updateItem(id: number, data: any) {
     console.log('[MOCK] Update item:', id, data);
     const items = readMockItems();
     const normalizedData = { ...data, stock: Math.max(0, Number(data.stock) || 0) };
-    writeMockItems(items.map((item: any) => (item.id === id ? { ...item, ...normalizedData } : item)));
-    return { message: 'Barang berhasil diperbarui (MOCK)' };
+    const updatedItems = items.map((item: any) => (item.id === id ? { ...item, ...normalizedData } : item));
+    writeMockItems(updatedItems);
+    return updatedItems.find((item: any) => item.id === id);
   }
   const res = await fetch(`${API_BASE}/items/${id}`, {
     method: 'PUT',
