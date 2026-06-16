@@ -13,7 +13,7 @@ const ITEMS_PER_PAGE = 10;
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
 
 type ModalType = 'add' | 'edit' | 'delete' | 'filter' | null;
-type InventoryClassification = 'all' | 'modal' | 'persediaan';
+type InventoryClassification = 'modal' | 'persediaan';
 type InventoryFormData = {
   name: string;
   sku: string;
@@ -31,12 +31,6 @@ interface InventoryPageProps {
 }
 
 const classificationConfig = {
-  all: {
-    title: 'Manajemen Inventaris Barang',
-    breadcrumb: 'Manajemen Inventaris',
-    addLabel: 'Tambah Barang Baru',
-    emptyText: 'Tidak ada barang inventaris yang cocok.',
-  },
   modal: {
     title: 'Barang Modal',
     breadcrumb: 'Barang Modal',
@@ -67,7 +61,7 @@ function getClassificationLabel(item: { is_loanable?: boolean }) {
   return item.is_loanable ? 'Barang Modal' : 'Persediaan';
 }
 
-export default function InventoryPage({ classification = 'all' }: InventoryPageProps) {
+export default function InventoryPage({ classification = 'modal' }: InventoryPageProps) {
   const pageConfig = classificationConfig[classification];
   const [items, setItems] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -135,7 +129,6 @@ export default function InventoryPage({ classification = 'all' }: InventoryPageP
         (statusFilter === 'Stok Tipis' && item.stock > 0 && item.stock <= 5);
 
       const matchesClassification =
-        classification === 'all' ||
         (classification === 'modal' && Boolean(item.is_loanable)) ||
         (classification === 'persediaan' && !Boolean(item.is_loanable));
 
@@ -517,10 +510,6 @@ export default function InventoryPage({ classification = 'all' }: InventoryPageP
       </div>
 
       <div className={styles.classificationTabs}>
-        <Link to="/admin/inventory" className={`${styles.classificationTab} ${classification === 'all' ? styles.activeTab : ''}`}>
-          Semua
-          <span>{items.length}</span>
-        </Link>
         <Link to="/admin/inventory/barang-modal" className={`${styles.classificationTab} ${classification === 'modal' ? styles.activeTab : ''}`}>
           Barang Modal
           <span>{totalModalItems}</span>

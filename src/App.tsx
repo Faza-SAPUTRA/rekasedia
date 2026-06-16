@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -30,7 +30,7 @@ function App() {
         <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
           <Route path="/admin" element={<DashboardLayout />}>
             <Route index element={<DashboardPage />} />
-            <Route path="inventory" element={<InventoryPage />} />
+            <Route path="inventory" element={<Navigate to="barang-modal" replace />} />
             <Route path="inventory/barang-modal" element={<InventoryPage classification="modal" />} />
             <Route path="inventory/persediaan" element={<InventoryPage classification="persediaan" />} />
             {/* <Route path="loans" element={<LoansPage />} /> */}
