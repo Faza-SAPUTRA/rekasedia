@@ -380,18 +380,6 @@ export default function InventoryPage({ classification = 'modal' }: InventoryPag
                       options={formCategoryOptions}
                     />
                   </div>
-                  <div className={styles.formGroup} style={{ gridColumn: 'span 12' }}>
-                    <label>Jenis Barang</label>
-                    <CustomSelect
-                      value={String(formData.is_loanable)}
-                      onChange={val => setFormData({...formData, is_loanable: val === 'true'})}
-                      className={styles.loanableSelect}
-                      options={[
-                        { value: 'true', label: 'Barang Modal (Aset Jangka Panjang)' },
-                        { value: 'false', label: 'Persediaan (Habis Pakai)' }
-                      ]}
-                    />
-                  </div>
                   <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
                     <label>Stok Awal</label>
                     <input type="number" min="0" value={formData.stock} onChange={e => handleStockChange(e.target.value)} />
