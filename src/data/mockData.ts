@@ -80,6 +80,7 @@ export const categories: Category[] = [
   { id: 2, name: 'Kertas', description: 'Produk kertas dan cetakan' },
   { id: 3, name: 'Elektronik', description: 'Peralatan elektronik dan digital' },
   { id: 4, name: 'Kebersihan', description: 'Alat kebersihan dan kesehatan' },
+  { id: 5, name: 'Furnitur', description: 'Meja, kursi, papan tulis, dan perlengkapan kelas jangka panjang' },
 ];
 
 export const items: Item[] = [
@@ -101,6 +102,9 @@ export const items: Item[] = [
   { id: 16, sku: 'SKU-2023-016', name: 'Sticky Notes Neon', category_id: 1, category_name: 'ATK', stock: 30, unit: 'Pack', description: 'Sticky notes warna neon untuk penanda dokumen.', image_url: null, is_loanable: false },
   { id: 17, sku: 'SKU-2023-017', name: 'Spidol Whiteboard (Biru)', category_id: 1, category_name: 'ATK', stock: 25, unit: 'Unit', description: 'Spidol whiteboard warna biru.', image_url: null, is_loanable: false },
   { id: 18, sku: 'SKU-2023-018', name: 'Buku Induk Siswa 2023', category_id: 1, category_name: 'ATK', stock: 10, unit: 'Unit', description: 'Buku induk untuk pencatatan data siswa tahun 2023.', image_url: null, is_loanable: false },
+  { id: 19, sku: 'SKU-2023-019', name: 'Meja Kelas Kayu', category_id: 5, category_name: 'Furnitur', stock: 24, unit: 'Unit', description: 'Meja kelas untuk penggunaan jangka panjang.', image_url: null, is_loanable: true },
+  { id: 20, sku: 'SKU-2023-020', name: 'Kursi Siswa', category_id: 5, category_name: 'Furnitur', stock: 36, unit: 'Unit', description: 'Kursi siswa untuk ruang kelas.', image_url: null, is_loanable: true },
+  { id: 21, sku: 'SKU-2023-021', name: 'Papan Tulis Whiteboard', category_id: 5, category_name: 'Furnitur', stock: 6, unit: 'Unit', description: 'Papan tulis kelas untuk aset sekolah.', image_url: null, is_loanable: true },
 ];
 
 export const requests: Request[] = [

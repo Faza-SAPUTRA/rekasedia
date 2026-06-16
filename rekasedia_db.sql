@@ -42,7 +42,8 @@ INSERT INTO `categories` (`id`, `name`, `description`) VALUES
 (2, 'Kertas', NULL),
 (3, 'Tinta & Toner', NULL),
 (4, 'Peralatan Kelas', NULL),
-(5, 'Elektronik', NULL);
+(5, 'Elektronik', NULL),
+(6, 'Furnitur', 'Meja, kursi, papan tulis, dan perlengkapan kelas jangka panjang');
 
 -- --------------------------------------------------------
 
@@ -78,7 +79,10 @@ INSERT INTO `items` (`id`, `name`, `category_id`, `stock`, `unit`, `description`
 (8, 'Penghapus Papan Tulis', 4, 45, 'Pcs', NULL, NULL, 0, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
 (9, 'Kertas Folio F4 70gsm', 2, 2, 'Rim', NULL, NULL, 0, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
 (10, 'Pulpen Gel Hitam', 1, 200, 'Pack', NULL, NULL, 0, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
-(11, 'Kabel Roll Terminal 10M', 5, 5, 'Unit', NULL, NULL, 1, '2026-04-13 13:10:41', '2026-04-13 13:10:41');
+(11, 'Kabel Roll Terminal 10M', 5, 5, 'Unit', NULL, NULL, 1, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
+(12, 'Meja Kelas Kayu', 6, 24, 'Unit', 'Meja kelas untuk penggunaan jangka panjang.', NULL, 1, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
+(13, 'Kursi Siswa', 6, 36, 'Unit', 'Kursi siswa untuk ruang kelas.', NULL, 1, '2026-04-13 13:10:41', '2026-04-13 13:10:41'),
+(14, 'Papan Tulis Whiteboard', 6, 6, 'Unit', 'Papan tulis kelas untuk aset sekolah.', NULL, 1, '2026-04-13 13:10:41', '2026-04-13 13:10:41');
 
 -- --------------------------------------------------------
 
@@ -256,13 +260,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `items`
 --
 ALTER TABLE `items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `loans`

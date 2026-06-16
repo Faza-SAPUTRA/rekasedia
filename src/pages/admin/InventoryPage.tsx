@@ -13,6 +13,7 @@ const ITEMS_PER_PAGE = 10;
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
 
 type ModalType = 'add' | 'edit' | 'delete' | 'filter' | null;
+type InventoryClassification = 'all' | 'modal' | 'persediaan';
 type InventoryFormData = {
   name: string;
   sku: string;
@@ -24,6 +25,31 @@ type InventoryFormData = {
   image_url: string | null;
   is_loanable: boolean;
 };
+
+interface InventoryPageProps {
+  classification?: InventoryClassification;
+}
+
+const classificationConfig = {
+  all: {
+    title: 'Manajemen Inventaris Barang',
+    breadcrumb: 'Manajemen Inventaris',
+    addLabel: 'Tambah Barang Baru',
+    emptyText: 'Tidak ada barang inventaris yang cocok.',
+  },
+  modal: {
+    title: 'Barang Modal',
+    breadcrumb: 'Barang Modal',
+    addLabel: 'Tambah Barang Modal',
+    emptyText: 'Tidak ada barang modal yang cocok.',
+  },
+  persediaan: {
+    title: 'Persediaan',
+    breadcrumb: 'Persediaan',
+    addLabel: 'Tambah Persediaan',
+    emptyText: 'Tidak ada persediaan yang cocok.',
+  },
+} as const;
 
 const emptyFormData = (): InventoryFormData => ({
   name: '',
@@ -37,7 +63,12 @@ const emptyFormData = (): InventoryFormData => ({
   is_loanable: false
 });
 
-export default function InventoryPage() {
+function getClassificationLabel(item: { is_loanable?: boolean }) {
+  return item.is_loanable ? 'Barang Modal' : 'Persediaan';
+}
+
+export default function InventoryPage({ classification = 'all' }: InventoryPageProps) {
+  const pageConfig = classificationConfig[classification];
   const [items, setItems] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -103,7 +134,12 @@ export default function InventoryPage() {
         (statusFilter === 'Habis' && item.stock === 0) ||
         (statusFilter === 'Stok Tipis' && item.stock > 0 && item.stock <= 5);
 
-      return matchesSearch && matchesCategory && matchesStatus;
+      const matchesClassification =
+        classification === 'all' ||
+        (classification === 'modal' && Boolean(item.is_loanable)) ||
+        (classification === 'persediaan' && !Boolean(item.is_loanable));
+
+      return matchesSearch && matchesCategory && matchesStatus && matchesClassification;
     });
 
     if (sortOrder === 'Nama A-Z') {
@@ -117,9 +153,9 @@ export default function InventoryPage() {
     }
 
     return result;
-  }, [items, search, activeCategory, statusFilter, sortOrder]);
+  }, [items, search, activeCategory, statusFilter, sortOrder, classification]);
 
-  const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PER_PAGE));
   const paginatedItems = filteredItems.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
@@ -127,6 +163,15 @@ export default function InventoryPage() {
 
   const categoryOptions = ['Semua Kategori', ...categories.map((c) => c.name)].map(name => ({ value: name, label: name }));
   const statusOptions = ['Semua Status', 'Stok Tersedia', 'Stok Tipis', 'Habis'].map(status => ({ value: status, label: status }));
+  const totalModalItems = items.filter((item) => Boolean(item.is_loanable)).length;
+  const totalPersediaanItems = items.filter((item) => !Boolean(item.is_loanable)).length;
+  const firstItemIndex = filteredItems.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   if (isLoading) {
     return <PageSkeleton variant="table" rows={8} />;
@@ -134,7 +179,19 @@ export default function InventoryPage() {
 
   // --- Handlers ---
   const openAddModal = () => {
-    setFormData(emptyFormData());
+    const nextForm = emptyFormData();
+    if (classification === 'modal') {
+      const furnitureCategory = categories.find((cat) => cat.name === 'Furnitur') || categories.find((cat) => cat.name === 'Peralatan Kelas');
+      nextForm.is_loanable = true;
+      if (furnitureCategory) {
+        nextForm.category_id = furnitureCategory.id;
+        nextForm.category_name = furnitureCategory.name;
+      }
+    }
+    if (classification === 'persediaan') {
+      nextForm.is_loanable = false;
+    }
+    setFormData(nextForm);
     setImageError('');
     setActiveModal('add');
   };
@@ -302,6 +359,18 @@ export default function InventoryPage() {
                       options={categories.map(c => ({ value: c.name, label: c.name }))}
                     />
                   </div>
+                  <div className={styles.formGroup} style={{ gridColumn: 'span 12' }}>
+                    <label>Jenis Barang</label>
+                    <CustomSelect
+                      value={String(formData.is_loanable)}
+                      onChange={val => setFormData({...formData, is_loanable: val === 'true'})}
+                      className={styles.loanableSelect}
+                      options={[
+                        { value: 'true', label: 'Barang Modal (Aset Jangka Panjang)' },
+                        { value: 'false', label: 'Persediaan (Habis Pakai)' }
+                      ]}
+                    />
+                  </div>
                   <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
                     <label>Stok Awal</label>
                     <input type="number" min="0" value={formData.stock} onChange={e => handleStockChange(e.target.value)} />
@@ -309,18 +378,6 @@ export default function InventoryPage() {
                   <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
                     <label>Satuan</label>
                     <input type="text" value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} placeholder="Pcs, Rim, dsb." />
-                  </div>
-                  <div className={styles.formGroup} style={{ gridColumn: 'span 12' }}>
-                    <label>Dapat Dipinjam?</label>
-                    <CustomSelect
-                      value={String(formData.is_loanable)}
-                      onChange={val => setFormData({...formData, is_loanable: val === 'true'})}
-                      className={styles.loanableSelect}
-                      options={[
-                        { value: 'false', label: 'Tidak (Habis Pakai)' },
-                        { value: 'true', label: 'Ya (Aset/Pinjaman)' }
-                      ]}
-                    />
                   </div>
                   <div className={styles.formGroup} style={{ gridColumn: 'span 12' }}>
                     <label>Foto Barang</label>
@@ -449,14 +506,29 @@ export default function InventoryPage() {
             <div className={styles.breadcrumb}>
                 <Link to="/admin">Dashboard</Link>
                 <span aria-hidden="true">&rsaquo;</span>
-                <span>Manajemen Inventaris</span>
+                <span>{pageConfig.breadcrumb}</span>
             </div>
-            <h1 className={styles.inventoryTitle}>Manajemen Inventaris Barang</h1>
+            <h1 className={styles.inventoryTitle}>{pageConfig.title}</h1>
         </div>
         <button className={styles.addBtn} onClick={openAddModal}>
           <i className="fas fa-plus-circle"></i>
-          Tambah Barang Baru
+          {pageConfig.addLabel}
         </button>
+      </div>
+
+      <div className={styles.classificationTabs}>
+        <Link to="/admin/inventory" className={`${styles.classificationTab} ${classification === 'all' ? styles.activeTab : ''}`}>
+          Semua
+          <span>{items.length}</span>
+        </Link>
+        <Link to="/admin/inventory/barang-modal" className={`${styles.classificationTab} ${classification === 'modal' ? styles.activeTab : ''}`}>
+          Barang Modal
+          <span>{totalModalItems}</span>
+        </Link>
+        <Link to="/admin/inventory/persediaan" className={`${styles.classificationTab} ${classification === 'persediaan' ? styles.activeTab : ''}`}>
+          Persediaan
+          <span>{totalPersediaanItems}</span>
+        </Link>
       </div>
 
       {/* Filter Section */}
@@ -509,6 +581,7 @@ export default function InventoryPage() {
             <tr>
               <th style={{ width: '80px' }}>FOTO</th>
               <th>NAMA BARANG</th>
+              <th>JENIS</th>
               <th>KATEGORI</th>
               <th>SISA STOK</th>
               <th>SATUAN</th>
@@ -534,6 +607,11 @@ export default function InventoryPage() {
                     </div>
                   </td>
                   <td>
+                    <span className={`${styles.typeBadge} ${item.is_loanable ? styles.assetBadge : styles.supplyBadge}`}>
+                      {getClassificationLabel(item)}
+                    </span>
+                  </td>
+                  <td>
                     <span className={styles.categoryBadge}>{item.category_name}</span>
                   </td>
                   <td>
@@ -557,13 +635,18 @@ export default function InventoryPage() {
                 </tr>
               );
             })}
+            {paginatedItems.length === 0 && (
+              <tr>
+                <td colSpan={7} className={styles.emptyState}>{pageConfig.emptyText}</td>
+              </tr>
+            )}
           </tbody>
         </table>
 
         {/* Pagination Row */}
         <div className={styles.paginationRow}>
           <div className={styles.paginationInfo}>
-            Menampilkan <strong>{(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, filteredItems.length)}</strong> dari <strong>{filteredItems.length}</strong> barang inventaris
+            Menampilkan <strong>{firstItemIndex}-{Math.min(currentPage * ITEMS_PER_PAGE, filteredItems.length)}</strong> dari <strong>{filteredItems.length}</strong> barang inventaris
           </div>
           <div className={styles.pagination}>
             <div 

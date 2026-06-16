@@ -68,6 +68,60 @@
   box-shadow: var(--shadow-md);
 }
 
+.classificationTabs {
+  display: flex;
+  gap: 10px;
+  margin: -6px 0 24px;
+  flex-wrap: wrap;
+}
+
+.classificationTab {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--medium-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-family: var(--font-interactive);
+  font-size: 13px;
+  font-weight: 700;
+  transition: all var(--transition-fast);
+}
+
+.classificationTab:hover {
+  border-color: var(--sage-green);
+  color: var(--sage-green);
+  text-decoration: none;
+}
+
+.classificationTab span {
+  min-width: 26px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: var(--radius-xl);
+  background: var(--cream);
+  color: var(--gray-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.classificationTab.activeTab {
+  background: var(--sage-green);
+  border-color: var(--sage-green);
+  color: var(--white);
+}
+
+.classificationTab.activeTab span {
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--white);
+}
+
 /* --- Improved Filter Container --- */
 .filterContainer {
   background: var(--white);
@@ -250,6 +304,33 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.typeBadge {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.assetBadge {
+  background: rgba(68, 124, 142, 0.12);
+  color: var(--teal-dark);
+}
+
+.supplyBadge {
+  background: var(--badge-green-bg);
+  color: var(--badge-green-text);
+}
+
+.emptyState {
+  text-align: center;
+  color: var(--gray-text);
+  font-weight: 600;
+  padding: 34px 20px !important;
 }
 
 .stockWrapper {

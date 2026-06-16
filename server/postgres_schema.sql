@@ -49,7 +49,8 @@ INSERT INTO categories (id, name, description) VALUES
 (1, 'ATK', 'Alat Tulis Kantor'),
 (2, 'Kertas', 'Produk kertas dan cetakan'),
 (3, 'Elektronik', 'Peralatan elektronik dan digital'),
-(4, 'Kebersihan', 'Alat kebersihan dan kesehatan');
+(4, 'Kebersihan', 'Alat kebersihan dan kesehatan'),
+(5, 'Furnitur', 'Meja, kursi, papan tulis, dan perlengkapan kelas jangka panjang');
 
 -- ============================================
 -- TABLE: items
@@ -85,7 +86,10 @@ INSERT INTO items (id, name, category_id, stock, unit, description, image_url, i
 (15, 'MacBook Air M2 Silver', 3, 1, 'Unit', 'Laptop MacBook Air M2 untuk keperluan presentasi.', NULL, TRUE),
 (16, 'Sticky Notes Neon', 1, 30, 'Pack', 'Sticky notes warna neon untuk penanda dokumen.', NULL, FALSE),
 (17, 'Spidol Whiteboard (Biru)', 1, 25, 'Unit', 'Spidol whiteboard warna biru.', '/assets/items/spidol_hitam.png', FALSE),
-(18, 'Buku Induk Siswa 2023', 1, 10, 'Unit', 'Buku induk untuk pencatatan data siswa tahun 2023.', NULL, FALSE);
+(18, 'Buku Induk Siswa 2023', 1, 10, 'Unit', 'Buku induk untuk pencatatan data siswa tahun 2023.', NULL, FALSE),
+(19, 'Meja Kelas Kayu', 5, 24, 'Unit', 'Meja kelas untuk penggunaan jangka panjang.', NULL, TRUE),
+(20, 'Kursi Siswa', 5, 36, 'Unit', 'Kursi siswa untuk ruang kelas.', NULL, TRUE),
+(21, 'Papan Tulis Whiteboard', 5, 6, 'Unit', 'Papan tulis kelas untuk aset sekolah.', NULL, TRUE);
 
 -- ============================================
 -- TABLE: requests

@@ -6,6 +6,8 @@ import styles from '../styles/dashboard.module.css';
 const pageTitles: Record<string, string> = {
   '/admin': 'Dashboard Admin',
   '/admin/inventory': 'Inventaris',
+  '/admin/inventory/barang-modal': 'Barang Modal',
+  '/admin/inventory/persediaan': 'Persediaan',
   '/admin/requests': 'Permintaan Masuk',
   '/admin/reports': 'Laporan',
 };

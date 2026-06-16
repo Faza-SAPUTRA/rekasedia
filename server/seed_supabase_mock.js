@@ -18,6 +18,7 @@ const categories = [
   [2, 'Kertas', 'Produk kertas dan cetakan'],
   [3, 'Elektronik', 'Peralatan elektronik dan digital'],
   [4, 'Kebersihan', 'Alat kebersihan dan kesehatan'],
+  [5, 'Furnitur', 'Meja, kursi, papan tulis, dan perlengkapan kelas jangka panjang'],
 ];
 
 const items = [
@@ -39,6 +40,9 @@ const items = [
   [16, 'Sticky Notes Neon', 1, 30, 'Pack', 'Sticky notes warna neon untuk penanda dokumen.', null, false],
   [17, 'Spidol Whiteboard (Biru)', 1, 25, 'Unit', 'Spidol whiteboard warna biru.', '/assets/items/spidol_hitam.png', false],
   [18, 'Buku Induk Siswa 2023', 1, 10, 'Unit', 'Buku induk untuk pencatatan data siswa tahun 2023.', null, false],
+  [19, 'Meja Kelas Kayu', 5, 24, 'Unit', 'Meja kelas untuk penggunaan jangka panjang.', null, true],
+  [20, 'Kursi Siswa', 5, 36, 'Unit', 'Kursi siswa untuk ruang kelas.', null, true],
+  [21, 'Papan Tulis Whiteboard', 5, 6, 'Unit', 'Papan tulis kelas untuk aset sekolah.', null, true],
 ];
 
 const requests = [
