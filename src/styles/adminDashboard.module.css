@@ -201,6 +201,39 @@
   color: var(--sage-green);
 }
 
+.resetCode {
+  color: var(--sage-dark) !important;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.resetCredentialBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 20px 0 24px;
+  padding: 18px;
+  border: 1px dashed var(--sage-green);
+  border-radius: var(--radius-md);
+  background: var(--cream);
+  text-align: center;
+}
+
+.resetCredentialBox span {
+  color: var(--gray-text);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.resetCredentialBox strong {
+  color: var(--dark-text);
+  font-family: var(--font-heading);
+  font-size: 22px;
+  letter-spacing: 0.08em;
+}
+
 /* --- Table --- */
 .tableWrapper {
   background: var(--white);

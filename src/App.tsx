@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ChangePasswordPage from './pages/ChangePasswordPage';
 import DashboardLayout from './components/DashboardLayout';
 import DashboardPage from './pages/admin/DashboardPage';
 import InventoryPage from './pages/admin/InventoryPage';
@@ -28,6 +29,10 @@ function App() {
           <Route path="/" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        </Route>
+
+        <Route element={<ProtectedRoute allowedRoles={['admin', 'guru']} />}>
+          <Route path="/change-password" element={<ChangePasswordPage />} />
         </Route>
         
         {/* Admin Routes */}

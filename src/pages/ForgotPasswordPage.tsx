@@ -8,23 +8,27 @@ import cStyles from '../styles/components.module.css';
 import { forgotPassword } from '../services/api';
 
 const ForgotPasswordPage: React.FC = () => {
-    const [email, setEmail] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSent, setIsSent] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
+    const [requestCode, setRequestCode] = useState('');
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         if (isSubmitting) return;
 
-        if (!email.trim()) {
-            setError('Email wajib diisi.');
+        const loginValue = identifier.trim();
+        if (!loginValue) {
+            setError('NIP atau email wajib diisi.');
             return;
         }
 
-        if (!email.includes('@') && !['admin', 'guru'].includes(email.toLowerCase())) {
-            setError('Masukkan email yang valid.');
+        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginValue);
+        const isNip = /^\d{8,20}$/.test(loginValue);
+        if (!isEmail && !isNip) {
+            setError('Masukkan email valid atau NIP angka 8-20 digit.');
             return;
         }
 
@@ -32,11 +36,12 @@ const ForgotPasswordPage: React.FC = () => {
         setIsSubmitting(true);
 
         try {
-            const res = await forgotPassword(email);
+            const res = await forgotPassword(loginValue);
             setIsSent(true);
             setSuccessMessage(res.message);
-        } catch (err: any) {
-            setError(err.message || 'Terjadi kesalahan saat memproses permintaan.');
+            setRequestCode(res.request_code);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat memproses permintaan.');
         } finally {
             setIsSubmitting(false);
         }
@@ -53,17 +58,24 @@ const ForgotPasswordPage: React.FC = () => {
                 Lupa Password?
             </h1>
             <p className={`${styles.formSubtitle} animate-fade-in-up delay-1`}>
-                Masukkan email akun Anda. Kami akan memeriksa database dan mengirimkan instruksi pemulihan.
+                Masukkan NIP atau email akun. Admin sekolah akan memverifikasi permintaan Anda.
             </p>
 
             {isSent ? (
                 <div className={`${styles.resetSuccessBox} animate-fade-in-up delay-2`}>
                     <div className={styles.resetSuccessIcon}>
-                        <i className="fa-solid fa-envelope-circle-check"></i>
+                        <i className="fa-solid fa-clipboard-check"></i>
                     </div>
-                    <h3>Instruksi Reset Siap</h3>
+                    <h3>Permintaan Reset Dibuat</h3>
                     <p>
-                        {successMessage || `Jika akun ${email} terdaftar, instruksi reset password akan dikirim.`}
+                        {successMessage}
+                    </p>
+                    <div className={styles.resetRequestCode}>
+                        <span>KODE VERIFIKASI</span>
+                        <strong>{requestCode}</strong>
+                    </div>
+                    <p className={styles.resetHelpText}>
+                        Berikan kode ini kepada admin sekolah. Demi keamanan, kode tetap ditampilkan meskipun akun tidak ditemukan.
                     </p>
                     <Link to="/" className={`${cStyles.btn} ${cStyles.btnPrimary}`}>
                         Kembali ke Login
@@ -73,15 +85,15 @@ const ForgotPasswordPage: React.FC = () => {
                 <form onSubmit={handleSubmit} noValidate>
                     <div className="animate-fade-in-up delay-2">
                         <InputField
-                            id="resetEmail"
-                            label="Email Akun"
-                            placeholder="Contoh: admin@rekasedia.sch.id"
-                            icon="fa-regular fa-envelope"
-                            autoComplete="email"
+                            id="resetIdentifier"
+                            label="NIP / Email"
+                            placeholder="Masukkan NIP atau email akun"
+                            icon="fa-regular fa-user"
+                            autoComplete="username"
                             required
-                            value={email}
+                            value={identifier}
                             onChange={(val) => {
-                                setEmail(val);
+                                setIdentifier(val.replace(/[^\w.@+-]/g, ''));
                                 if (error) setError('');
                             }}
                             error={error}
@@ -99,7 +111,7 @@ const ForgotPasswordPage: React.FC = () => {
                             </>
                         ) : (
                             <>
-                                Kirim Instruksi <i className="fa-solid fa-paper-plane"></i>
+                                Ajukan Reset <i className="fa-solid fa-paper-plane"></i>
                             </>
                         )}
                     </button>

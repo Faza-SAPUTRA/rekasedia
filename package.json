@@ -8,6 +8,7 @@
     "server": "node server/index.js",
     "seed:supabase": "node server/seed_supabase_mock.js",
     "import:users": "node server/import_users_csv.js",
+    "migrate:password-reset": "node server/migrate_password_reset.js",
     "dev:full": "concurrently \"npm run dev\" \"npm run server\"",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

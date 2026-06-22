@@ -143,7 +143,8 @@ async function importUsers() {
         await client.query(
           `UPDATE users
            SET full_name = $1, email = $2, nip = $3, password_hash = $4,
-               role = 'guru', department = $5, updated_at = CURRENT_TIMESTAMP
+               role = 'guru', department = $5, must_change_password = FALSE,
+               temporary_password_expires_at = NULL, updated_at = CURRENT_TIMESTAMP
            WHERE id = $6`,
           [user.fullName, user.email, user.nip, user.passwordHash, user.department, existing.rows[0].id]
         );
