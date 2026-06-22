@@ -16,6 +16,28 @@ import ErrorModal from '../../components/ErrorModal';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
+function formatCompactDate(dateValue: string) {
+  const dateOnlyMatch = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const parsedDate = dateOnlyMatch
+    ? new Date(Number(dateOnlyMatch[1]), Number(dateOnlyMatch[2]) - 1, Number(dateOnlyMatch[3]))
+    : new Date(dateValue);
+
+  if (Number.isNaN(parsedDate.getTime())) return dateValue;
+
+  const now = new Date();
+  const oneYearAgo = new Date(now);
+  const oneYearAhead = new Date(now);
+  oneYearAgo.setFullYear(now.getFullYear() - 1);
+  oneYearAhead.setFullYear(now.getFullYear() + 1);
+
+  const showYear = parsedDate < oneYearAgo || parsedDate > oneYearAhead;
+  return parsedDate.toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'long',
+    ...(showYear ? { year: 'numeric' as const } : {}),
+  });
+}
+
 export default function DashboardPage() {
   const [reqs, setReqs] = useState<any[]>([]);
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
@@ -251,7 +273,7 @@ export default function DashboardPage() {
                     <span>({req.requester_role})</span>
                   </div>
                 </td>
-                <td>{new Date(req.request_date).toLocaleDateString('id-ID')}</td>
+                <td>{formatCompactDate(req.request_date)}</td>
                 <td>
                   <span
                     className={`${styles.badge} ${

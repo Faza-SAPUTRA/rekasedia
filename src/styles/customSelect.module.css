@@ -68,7 +68,9 @@
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  width: 100%;
+  width: max(100%, 190px);
+  max-width: min(320px, calc(100vw - 24px));
+  box-sizing: border-box;
   background: var(--white);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
@@ -79,6 +81,8 @@
   transform-origin: top;
   max-height: 250px;
   overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
 }
 
 @keyframes dropdownFadeIn {
@@ -104,6 +108,9 @@
   justify-content: space-between;
   gap: 12px;
   line-height: 1.35;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .item:hover {
@@ -119,6 +126,7 @@
 
 .item i {
   font-size: 11px;
+  flex-shrink: 0;
 }
 
 /* Custom width variations if needed */
