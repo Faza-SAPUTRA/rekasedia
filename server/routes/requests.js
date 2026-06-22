@@ -37,10 +37,14 @@ router.get('/', async (req, res) => {
     const { rows } = await pool.query(`
       SELECT r.*, 
              i.name AS item_name, 
+             i.unit AS unit,
+             i.description AS item_description,
+             c.name AS category_name,
              u.full_name AS requester_name, 
              u.department AS requester_role
       FROM requests r
       JOIN items i ON r.item_id = i.id
+      JOIN categories c ON i.category_id = c.id
       JOIN users u ON r.requester_id = u.id
       ORDER BY r.created_at DESC
     `);
