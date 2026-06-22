@@ -50,6 +50,27 @@ function formatCompactDate(dateValue: string) {
   });
 }
 
+function formatJakartaDateTime(dateValue: string) {
+  const parsedDate = new Date(dateValue);
+  if (Number.isNaN(parsedDate.getTime())) return dateValue;
+
+  const parts = new Intl.DateTimeFormat('id-ID', {
+    timeZone: 'Asia/Jakarta',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    hourCycle: 'h23',
+  }).formatToParts(parsedDate);
+
+  const getPart = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value || '';
+
+  return `${getPart('day')} ${getPart('month')} ${getPart('year')}, ${getPart('hour')}.${getPart('minute')}.${getPart('second')} WIB`;
+}
+
 export default function DashboardPage() {
   const [reqs, setReqs] = useState<any[]>([]);
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
@@ -245,7 +266,7 @@ export default function DashboardPage() {
               <div className={styles.approvalInfo}>
                 <strong>{user.full_name}</strong>
                 <span>{user.email}</span>
-                <small>{user.department} • {new Date(user.request_date).toLocaleDateString('id-ID')}</small>
+                <small>{user.department} • {formatCompactDate(user.request_date)}</small>
               </div>
               <div className={styles.actionBtns}>
                 <LoadingButton
@@ -295,7 +316,7 @@ export default function DashboardPage() {
                 <span>{request.nip || request.email}</span>
                 <small>
                   <span className={styles.resetCode}>{request.request_code}</span>
-                  {' • '}{new Date(request.requested_at).toLocaleString('id-ID')}
+                  {' • '}{formatJakartaDateTime(request.requested_at)}
                 </small>
               </div>
               <div className={styles.actionBtns}>
