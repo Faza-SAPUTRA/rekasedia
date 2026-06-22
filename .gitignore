@@ -13,6 +13,10 @@ dist-ssr
 *.local
 .env
 
+# Local teacher import data (contains personal identifiers)
+listUser.csv
+listUser.xlsx
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

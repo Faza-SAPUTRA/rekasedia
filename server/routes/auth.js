@@ -11,13 +11,17 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email dan password wajib diisi.' });
+      return res.status(400).json({ error: 'NIP/email dan password wajib diisi.' });
     }
 
-    const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const identifier = String(email).trim().toLowerCase();
+    const { rows } = await pool.query(
+      'SELECT * FROM users WHERE LOWER(email) = $1 OR nip = $1 LIMIT 1',
+      [identifier]
+    );
 
     if (rows.length === 0) {
-      return res.status(401).json({ error: 'Email tidak ditemukan.' });
+      return res.status(401).json({ error: 'NIP atau email tidak ditemukan.' });
     }
 
     const user = rows[0];
@@ -35,6 +39,7 @@ router.post('/login', async (req, res) => {
         id: user.id,
         full_name: user.full_name,
         email: user.email,
+        nip: user.nip,
         role: user.role,
         department: user.department,
       },
