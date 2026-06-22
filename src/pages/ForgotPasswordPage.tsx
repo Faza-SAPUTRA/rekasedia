@@ -7,6 +7,8 @@ import styles from '../styles/auth.module.css';
 import cStyles from '../styles/components.module.css';
 import { forgotPassword } from '../services/api';
 
+const ADMIN_RESET_BLOCK_MESSAGE = 'Akun admin tidak bisa reset password lewat form ini. Hubungi developer untuk pemulihan akses.';
+
 const ForgotPasswordPage: React.FC = () => {
     const [identifier, setIdentifier] = useState('');
     const [error, setError] = useState('');
@@ -20,6 +22,7 @@ const ForgotPasswordPage: React.FC = () => {
         if (isSubmitting) return;
 
         const loginValue = identifier.trim();
+        const normalizedLogin = loginValue.toLowerCase();
         if (!loginValue) {
             setError('NIP atau email wajib diisi.');
             return;
@@ -29,6 +32,10 @@ const ForgotPasswordPage: React.FC = () => {
         const isNip = /^\d{8,20}$/.test(loginValue);
         if (!isEmail && !isNip) {
             setError('Masukkan email valid atau NIP angka 8-20 digit.');
+            return;
+        }
+        if (normalizedLogin === 'admin@rekasedia.sch.id') {
+            setError(ADMIN_RESET_BLOCK_MESSAGE);
             return;
         }
 
@@ -77,7 +84,8 @@ const ForgotPasswordPage: React.FC = () => {
                     <p className={styles.resetHelpText}>
                         Berikan kode ini kepada admin sekolah. Demi keamanan, kode tetap ditampilkan meskipun akun tidak ditemukan.
                     </p>
-                    <Link to="/" className={`${cStyles.btn} ${cStyles.btnPrimary}`}>
+                    <Link to="/" className={styles.authBackLink}>
+                        <i className="fa-solid fa-arrow-left"></i>
                         Kembali ke Login
                     </Link>
                 </div>

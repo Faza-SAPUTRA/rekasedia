@@ -299,6 +299,10 @@ export async function register(data: { full_name: string; email: string; passwor
 
 export async function forgotPassword(email: string): Promise<{ message: string; request_code: string }> {
   if (USE_MOCK) {
+    if (email.trim().toLowerCase() === 'admin@rekasedia.sch.id') {
+      throw new Error('Akun admin tidak bisa reset password lewat form ini. Hubungi developer untuk pemulihan akses.');
+    }
+
     return {
       message: 'Jika akun terdaftar, permintaan reset akan diteruskan ke admin sekolah.',
       request_code: `RST-${Math.floor(100000 + Math.random() * 900000)}`,
