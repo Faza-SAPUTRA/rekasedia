@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { getUser } from '../services/api';
+import { getUser, isLoggedIn } from '../services/api';
 
 interface ProtectedRouteProps {
   allowedRoles?: string[];
@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   const user = getUser();
 
-  if (!user) {
+  if (!user || !isLoggedIn()) {
     // Tidak login, lempar ke login
     return <Navigate to="/" replace />;
   }

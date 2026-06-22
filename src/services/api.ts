@@ -204,6 +204,7 @@ export interface UserProfile {
   id: number;
   full_name: string;
   email: string;
+  nip?: string;
   role: string;
   department: string;
   avatar_color?: string;
@@ -685,5 +686,23 @@ export function logout() {
 }
 
 export function isLoggedIn(): boolean {
-  return !!getToken();
+  const token = getToken();
+  if (!token) return false;
+  if (USE_MOCK) return true;
+
+  try {
+    const payload = token.split('.')[1];
+    if (!payload) throw new Error('Token tidak valid.');
+
+    const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const paddedPayload = normalizedPayload.padEnd(Math.ceil(normalizedPayload.length / 4) * 4, '=');
+    const decoded = JSON.parse(atob(paddedPayload)) as { exp?: number };
+    const isActive = typeof decoded.exp === 'number' && decoded.exp * 1000 > Date.now();
+
+    if (!isActive) logout();
+    return isActive;
+  } catch {
+    logout();
+    return false;
+  }
 }

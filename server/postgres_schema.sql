@@ -18,6 +18,7 @@ CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   full_name VARCHAR(100) NOT NULL,
   email VARCHAR(150) NOT NULL UNIQUE,
+  nip VARCHAR(30) UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
   role VARCHAR(50) NOT NULL CHECK (role IN ('admin', 'guru')) DEFAULT 'guru',
   department VARCHAR(100) DEFAULT NULL,

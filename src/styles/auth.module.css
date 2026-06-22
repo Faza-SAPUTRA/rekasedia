@@ -140,11 +140,46 @@
 }
 
 .checkboxWrapper input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
   width: 18px;
   height: 18px;
-  accent-color: var(--sage-green);
+  flex: 0 0 18px;
+  margin: 0;
+  border: 1.5px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--white);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 11px 11px;
   cursor: pointer;
-  border-radius: 4px;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.checkboxWrapper:hover input[type="checkbox"] {
+  border-color: var(--sage-green);
+  box-shadow: 0 0 0 4px rgba(107, 143, 113, 0.12);
+  transform: translateY(-1px);
+}
+
+.checkboxWrapper input[type="checkbox"]:checked {
+  border-color: var(--sage-green);
+  background-color: var(--sage-green);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M1 5l3 3 7-7' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  animation: checkboxPop 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.checkboxWrapper input[type="checkbox"]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(107, 143, 113, 0.2);
+}
+
+.checkboxWrapper input[type="checkbox"]:active {
+  transform: scale(0.9);
 }
 
 .checkboxWrapper label {
@@ -152,6 +187,17 @@
   color: var(--medium-text);
   cursor: pointer;
   user-select: none;
+  transition: color 180ms ease;
+}
+
+.checkboxWrapper:hover label {
+  color: var(--dark-text);
+}
+
+@keyframes checkboxPop {
+  0% { transform: scale(0.82); }
+  70% { transform: scale(1.08); }
+  100% { transform: scale(1); }
 }
 
 .forgotLink {
