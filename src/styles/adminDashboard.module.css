@@ -234,6 +234,39 @@
   letter-spacing: 0.08em;
 }
 
+.resetConfirmButton {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 2px;
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--white);
+  font-family: var(--font-interactive);
+  font-size: 14px;
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(138, 158, 138, 0.24);
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.resetConfirmButton:hover {
+  box-shadow: 0 14px 30px rgba(138, 158, 138, 0.34);
+  transform: translateY(-1px);
+}
+
+.resetConfirmButton:active {
+  transform: translateY(0) scale(0.99);
+}
+
 /* --- Table --- */
 .tableWrapper {
   background: var(--white);

@@ -506,7 +506,7 @@ export default function DashboardPage() {
             <span>{resetCredential?.request_code}</span>
             <strong>{resetCredential?.temporary_password}</strong>
           </div>
-          <button className="globalModalBtnConfirm" onClick={() => setResetCredential(null)}>
+          <button className={`${styles.resetConfirmButton} globalModalBtnConfirm`} onClick={() => setResetCredential(null)}>
             Saya Sudah Mencatat
           </button>
         </div>
