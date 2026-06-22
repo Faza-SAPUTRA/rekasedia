@@ -8,7 +8,7 @@ import { getItemImage } from '../../utils/itemImages';
 import PageSkeleton from '../../components/PageSkeleton';
 import ErrorModal from '../../components/ErrorModal';
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 12;
 
 export default function TeacherInventoryPage() {
   const [items, setItems] = useState<any[]>([]);
