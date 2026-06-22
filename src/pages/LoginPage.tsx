@@ -48,6 +48,10 @@ const LoginPage: React.FC = () => {
             setIsSuccess(true);
 
             setTimeout(() => {
+                if (data.user.must_change_password) {
+                    navigate('/change-password', { replace: true });
+                    return;
+                }
                 // Redirect berdasarkan role
                 if (data.user.role === 'admin') {
                     navigate('/admin');

@@ -23,10 +23,27 @@ export function authenticateToken(req, res, next) {
 // Helper: buat JWT token
 export function generateToken(user) {
   return jwt.sign(
-    { id: user.id, email: user.email, role: user.role, full_name: user.full_name, department: user.department },
+    {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      full_name: user.full_name,
+      department: user.department,
+      must_change_password: Boolean(user.must_change_password),
+    },
     JWT_SECRET,
     { expiresIn: '24h' }
   );
+}
+
+export function requireCompletedPasswordChange(req, res, next) {
+  if (req.user?.must_change_password) {
+    return res.status(403).json({
+      error: 'Anda wajib membuat password baru sebelum mengakses aplikasi.',
+      code: 'PASSWORD_CHANGE_REQUIRED',
+    });
+  }
+  next();
 }
 
 export { JWT_SECRET };

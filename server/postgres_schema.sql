@@ -5,6 +5,7 @@
 
 -- DROP TABLES IF EXISTS
 DROP TABLE IF EXISTS monthly_reports CASCADE;
+DROP TABLE IF EXISTS password_reset_requests CASCADE;
 DROP TABLE IF EXISTS loans CASCADE;
 DROP TABLE IF EXISTS requests CASCADE;
 DROP TABLE IF EXISTS items CASCADE;
@@ -23,9 +24,29 @@ CREATE TABLE users (
   role VARCHAR(50) NOT NULL CHECK (role IN ('admin', 'guru')) DEFAULT 'guru',
   department VARCHAR(100) DEFAULT NULL,
   avatar_url VARCHAR(255) DEFAULT NULL,
+  must_change_password BOOLEAN NOT NULL DEFAULT FALSE,
+  temporary_password_expires_at TIMESTAMP DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- ============================================
+-- TABLE: password_reset_requests
+-- ============================================
+CREATE TABLE password_reset_requests (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  request_code VARCHAR(20) NOT NULL UNIQUE,
+  status VARCHAR(20) NOT NULL CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED', 'USED', 'EXPIRED')) DEFAULT 'PENDING',
+  requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  processed_by INT REFERENCES users(id) ON DELETE SET NULL,
+  processed_at TIMESTAMP DEFAULT NULL,
+  expires_at TIMESTAMP DEFAULT NULL,
+  used_at TIMESTAMP DEFAULT NULL
+);
+
+CREATE INDEX password_reset_requests_status_idx
+  ON password_reset_requests (status, requested_at DESC);
 
 INSERT INTO users (id, full_name, email, password_hash, role, department) VALUES
 (1, 'Admin Staff', 'admin@rekasedia.sch.id', '$2b$10$JPEDHd29VuSNjSUpKnjjFO7w2WkAegXDbS1OXOcfMLA7i.EkhbTmC', 'admin', 'Administrasi'), -- Hashed password
@@ -161,6 +182,7 @@ INSERT INTO monthly_reports (id, semester, month_name, month_order, total_items_
 -- SEQUENCE SYNC FOR POSTGRESQL
 -- ============================================
 SELECT setval(pg_get_serial_sequence('users', 'id'), coalesce(max(id), 1)) FROM users;
+SELECT setval(pg_get_serial_sequence('password_reset_requests', 'id'), coalesce(max(id), 1)) FROM password_reset_requests;
 SELECT setval(pg_get_serial_sequence('categories', 'id'), coalesce(max(id), 1)) FROM categories;
 SELECT setval(pg_get_serial_sequence('items', 'id'), coalesce(max(id), 1)) FROM items;
 SELECT setval(pg_get_serial_sequence('requests', 'id'), coalesce(max(id), 1)) FROM requests;

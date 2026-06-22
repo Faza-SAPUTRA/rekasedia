@@ -5,7 +5,9 @@ export default function GuestRoute() {
   const user = getUser();
 
   if (user && isLoggedIn()) {
-    const dashboardPath = user.role === 'admin' ? '/admin' : '/teacher';
+    const dashboardPath = user.must_change_password
+      ? '/change-password'
+      : user.role === 'admin' ? '/admin' : '/teacher';
     return <Navigate to={dashboardPath} replace />;
   }
 

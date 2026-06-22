@@ -9,6 +9,7 @@ import itemRoutes from './routes/items.js';
 import requestRoutes from './routes/requests.js';
 import loanRoutes from './routes/loans.js';
 import reportRoutes from './routes/reports.js';
+import { authenticateToken, requireCompletedPasswordChange } from './middleware/auth.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -18,10 +19,11 @@ app.use(cors());
 app.use(express.json({ limit: '4mb' }));
 
 app.use('/api/auth', authRoutes);
-app.use('/api/items', itemRoutes);
-app.use('/api/requests', requestRoutes);
-app.use('/api/loans', loanRoutes);
-app.use('/api/reports', reportRoutes);
+const protectedApi = [authenticateToken, requireCompletedPasswordChange];
+app.use('/api/items', protectedApi, itemRoutes);
+app.use('/api/requests', protectedApi, requestRoutes);
+app.use('/api/loans', protectedApi, loanRoutes);
+app.use('/api/reports', protectedApi, reportRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'RekaSedia API is running!' });

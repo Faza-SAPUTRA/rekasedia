@@ -7,7 +7,19 @@ import {
   BarElement,
   Tooltip,
 } from 'chart.js';
-import { fetchStats, fetchRequests, updateRequestStatus, fetchPendingUsers, updateUserApproval, type DashboardStats, type PendingUser } from '../../services/api';
+import {
+  fetchStats,
+  fetchRequests,
+  updateRequestStatus,
+  fetchPendingUsers,
+  updateUserApproval,
+  fetchPasswordResetRequests,
+  processPasswordResetRequest,
+  type DashboardStats,
+  type PendingUser,
+  type PasswordResetRequest,
+  type PasswordResetCredential,
+} from '../../services/api';
 import styles from '../../styles/adminDashboard.module.css';
 import Modal from '../../components/Modal';
 import LoadingButton from '../../components/LoadingButton';
@@ -41,10 +53,13 @@ function formatCompactDate(dateValue: string) {
 export default function DashboardPage() {
   const [reqs, setReqs] = useState<any[]>([]);
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
+  const [passwordResetRequests, setPasswordResetRequests] = useState<PasswordResetRequest[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
   const [processingUserAction, setProcessingUserAction] = useState<string | null>(null);
+  const [processingResetAction, setProcessingResetAction] = useState<string | null>(null);
+  const [resetCredential, setResetCredential] = useState<PasswordResetCredential | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   
   // Modal State
@@ -57,14 +72,16 @@ export default function DashboardPage() {
 
   const loadData = async () => {
     try {
-      const [statsData, reqsData, pendingUsersData] = await Promise.all([
+      const [statsData, reqsData, pendingUsersData, resetRequestsData] = await Promise.all([
         fetchStats(),
         fetchRequests(),
-        fetchPendingUsers()
+        fetchPendingUsers(),
+        fetchPasswordResetRequests(),
       ]);
       setStats(statsData);
       setReqs(reqsData.slice(0, 5));
       setPendingUsers(pendingUsersData);
+      setPasswordResetRequests(resetRequestsData);
     } catch (err) {
       console.error('Gagal mengambil data dashboard', err);
     } finally {
@@ -111,6 +128,21 @@ export default function DashboardPage() {
       setErrorMessage(err instanceof Error ? err.message : 'Gagal memproses akun guru.');
     } finally {
       setProcessingUserAction(null);
+    }
+  };
+
+  const handlePasswordReset = async (id: number, action: 'APPROVED' | 'REJECTED') => {
+    const actionKey = `${id}-${action}`;
+    if (processingResetAction) return;
+    setProcessingResetAction(actionKey);
+    try {
+      const result = await processPasswordResetRequest(id, action);
+      if ('temporary_password' in result) setResetCredential(result);
+      await loadData();
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : 'Gagal memproses reset password.');
+    } finally {
+      setProcessingResetAction(null);
     }
   };
 
@@ -231,6 +263,57 @@ export default function DashboardPage() {
                   isLoading={processingUserAction === `${user.id}-REJECTED`}
                   disabled={processingUserAction !== null}
                   loadingText="Memproses..."
+                >
+                  Tolak
+                </LoadingButton>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Password reset approvals */}
+      <div className={styles.sectionHeader}>
+        <h3 className={styles.sectionTitle}>Reset Password Guru</h3>
+        <span className={styles.sectionCount}>{passwordResetRequests.length} Menunggu</span>
+      </div>
+
+      <div className={styles.approvalPanel}>
+        {passwordResetRequests.length === 0 ? (
+          <div className={styles.emptyApproval}>
+            <i className="fas fa-key"></i>
+            Tidak ada permintaan reset password.
+          </div>
+        ) : (
+          passwordResetRequests.map((request) => (
+            <div key={request.id} className={styles.approvalItem}>
+              <div className={styles.approvalAvatar}>
+                <i className="fas fa-key"></i>
+              </div>
+              <div className={styles.approvalInfo}>
+                <strong>{request.full_name}</strong>
+                <span>{request.nip || request.email}</span>
+                <small>
+                  <span className={styles.resetCode}>{request.request_code}</span>
+                  {' • '}{new Date(request.requested_at).toLocaleString('id-ID')}
+                </small>
+              </div>
+              <div className={styles.actionBtns}>
+                <LoadingButton
+                  className={styles.btnApprove}
+                  onClick={() => handlePasswordReset(request.id, 'APPROVED')}
+                  isLoading={processingResetAction === `${request.id}-APPROVED`}
+                  disabled={processingResetAction !== null}
+                  loadingText="Membuat..."
+                >
+                  Buat Password
+                </LoadingButton>
+                <LoadingButton
+                  className={styles.btnReject}
+                  onClick={() => handlePasswordReset(request.id, 'REJECTED')}
+                  isLoading={processingResetAction === `${request.id}-REJECTED`}
+                  disabled={processingResetAction !== null}
+                  loadingText="Menolak..."
                 >
                   Tolak
                 </LoadingButton>
@@ -383,6 +466,28 @@ export default function DashboardPage() {
               Ya, Lanjutkan
             </LoadingButton>
           </div>
+        </div>
+      </Modal>
+
+      <Modal isOpen={resetCredential !== null} onClose={() => setResetCredential(null)}>
+        <div style={{ maxWidth: '420px', width: '100%', margin: '0 auto' }}>
+          <button className="globalModalClose" onClick={() => setResetCredential(null)} title="Tutup">
+            <i className="fas fa-times"></i>
+          </button>
+          <div className="globalModalIcon success">
+            <i className="fas fa-key"></i>
+          </div>
+          <h3>Password Sementara</h3>
+          <p>
+            Berikan password ini hanya kepada <strong>{resetCredential?.full_name}</strong>. Password berlaku 30 menit dan wajib diganti setelah login.
+          </p>
+          <div className={styles.resetCredentialBox}>
+            <span>{resetCredential?.request_code}</span>
+            <strong>{resetCredential?.temporary_password}</strong>
+          </div>
+          <button className="globalModalBtnConfirm" onClick={() => setResetCredential(null)}>
+            Saya Sudah Mencatat
+          </button>
         </div>
       </Modal>
       <ErrorModal message={errorMessage} onClose={() => setErrorMessage('')} />

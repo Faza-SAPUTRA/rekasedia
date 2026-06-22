@@ -208,6 +208,7 @@ export interface UserProfile {
   role: string;
   department: string;
   avatar_color?: string;
+  must_change_password?: boolean;
 }
 
 export type EditableUserProfile = Pick<UserProfile, 'full_name' | 'avatar_color'>;
@@ -296,16 +297,11 @@ export async function register(data: { full_name: string; email: string; passwor
   return parseJsonResponse<LoginResponse>(res, 'Registrasi gagal');
 }
 
-export async function forgotPassword(email: string): Promise<{ message: string }> {
+export async function forgotPassword(email: string): Promise<{ message: string; request_code: string }> {
   if (USE_MOCK) {
-    const normalizedEmail = email.trim().toLowerCase();
-    const knownUser = [...mockData.users, ...readApprovedUsers()]
-      .find((user) => user.email.toLowerCase() === normalizedEmail);
-
     return {
-      message: knownUser
-        ? 'Instruksi pemulihan dikirim dalam mode demo.'
-        : 'Jika email terdaftar, instruksi akan dikirim.'
+      message: 'Jika akun terdaftar, permintaan reset akan diteruskan ke admin sekolah.',
+      request_code: `RST-${Math.floor(100000 + Math.random() * 900000)}`,
     };
   }
 
@@ -314,7 +310,77 @@ export async function forgotPassword(email: string): Promise<{ message: string }
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
   });
-  return parseJsonResponse<{ message: string }>(res, 'Gagal mengirim instruksi');
+  return parseJsonResponse<{ message: string; request_code: string }>(res, 'Gagal mengajukan reset password');
+}
+
+export interface PasswordResetRequest {
+  id: number;
+  request_code: string;
+  status: 'PENDING';
+  requested_at: string;
+  user_id: number;
+  full_name: string;
+  email: string;
+  nip?: string;
+  department: string;
+}
+
+export interface PasswordResetCredential {
+  message: string;
+  request_code: string;
+  full_name: string;
+  temporary_password: string;
+  expires_in_minutes: number;
+}
+
+export async function fetchPasswordResetRequests(): Promise<PasswordResetRequest[]> {
+  if (USE_MOCK) return [];
+
+  const res = await fetch(`${API_BASE}/auth/password-reset-requests`, { headers: authHeaders() });
+  return parseJsonResponse<PasswordResetRequest[]>(res, 'Gagal mengambil permintaan reset password');
+}
+
+export async function processPasswordResetRequest(id: number, action: 'APPROVED' | 'REJECTED') {
+  if (USE_MOCK) {
+    return action === 'APPROVED'
+      ? {
+          message: 'Password sementara berhasil dibuat (MOCK).',
+          request_code: 'RST-MOCK',
+          full_name: 'Guru Mock',
+          temporary_password: 'Tmp-MOCK1234',
+          expires_in_minutes: 30,
+        }
+      : { message: 'Permintaan reset ditolak (MOCK).' };
+  }
+
+  const res = await fetch(`${API_BASE}/auth/password-reset-requests/${id}`, {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify({ action }),
+  });
+  return parseJsonResponse<PasswordResetCredential | { message: string }>(res, 'Gagal memproses reset password');
+}
+
+export async function changePassword(currentPassword: string, newPassword: string) {
+  if (USE_MOCK) {
+    const currentUser = getUser();
+    if (currentUser) {
+      localStorage.setItem('rekasedia_user', JSON.stringify({
+        ...currentUser,
+        must_change_password: false,
+      }));
+    }
+    return { message: 'Password berhasil diperbarui (MOCK).' };
+  }
+
+  const res = await fetch(`${API_BASE}/auth/change-password`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  });
+  const result = await parseJsonResponse<{ message: string; token: string; user: UserProfile }>(res, 'Gagal mengganti password');
+  saveSession(result.token, result.user);
+  return result;
 }
 
 export async function fetchPendingUsers(): Promise<PendingUser[]> {

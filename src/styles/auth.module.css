@@ -247,6 +247,53 @@
   margin-bottom: var(--space-lg);
 }
 
+.authTextButton {
+  display: block;
+  margin: var(--space-md) auto 0;
+  padding: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--gray-text);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.authTextButton:hover {
+  color: var(--link-color);
+  text-decoration: underline;
+}
+
+.resetRequestCode {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 auto var(--space-md);
+  padding: 14px 18px;
+  border: 1px dashed var(--sage-green);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.resetRequestCode span {
+  color: var(--gray-text);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.resetRequestCode strong {
+  color: var(--sage-dark);
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  letter-spacing: 0.08em;
+}
+
+.resetHelpText {
+  margin-bottom: var(--space-lg) !important;
+  font-size: 0.78rem !important;
+}
+
 /* --- Accessibility Badge --- */
 .accessibilityBadge {
   display: flex;
