@@ -5,6 +5,7 @@ import pool from '../db.js';
 import { authenticateToken, generateToken } from '../middleware/auth.js';
 
 const router = Router();
+const ADMIN_RESET_BLOCK_MESSAGE = 'Akun admin tidak bisa reset password lewat form ini. Hubungi developer untuk pemulihan akses.';
 
 function createRequestCode() {
   return `RST-${crypto.randomInt(100000, 1000000)}`;
@@ -129,9 +130,13 @@ router.post('/forgot-password', async (req, res) => {
     }
 
     const identifier = String(email).trim().toLowerCase();
+    if (identifier === 'admin@rekasedia.sch.id') {
+      return res.status(403).json({ error: ADMIN_RESET_BLOCK_MESSAGE });
+    }
+
     const publicCode = createRequestCode();
     const { rows } = await pool.query(
-      'SELECT id FROM users WHERE LOWER(email) = $1 OR nip = $1 LIMIT 1',
+      'SELECT id, role FROM users WHERE LOWER(email) = $1 OR nip = $1 LIMIT 1',
       [identifier]
     );
 
@@ -140,6 +145,10 @@ router.post('/forgot-password', async (req, res) => {
         message: 'Jika akun terdaftar, permintaan reset akan diteruskan ke admin sekolah.',
         request_code: publicCode,
       });
+    }
+
+    if (rows[0].role === 'admin') {
+      return res.status(403).json({ error: ADMIN_RESET_BLOCK_MESSAGE });
     }
 
     const userId = rows[0].id;

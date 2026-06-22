@@ -103,7 +103,12 @@
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
+  text-decoration: none;
   transition: background-color var(--transition-normal), transform var(--transition-fast), box-shadow var(--transition-normal);
+}
+
+.btn:hover {
+  text-decoration: none;
 }
 
 .btn:active {
@@ -117,12 +122,13 @@
 
 .btnPrimary {
   background-color: var(--sage-green);
-  color: var(--white);
+  color: var(--white) !important;
   box-shadow: 0 4px 14px rgba(138, 158, 138, 0.3);
 }
 
 .btnPrimary:hover:not(:disabled) {
   background-color: var(--sage-green-hover);
+  color: var(--white) !important;
   box-shadow: 0 6px 20px rgba(138, 158, 138, 0.4);
 }
 
