@@ -28,18 +28,23 @@ export default function TeacherLayout() {
         <header className={styles.topBar}>
           <h2 className={styles.pageTitle}>{getTitle()}</h2>
           <div className={styles.topBarRight}>
-            <button 
-              className={styles.notifBtn} 
-              aria-label="Notifikasi"
-              onClick={() => setIsNotifOpen(!isNotifOpen)}
-            >
-              <i className="fas fa-bell"></i>
-              <span className={styles.notifBadge}></span>
-              
+            <div className={styles.notifWrapper}>
+              <button 
+                className={styles.notifBtn} 
+                aria-label="Notifikasi"
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+              >
+                <i className="fas fa-bell"></i>
+                <span className={styles.notifBadge}></span>
+              </button>
+
               <div className={`${styles.notifDropdown} ${isNotifOpen ? styles.open : ''}`} onClick={e => e.stopPropagation()}>
                 <div className={styles.notifHeader}>
-                  Notifikasi
-                  <span>Tandai sudah dibaca</span>
+                  <div>
+                    <span className={styles.notifEyebrow}>Pusat aktivitas</span>
+                    <strong>Notifikasi</strong>
+                  </div>
+                  <button type="button" className={styles.notifMarkBtn}>Tandai sudah dibaca</button>
                 </div>
                 <div className={styles.notifList}>
                   <div className={styles.notifItem}>
@@ -62,7 +67,7 @@ export default function TeacherLayout() {
                   </div>
                 </div>
               </div>
-            </button>
+            </div>
           </div>
         </header>
         <div className={styles.content}>
