@@ -283,13 +283,18 @@ router.put('/password-reset-requests/:id', authenticateToken, requireAdmin, asyn
 router.post('/change-password', authenticateToken, async (req, res) => {
   try {
     const { current_password, new_password } = req.body;
-    if (!current_password || !new_password || String(new_password).length < 8) {
-      return res.status(400).json({ error: 'Password lama dan password baru minimal 8 karakter wajib diisi.' });
+    if (!new_password || String(new_password).length < 8) {
+      return res.status(400).json({ error: 'Password baru minimal 8 karakter wajib diisi.' });
     }
 
     const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [req.user.id]);
-    if (rows.length === 0 || !(await bcrypt.compare(current_password, rows[0].password_hash))) {
-      return res.status(401).json({ error: 'Password sementara/lama tidak sesuai.' });
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Akun tidak ditemukan.' });
+    }
+    if (!rows[0].must_change_password) {
+      if (!current_password || !(await bcrypt.compare(current_password, rows[0].password_hash))) {
+        return res.status(401).json({ error: 'Password lama tidak sesuai.' });
+      }
     }
     if (await bcrypt.compare(new_password, rows[0].password_hash)) {
       return res.status(400).json({ error: 'Password baru harus berbeda dari password sebelumnya.' });

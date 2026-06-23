@@ -10,7 +10,6 @@ import { changePassword, getUser, logout } from '../services/api';
 export default function ChangePasswordPage() {
   const navigate = useNavigate();
   const user = getUser();
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const [error, setError] = useState('');
@@ -32,7 +31,7 @@ export default function ChangePasswordPage() {
     setError('');
     setIsSubmitting(true);
     try {
-      await changePassword(currentPassword, newPassword);
+      await changePassword(newPassword);
       navigate(user?.role === 'admin' ? '/admin' : '/teacher', { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal mengganti password.');
@@ -61,18 +60,6 @@ export default function ChangePasswordPage() {
       <form onSubmit={handleSubmit} noValidate>
         <div className="animate-fade-in-up delay-2">
           <InputField
-            id="currentPassword"
-            label="Password Sementara"
-            placeholder="Masukkan password dari admin"
-            autoComplete="current-password"
-            isPassword
-            required
-            value={currentPassword}
-            onChange={(value) => { setCurrentPassword(value); setError(''); }}
-          />
-        </div>
-        <div className="animate-fade-in-up delay-3">
-          <InputField
             id="newPassword"
             label="Password Baru"
             placeholder="Minimal 8 karakter"
@@ -83,7 +70,7 @@ export default function ChangePasswordPage() {
             onChange={(value) => { setNewPassword(value); setError(''); }}
           />
         </div>
-        <div className="animate-fade-in-up delay-4">
+        <div className="animate-fade-in-up delay-3">
           <InputField
             id="confirmPassword"
             label="Ulangi Password Baru"
@@ -99,7 +86,7 @@ export default function ChangePasswordPage() {
 
         <button
           type="submit"
-          className={`${cStyles.btn} ${cStyles.btnPrimary} animate-fade-in-up delay-5`}
+          className={`${cStyles.btn} ${cStyles.btnPrimary} animate-fade-in-up delay-4`}
           disabled={isSubmitting}
         >
           {isSubmitting ? 'Menyimpan...' : 'Simpan Password Baru'}
