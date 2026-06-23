@@ -365,7 +365,7 @@ export async function processPasswordResetRequest(id: number, action: 'APPROVED'
   return parseJsonResponse<PasswordResetCredential | { message: string }>(res, 'Gagal memproses reset password');
 }
 
-export async function changePassword(currentPassword: string, newPassword: string) {
+export async function changePassword(newPassword: string, currentPassword?: string) {
   if (USE_MOCK) {
     const currentUser = getUser();
     if (currentUser) {

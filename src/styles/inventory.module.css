@@ -48,14 +48,17 @@
   font-family: var(--font-interactive);
   font-size: 14px;
   font-weight: 700;
-  text-decoration: none;
+  text-decoration: none !important;
   transition: all var(--transition-fast);
 }
 
+.classificationTab:focus,
+.classificationTab:focus-visible,
 .classificationTab:hover {
   border-color: var(--sage-green);
   color: var(--sage-green);
   box-shadow: var(--shadow-sm);
+  text-decoration: none !important;
 }
 
 .classificationTab span {
@@ -74,6 +77,7 @@
   border-color: var(--sage-green);
   color: var(--white);
   box-shadow: 0 6px 18px rgba(138, 158, 138, 0.22);
+  text-decoration: none !important;
 }
 
 .classificationTab.activeTab span {

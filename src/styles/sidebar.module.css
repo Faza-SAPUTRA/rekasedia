@@ -69,27 +69,32 @@
   color: var(--medium-text);
   cursor: pointer;
   transition: all var(--transition-fast);
-  text-decoration: none;
+  text-decoration: none !important;
   border: none;
   background: none;
   width: 100%;
   text-align: left;
 }
 
+.navItem:focus,
+.navItem:focus-visible,
 .navItem:hover {
   background: var(--cream);
   color: var(--dark-text);
-  text-decoration: none;
+  text-decoration: none !important;
 }
 
 .navItem.active {
   background: var(--sage-green);
   color: var(--white);
   font-weight: 600;
+  text-decoration: none !important;
 }
 
 .navItem.active:hover {
   background: var(--sage-green-hover);
+  color: var(--white);
+  text-decoration: none !important;
 }
 
 .navIcon {
