@@ -61,6 +61,11 @@ function getClassificationLabel(item: { is_loanable?: boolean }) {
   return item.is_loanable ? 'Barang Modal' : 'Persediaan';
 }
 
+function getItemSku(item: { id?: number | string; sku?: string | null }) {
+  if (item.sku) return item.sku;
+  return `SKU-${new Date().getFullYear()}-${String(item.id || '').padStart(3, '0')}`;
+}
+
 export default function InventoryPage({ classification = 'modal' }: InventoryPageProps) {
   const pageConfig = classificationConfig[classification];
   const [items, setItems] = useState<any[]>([]);
@@ -143,7 +148,7 @@ export default function InventoryPage({ classification = 'modal' }: InventoryPag
     let result = scopedItems.filter((item) => {
       const matchesSearch = 
         String(item.name || '').toLowerCase().includes(normalizedSearch) ||
-        String(item.sku || '').toLowerCase().includes(normalizedSearch);
+        String(getItemSku(item)).toLowerCase().includes(normalizedSearch);
       
       const matchesCategory =
         activeCategory === 'Semua Kategori' || item.category_name === activeCategory;
@@ -221,7 +226,7 @@ export default function InventoryPage({ classification = 'modal' }: InventoryPag
     setSelectedItem(item);
     setFormData({
       name: item.name || '',
-      sku: item.sku || '',
+      sku: getItemSku(item),
       category_id: item.category_id || 1,
       category_name: item.category_name || 'ATK',
       stock: item.stock || 0,
@@ -619,7 +624,7 @@ export default function InventoryPage({ classification = 'modal' }: InventoryPag
                   <td>
                     <div>
                       <div className={styles.itemName}>{item.name}</div>
-                      <div className={styles.itemSku}>{item.sku}</div>
+                      <div className={styles.itemSku}>{getItemSku(item)}</div>
                     </div>
                   </td>
                   <td>

@@ -4,6 +4,29 @@ import pool from '../db.js';
 const router = Router();
 
 let imageColumnReady;
+let skuColumnReady;
+
+function createSkuForItem(id) {
+  return `SKU-${new Date().getFullYear()}-${String(id).padStart(3, '0')}`;
+}
+
+async function ensureSkuColumnSupportsExistingData() {
+  if (!skuColumnReady) {
+    skuColumnReady = (async () => {
+      await pool.query('ALTER TABLE items ADD COLUMN IF NOT EXISTS sku VARCHAR(50)');
+      await pool.query(
+        `UPDATE items
+         SET sku = 'SKU-' || EXTRACT(YEAR FROM CURRENT_DATE)::INT || '-' || LPAD(id::text, 3, '0')
+         WHERE sku IS NULL OR TRIM(sku) = ''`
+      );
+    })().catch((error) => {
+      skuColumnReady = undefined;
+      throw error;
+    });
+  }
+
+  return skuColumnReady;
+}
 
 async function ensureImageColumnSupportsUploads() {
   if (!imageColumnReady) {
@@ -38,6 +61,7 @@ async function resolveCategoryId(categoryId, categoryName) {
 }
 
 async function fetchItemById(id) {
+  await ensureSkuColumnSupportsExistingData();
   const { rows } = await pool.query(
     `
       SELECT i.*, c.name AS category_name
@@ -52,6 +76,7 @@ async function fetchItemById(id) {
 
 router.get('/', async (req, res) => {
   try {
+    await ensureSkuColumnSupportsExistingData();
     const { rows } = await pool.query(`
       SELECT i.*, c.name AS category_name
       FROM items i
@@ -92,6 +117,7 @@ router.post('/', async (req, res) => {
   try {
     const {
       name,
+      sku,
       category_id,
       category_name,
       stock = 0,
@@ -105,6 +131,8 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Nama barang wajib diisi.' });
     }
 
+    await ensureSkuColumnSupportsExistingData();
+
     const resolvedCategoryId = await resolveCategoryId(category_id, category_name);
     if (!resolvedCategoryId) {
       return res.status(400).json({ error: 'Kategori tidak valid.' });
@@ -115,11 +143,12 @@ router.post('/', async (req, res) => {
     }
 
     const { rows } = await pool.query(
-      `INSERT INTO items (name, category_id, stock, unit, description, image_url, is_loanable)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO items (name, sku, category_id, stock, unit, description, image_url, is_loanable)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING id`,
       [
         name.trim(),
+        String(sku || '').trim() || createSkuForItem(Date.now()),
         resolvedCategoryId,
         Math.max(0, Number(stock) || 0),
         unit || 'Unit',
@@ -146,6 +175,7 @@ router.put('/:id', async (req, res) => {
 
     const {
       name = existing.name,
+      sku = existing.sku,
       category_id,
       category_name,
       stock = existing.stock,
@@ -164,16 +194,18 @@ router.put('/:id', async (req, res) => {
     await pool.query(
       `UPDATE items
        SET name = $1,
-           category_id = $2,
-           stock = $3,
-           unit = $4,
-           description = $5,
-           image_url = $6,
-           is_loanable = $7,
+           sku = $2,
+           category_id = $3,
+           stock = $4,
+           unit = $5,
+           description = $6,
+           image_url = $7,
+           is_loanable = $8,
            updated_at = NOW()
-       WHERE id = $8`,
+       WHERE id = $9`,
       [
         name.trim(),
+        String(sku || '').trim() || createSkuForItem(req.params.id),
         resolvedCategoryId,
         Math.max(0, Number(stock) || 0),
         unit || 'Unit',
