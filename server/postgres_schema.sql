@@ -79,6 +79,7 @@ INSERT INTO categories (id, name, description) VALUES
 -- ============================================
 CREATE TABLE items (
   id SERIAL PRIMARY KEY,
+  sku VARCHAR(50),
   name VARCHAR(150) NOT NULL,
   category_id INT NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
   stock INT NOT NULL DEFAULT 0,
@@ -112,6 +113,10 @@ INSERT INTO items (id, name, category_id, stock, unit, description, image_url, i
 (19, 'Meja Kelas Kayu', 5, 24, 'Unit', 'Meja kelas untuk penggunaan jangka panjang.', NULL, TRUE),
 (20, 'Kursi Siswa', 5, 36, 'Unit', 'Kursi siswa untuk ruang kelas.', NULL, TRUE),
 (21, 'Papan Tulis Whiteboard', 5, 6, 'Unit', 'Papan tulis kelas untuk aset sekolah.', NULL, TRUE);
+
+UPDATE items
+SET sku = 'SKU-' || EXTRACT(YEAR FROM CURRENT_DATE)::INT || '-' || LPAD(id::text, 3, '0')
+WHERE sku IS NULL OR TRIM(sku) = '';
 
 -- ============================================
 -- TABLE: requests
