@@ -6,6 +6,8 @@ import styles from '../styles/dashboard.module.css';
 const pageTitles: Record<string, string> = {
   '/teacher': 'Halo, Bapak/Ibu Guru! 👋',
   '/teacher/inventory': 'Inventaris',
+  '/teacher/inventory/barang-modal': 'Barang Modal',
+  '/teacher/inventory/persediaan': 'Persediaan',
   '/teacher/requests': 'Status Pesanan Saya',
   '/teacher/loans': 'Peminjaman',
   '/teacher/reports': 'Laporan Tersimpan',

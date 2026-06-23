@@ -2,6 +2,85 @@
    RekaSedia — Inventory Grid Styles (Teacher)
    ============================================ */
 
+.inventoryIntro {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.inventoryEyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--sage-green);
+  font-family: var(--font-interactive);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.inventoryTitle {
+  margin: 0;
+  color: var(--dark-text);
+  font-family: var(--font-heading);
+  font-size: 30px;
+  line-height: 1.15;
+}
+
+.classificationTabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.classificationTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--medium-text);
+  font-family: var(--font-interactive);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.classificationTab:hover {
+  border-color: var(--sage-green);
+  color: var(--sage-green);
+  box-shadow: var(--shadow-sm);
+}
+
+.classificationTab span {
+  min-width: 26px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--medium-text);
+  font-size: 12px;
+  line-height: 1;
+  text-align: center;
+}
+
+.classificationTab.activeTab {
+  background: var(--sage-green);
+  border-color: var(--sage-green);
+  color: var(--white);
+  box-shadow: 0 6px 18px rgba(138, 158, 138, 0.22);
+}
+
+.classificationTab.activeTab span {
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--white);
+}
+
 .searchBar {
   margin-bottom: 24px;
   position: relative;
@@ -245,6 +324,27 @@
 .bgCream { background-color: #FEF9F0; }
 .bgSage { background-color: #F3F6F3; }
 .bgPeach { background-color: #FDF6F0; }
+
+.emptyState {
+  display: flex;
+  min-height: 180px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 12px 0 36px;
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--medium-text);
+  font-family: var(--font-interactive);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.emptyState i {
+  color: var(--sage-green);
+  font-size: 20px;
+}
 
 /* --- Pagination --- */
 .pagination {
