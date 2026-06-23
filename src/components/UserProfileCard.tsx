@@ -5,6 +5,7 @@ import Modal from './Modal';
 import { getUser, logout, updateCurrentUserProfile, type UserProfile } from '../services/api';
 
 const avatarColors = ['#8A9E8A', '#5B7A6A', '#3178C6', '#E8946A', '#6B8F71'];
+const MENU_ANIMATION_MS = 180;
 
 function getInitials(name: string) {
   return name
@@ -19,8 +20,10 @@ function getInitials(name: string) {
 export default function UserProfileCard() {
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuAnimationTimeout = useRef<number | null>(null);
   const [user, setUser] = useState<UserProfile | null>(() => getUser());
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMenuClosing, setIsMenuClosing] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [form, setForm] = useState({
@@ -33,13 +36,43 @@ export default function UserProfileCard() {
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
       if (!menuRef.current?.contains(event.target as Node)) {
-        setIsMenuOpen(false);
+        closeMenu();
       }
     };
 
     document.addEventListener('mousedown', handlePointerDown);
-    return () => document.removeEventListener('mousedown', handlePointerDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      if (menuAnimationTimeout.current) {
+        window.clearTimeout(menuAnimationTimeout.current);
+      }
+    };
   }, []);
+
+  const openMenu = () => {
+    if (menuAnimationTimeout.current) {
+      window.clearTimeout(menuAnimationTimeout.current);
+    }
+    setIsMenuClosing(false);
+    setIsMenuOpen(true);
+  };
+
+  const closeMenu = () => {
+    if (!isMenuOpen || isMenuClosing) return;
+    setIsMenuClosing(true);
+    menuAnimationTimeout.current = window.setTimeout(() => {
+      setIsMenuOpen(false);
+      setIsMenuClosing(false);
+    }, MENU_ANIMATION_MS);
+  };
+
+  const toggleMenu = () => {
+    if (isMenuOpen) {
+      closeMenu();
+      return;
+    }
+    openMenu();
+  };
 
   const openSettings = () => {
     setForm({
@@ -49,7 +82,7 @@ export default function UserProfileCard() {
     });
     setError('');
     setShowSettingsModal(true);
-    setIsMenuOpen(false);
+    closeMenu();
   };
 
   const handleSaveProfile = () => {
@@ -81,8 +114,8 @@ export default function UserProfileCard() {
         <button
           type="button"
           className={styles.userProfileBtn}
-          onClick={() => setIsMenuOpen((current) => !current)}
-          aria-expanded={isMenuOpen}
+          onClick={toggleMenu}
+          aria-expanded={isMenuOpen && !isMenuClosing}
           aria-label="Buka menu profile"
         >
           <div className={styles.userAvatar} style={{ background: avatarColor }}>
@@ -96,7 +129,7 @@ export default function UserProfileCard() {
         </button>
 
         {isMenuOpen && (
-          <div className={styles.userMenu}>
+          <div className={`${styles.userMenu} ${isMenuClosing ? styles.userMenuClosing : ''}`}>
             <button type="button" onClick={openSettings}>
               <i className="fas fa-user-cog"></i>
               Pengaturan Profil
@@ -106,7 +139,7 @@ export default function UserProfileCard() {
               className={styles.userMenuDanger}
               onClick={() => {
                 setShowLogoutModal(true);
-                setIsMenuOpen(false);
+                closeMenu();
               }}
             >
               <i className="fas fa-sign-out-alt"></i>
