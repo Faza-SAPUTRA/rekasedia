@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import CustomSelect from '../../components/CustomSelect';
 import styles from '../../styles/inventory.module.css';
 import CartDrawer, { type CartItem } from '../../components/CartDrawer';
@@ -10,7 +11,27 @@ import ErrorModal from '../../components/ErrorModal';
 
 const ITEMS_PER_PAGE = 12;
 
-export default function TeacherInventoryPage() {
+type InventoryClassification = 'modal' | 'persediaan';
+
+interface TeacherInventoryPageProps {
+  classification?: InventoryClassification;
+}
+
+const classificationConfig = {
+  modal: {
+    title: 'Barang Modal',
+    searchPlaceholder: 'Cari barang modal (misal: Proyektor, Kabel HDMI)...',
+    emptyText: 'Tidak ada barang modal yang cocok.',
+  },
+  persediaan: {
+    title: 'Persediaan',
+    searchPlaceholder: 'Cari persediaan (misal: Kertas A4, Spidol)...',
+    emptyText: 'Tidak ada persediaan yang cocok.',
+  },
+} as const;
+
+export default function TeacherInventoryPage({ classification = 'modal' }: TeacherInventoryPageProps) {
+  const pageConfig = classificationConfig[classification];
   const [items, setItems] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -68,10 +89,13 @@ export default function TeacherInventoryPage() {
   const filteredItems = useMemo(() => {
     const normalizedSearch = search.toLowerCase();
     let result = items.filter((item) => {
+      const matchesClassification =
+        (classification === 'modal' && Boolean(item.is_loanable)) ||
+        (classification === 'persediaan' && !Boolean(item.is_loanable));
       const matchesSearch = String(item.name || '').toLowerCase().includes(normalizedSearch);
       const matchesCategory =
         activeCategory === 'Semua' || item.category_name === activeCategory;
-      return matchesSearch && matchesCategory;
+      return matchesClassification && matchesSearch && matchesCategory;
     });
 
     if (sortOrder === 'A-Z') {
@@ -85,7 +109,7 @@ export default function TeacherInventoryPage() {
     }
 
     return result;
-  }, [items, search, activeCategory, sortOrder]);
+  }, [items, search, activeCategory, sortOrder, classification]);
 
   const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
   const paginatedItems = filteredItems.slice(
@@ -155,8 +179,36 @@ export default function TeacherInventoryPage() {
     }
   };
 
-  const categoryList = ['Semua', ...categories.map((c) => c.name)];
+  const scopedItems = useMemo(() => {
+    return items.filter((item) => (
+      (classification === 'modal' && Boolean(item.is_loanable)) ||
+      (classification === 'persediaan' && !Boolean(item.is_loanable))
+    ));
+  }, [items, classification]);
+
+  const categoryList = useMemo(() => {
+    const activeCategoryNames = new Set(scopedItems.map((item) => item.category_name).filter(Boolean));
+    return ['Semua', ...categories
+      .filter((category) => activeCategoryNames.has(category.name))
+      .map((c) => c.name)
+    ];
+  }, [categories, scopedItems]);
+
+  const totalModalItems = items.filter((item) => Boolean(item.is_loanable)).length;
+  const totalPersediaanItems = items.filter((item) => !Boolean(item.is_loanable)).length;
   const cartTotalQty = cartItems.reduce((sum, i) => sum + i.quantity, 0);
+
+  useEffect(() => {
+    setActiveCategory('Semua');
+    setCurrentPage(1);
+  }, [classification]);
+
+  useEffect(() => {
+    if (!categoryList.includes(activeCategory)) {
+      setActiveCategory('Semua');
+      setCurrentPage(1);
+    }
+  }, [activeCategory, categoryList]);
 
   if (isLoading) {
     return <PageSkeleton variant="inventory" rows={6} />;
@@ -205,12 +257,32 @@ export default function TeacherInventoryPage() {
 
   return (
     <div>
+      <div className={styles.inventoryIntro}>
+        <div>
+          <span className={styles.inventoryEyebrow}>Katalog Guru</span>
+          <h1 className={styles.inventoryTitle}>{pageConfig.title}</h1>
+        </div>
+      </div>
+
+      <div className={styles.classificationTabs}>
+        <Link to="/teacher/inventory/barang-modal" className={`${styles.classificationTab} ${classification === 'modal' ? styles.activeTab : ''}`}>
+          <i className="fas fa-chair"></i>
+          Barang Modal
+          <span>{totalModalItems}</span>
+        </Link>
+        <Link to="/teacher/inventory/persediaan" className={`${styles.classificationTab} ${classification === 'persediaan' ? styles.activeTab : ''}`}>
+          <i className="fas fa-box-open"></i>
+          Persediaan
+          <span>{totalPersediaanItems}</span>
+        </Link>
+      </div>
+
       {/* Search Bar */}
       <div className={styles.searchBar}>
         <i className="fas fa-search"></i>
         <input
           type="text"
-          placeholder="Cari barang inventaris (misal: Kertas A4, Spidol)..."
+          placeholder={pageConfig.searchPlaceholder}
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -284,6 +356,13 @@ export default function TeacherInventoryPage() {
           );
         })}
       </div>
+
+      {paginatedItems.length === 0 && (
+        <div className={styles.emptyState}>
+          <i className="fas fa-box-open"></i>
+          <span>{pageConfig.emptyText}</span>
+        </div>
+      )}
 
       {/* Pagination */}
       {totalPages > 1 && renderPagination()}

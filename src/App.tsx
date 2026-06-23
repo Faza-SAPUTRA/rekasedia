@@ -52,7 +52,9 @@ function App() {
         <Route element={<ProtectedRoute allowedRoles={['guru']} />}>
           <Route path="/teacher" element={<TeacherLayout />}>
             <Route index element={<TeacherDashboardPage />} />
-            <Route path="inventory" element={<TeacherInventoryPage />} />
+            <Route path="inventory" element={<Navigate to="barang-modal" replace />} />
+            <Route path="inventory/barang-modal" element={<TeacherInventoryPage classification="modal" />} />
+            <Route path="inventory/persediaan" element={<TeacherInventoryPage classification="persediaan" />} />
             <Route path="requests" element={<TeacherRequestsPage />} />
             <Route path="loans" element={<TeacherLoansPage />} />
             <Route path="reports" element={<TeacherReportsPage />} />

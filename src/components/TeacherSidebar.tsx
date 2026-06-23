@@ -10,7 +10,8 @@ interface NavItemDef {
 
 const navItems: NavItemDef[] = [
   { path: '/teacher', icon: 'fa-th-large', label: 'Dashboard' },
-  { path: '/teacher/inventory', icon: 'fa-archive', label: 'Inventaris' },
+  { path: '/teacher/inventory/barang-modal', icon: 'fa-chair', label: 'Barang Modal' },
+  { path: '/teacher/inventory/persediaan', icon: 'fa-box-open', label: 'Persediaan' },
   { path: '/teacher/requests', icon: 'fa-shopping-basket', label: 'Pesanan' },
   { path: '/teacher/loans', icon: 'fa-clipboard-list', label: 'Peminjaman' },
   { path: '/teacher/reports', icon: 'fa-file-alt', label: 'Laporan' },
