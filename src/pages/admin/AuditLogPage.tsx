@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchAuditLogs, fetchAuditStats } from '../../services/api';
 import type { AuditLogEntry, AuditStats } from '../../services/api';
-import PageSkeleton from '../../components/PageSkeleton';
 import ErrorModal from '../../components/ErrorModal';
 
 const ACTION_LABELS: Record<string, { label: string; color: string; icon: string }> = {
@@ -44,10 +43,11 @@ export default function AuditLogPage() {
         }),
         page === 1 ? fetchAuditStats() : Promise.resolve(null),
       ]);
-      setLogs(logRes.logs);
-      setTotal(logRes.total);
+      setLogs(logRes?.logs || []);
+      setTotal(logRes?.total || 0);
       if (statsRes) setStats(statsRes);
     } catch (err) {
+      console.error('Audit log error:', err);
       setErrorMessage(err instanceof Error ? err.message : 'Gagal memuat audit log.');
     } finally {
       setIsLoading(false);
@@ -55,15 +55,25 @@ export default function AuditLogPage() {
   };
 
   const formatDate = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) +
-      ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return iso;
+      return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) +
+        ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return iso;
+    }
   };
 
-  const totalPages = Math.ceil(total / limit);
+  const totalPages = Math.max(1, Math.ceil(total / limit));
 
   if (isLoading && page === 1) {
-    return <PageSkeleton variant="table" rows={10} />;
+    return (
+      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--gray-text)' }}>
+        <i className="fas fa-spinner fa-spin" style={{ fontSize: '24px', marginBottom: '12px' }}></i>
+        <p>Memuat audit log...</p>
+      </div>
+    );
   }
 
   return (
@@ -80,13 +90,13 @@ export default function AuditLogPage() {
       </div>
 
       {/* Stats Cards */}
-      {stats && (
+      {stats && stats.total_logs > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '24px' }}>
           <div style={statCardStyle}>
             <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--sage-green)' }}>{stats.total_logs}</div>
             <div style={{ fontSize: '0.85rem', color: 'var(--gray-text)' }}>Total Log</div>
           </div>
-          {stats.by_action.map((a) => {
+          {(stats.by_action || []).map((a) => {
             const info = ACTION_LABELS[a.action_type] || { label: a.action_type, color: '#6b7280', icon: 'fa-circle' };
             return (
               <div key={a.action_type} style={statCardStyle}>
@@ -129,10 +139,10 @@ export default function AuditLogPage() {
       </div>
 
       {/* Table */}
-      <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', overflow: 'auto' }}>
+      <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-lg, 12px)', border: '1px solid var(--border-color, #e5e7eb)', overflow: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
           <thead>
-            <tr style={{ background: 'var(--bg-color)', borderBottom: '2px solid var(--border-color)' }}>
+            <tr style={{ background: 'var(--bg-color, #f9fafb)', borderBottom: '2px solid var(--border-color, #e5e7eb)' }}>
               <th style={thStyle}>Waktu</th>
               <th style={thStyle}>Aktor</th>
               <th style={thStyle}>Aksi</th>
@@ -143,7 +153,7 @@ export default function AuditLogPage() {
           <tbody>
             {logs.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ textAlign: 'center', padding: '40px', color: 'var(--gray-text)' }}>
+                <td colSpan={5} style={{ textAlign: 'center', padding: '40px', color: 'var(--gray-text, #6b7280)' }}>
                   <i className="fas fa-inbox" style={{ fontSize: '28px', display: 'block', marginBottom: '8px', opacity: 0.3 }}></i>
                   Belum ada log yang tercatat.
                 </td>
@@ -152,13 +162,13 @@ export default function AuditLogPage() {
               logs.map((log) => {
                 const actionInfo = ACTION_LABELS[log.action_type] || { label: log.action_type, color: '#6b7280', icon: 'fa-circle' };
                 return (
-                  <tr key={log.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <tr key={log.id} style={{ borderBottom: '1px solid var(--border-color, #e5e7eb)' }}>
                     <td style={tdStyle}>
                       <span style={{ whiteSpace: 'nowrap' }}>{formatDate(log.created_at)}</span>
                     </td>
                     <td style={tdStyle}>
                       <div style={{ fontWeight: 500 }}>{log.actor_name || `User #${log.actor_id}`}</div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--gray-text)', textTransform: 'capitalize' }}>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--gray-text, #6b7280)', textTransform: 'capitalize' }}>
                         {log.actor_role}
                       </div>
                     </td>
@@ -177,11 +187,13 @@ export default function AuditLogPage() {
                     </td>
                     <td style={{ ...tdStyle, maxWidth: '280px' }}>
                       <code style={{
-                        fontSize: '0.75rem', background: 'var(--bg-color)',
+                        fontSize: '0.75rem', background: 'var(--bg-color, #f9fafb)',
                         padding: '4px 8px', borderRadius: '4px', display: 'block',
                         whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                       }}>
-                        {JSON.stringify(log.change_details, null, 1)}
+                        {typeof log.change_details === 'object'
+                          ? JSON.stringify(log.change_details, null, 1)
+                          : String(log.change_details || '-')}
                       </code>
                     </td>
                   </tr>
@@ -198,17 +210,17 @@ export default function AuditLogPage() {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            style={pageBtnStyle(false)}
+            style={pageBtnStyle}
           >
             <i className="fas fa-chevron-left"></i>
           </button>
-          <span style={{ padding: '8px 16px', fontSize: '0.88rem', color: 'var(--primary-text)' }}>
+          <span style={{ padding: '8px 16px', fontSize: '0.88rem', color: 'var(--primary-text, #1f2937)' }}>
             Halaman {page} / {totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            style={pageBtnStyle(false)}
+            style={pageBtnStyle}
           >
             <i className="fas fa-chevron-right"></i>
           </button>
@@ -222,44 +234,43 @@ export default function AuditLogPage() {
 
 // --- Inline styles ---
 const statCardStyle: React.CSSProperties = {
-  background: 'var(--white)',
-  borderRadius: 'var(--radius-lg)',
-  border: '1px solid var(--border-color)',
+  background: 'var(--white, #fff)',
+  borderRadius: 'var(--radius-lg, 12px)',
+  border: '1px solid var(--border-color, #e5e7eb)',
   padding: '20px',
-  textAlign: 'center',
+  textAlign: 'center' as const,
 };
 
 const selectStyle: React.CSSProperties = {
   padding: '8px 14px',
-  borderRadius: 'var(--radius-md)',
-  border: '1px solid var(--border-color)',
-  background: 'var(--white)',
+  borderRadius: 'var(--radius-md, 8px)',
+  border: '1px solid var(--border-color, #e5e7eb)',
+  background: 'var(--white, #fff)',
   fontSize: '0.88rem',
-  color: 'var(--primary-text)',
+  color: 'var(--primary-text, #1f2937)',
   cursor: 'pointer',
 };
 
 const thStyle: React.CSSProperties = {
   padding: '12px 16px',
-  textAlign: 'left',
+  textAlign: 'left' as const,
   fontWeight: 600,
   fontSize: '0.82rem',
-  color: 'var(--gray-text)',
-  textTransform: 'uppercase',
+  color: 'var(--gray-text, #6b7280)',
+  textTransform: 'uppercase' as const,
   letterSpacing: '0.5px',
 };
 
 const tdStyle: React.CSSProperties = {
   padding: '12px 16px',
-  verticalAlign: 'top',
+  verticalAlign: 'top' as const,
 };
 
-const pageBtnStyle = (_active: boolean): React.CSSProperties => ({
+const pageBtnStyle: React.CSSProperties = {
   padding: '8px 14px',
-  borderRadius: 'var(--radius-md)',
-  border: '1px solid var(--border-color)',
-  background: 'var(--white)',
+  borderRadius: 'var(--radius-md, 8px)',
+  border: '1px solid var(--border-color, #e5e7eb)',
+  background: 'var(--white, #fff)',
   cursor: 'pointer',
   fontSize: '0.85rem',
-});
-
+};
