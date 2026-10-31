@@ -1,5 +1,11 @@
 import { Router } from 'express';
-import pool from '../db.js';
+import pool, { setRLSContext } from '../db.js';
+import { logAudit } from '../services/auditLogger.js';
+import {
+  notifyNewRequest,
+  notifyRequestApproved,
+  notifyRequestRejected,
+} from '../services/telegram.js';
 
 const router = Router();
 
@@ -66,6 +72,8 @@ router.post('/', async (req, res) => {
     }
 
     const results = [];
+    const notifItems = [];
+
     for (const item of items) {
       // Generate req_code
       const { rows: countResult } = await pool.query('SELECT COUNT(*) AS total FROM requests');
@@ -79,7 +87,28 @@ router.post('/', async (req, res) => {
       );
 
       results.push({ id: result.rows[0].id, req_code });
+
+      // Audit log — actor info dari JWT middleware
+      logAudit({
+        actorId: req.user?.id || requester_id,
+        actorRole: req.user?.role || 'guru',
+        actionType: 'INSERT',
+        tableAffected: 'requests',
+        recordId: result.rows[0].id,
+        changeDetails: { req_code, item_id: item.item_id, quantity: item.quantity },
+        ipAddress: req.ip,
+      });
+
+      // Kumpulkan data untuk notifikasi Telegram
+      const { rows: itemInfo } = await pool.query('SELECT name FROM items WHERE id = $1', [item.item_id]);
+      if (itemInfo.length > 0) {
+        notifItems.push({ item_name: itemInfo[0].name, quantity: item.quantity });
+      }
     }
+
+    // Telegram: Notifikasi ke Admin tentang permintaan baru
+    const requesterName = req.user?.full_name || 'Guru';
+    notifyNewRequest(requesterName, notifItems);
 
     res.status(201).json({ message: 'Permintaan berhasil dikirim!', requests: results });
   } catch (err) {
@@ -99,12 +128,17 @@ router.put('/:id', async (req, res) => {
     }
 
     await client.query('BEGIN');
+    await setRLSContext(client, req.user);
     if (status === 'COMPLETED') {
       await ensureCompletedStatusSupport(client);
     }
 
     const { rows } = await client.query(
-      'SELECT id, item_id, quantity, status FROM requests WHERE id = $1 FOR UPDATE',
+      `SELECT r.id, r.item_id, r.quantity, r.status, r.req_code, r.requester_id,
+              i.name AS item_name
+       FROM requests r
+       JOIN items i ON r.item_id = i.id
+       WHERE r.id = $1 FOR UPDATE`,
       [req.params.id]
     );
     const request = rows[0];
@@ -113,6 +147,8 @@ router.put('/:id', async (req, res) => {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Permintaan tidak ditemukan.' });
     }
+
+    const oldStatus = request.status;
 
     if (status === 'COMPLETED') {
       if (request.status !== 'APPROVED') {
@@ -147,7 +183,33 @@ router.put('/:id', async (req, res) => {
       );
     }
 
+    // Audit log — catat perubahan status
+    await logAudit({
+      actorId: req.user?.id || reviewed_by,
+      actorRole: req.user?.role || 'admin',
+      actionType: 'UPDATE',
+      tableAffected: 'requests',
+      recordId: parseInt(req.params.id),
+      changeDetails: {
+        req_code: request.req_code,
+        old_status: oldStatus,
+        new_status: status,
+        item_name: request.item_name,
+        quantity: request.quantity,
+      },
+      ipAddress: req.ip,
+      client,
+    });
+
     await client.query('COMMIT');
+
+    // Telegram: Notifikasi ke Guru pemohon
+    if (status === 'APPROVED') {
+      notifyRequestApproved(null, request.req_code, request.item_name, request.quantity);
+    } else if (status === 'REJECTED') {
+      notifyRequestRejected(null, request.req_code, request.item_name);
+    }
+
     const messages = {
       APPROVED: 'Permintaan berhasil disetujui.',
       REJECTED: 'Permintaan berhasil ditolak.',

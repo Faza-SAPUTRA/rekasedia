@@ -6,9 +6,10 @@ import ChangePasswordPage from './pages/ChangePasswordPage';
 import DashboardLayout from './components/DashboardLayout';
 import DashboardPage from './pages/admin/DashboardPage';
 import InventoryPage from './pages/admin/InventoryPage';
-// import LoansPage from './pages/admin/LoansPage'; // Hidden based on request
+import AdminLoansPage from './pages/admin/LoansPage';
 import ReportsPage from './pages/admin/ReportsPage';
 import AdminRequestsPage from './pages/admin/RequestsPage';
+import AuditLogPage from './pages/admin/AuditLogPage';
 
 import TeacherLayout from './components/TeacherLayout';
 import TeacherDashboardPage from './pages/teacher/DashboardPage';
@@ -42,9 +43,10 @@ function App() {
             <Route path="inventory" element={<Navigate to="barang-modal" replace />} />
             <Route path="inventory/barang-modal" element={<InventoryPage classification="modal" />} />
             <Route path="inventory/persediaan" element={<InventoryPage classification="persediaan" />} />
-            {/* <Route path="loans" element={<LoansPage />} /> */}
+            <Route path="loans" element={<AdminLoansPage />} />
             <Route path="requests" element={<AdminRequestsPage />} />
             <Route path="reports" element={<ReportsPage />} />
+            <Route path="audit" element={<AuditLogPage />} />
           </Route>
         </Route>
 

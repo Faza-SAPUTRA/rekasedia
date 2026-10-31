@@ -13,7 +13,9 @@ const navItems: NavItemDef[] = [
   { path: '/admin/inventory/barang-modal', icon: 'fa-chair', label: 'Barang Modal' },
   { path: '/admin/inventory/persediaan', icon: 'fa-box-open', label: 'Persediaan' },
   { path: '/admin/requests', icon: 'fa-inbox', label: 'Permintaan' },
+  { path: '/admin/loans', icon: 'fa-handshake', label: 'Peminjaman' },
   { path: '/admin/reports', icon: 'fa-file-alt', label: 'Laporan' },
+  { path: '/admin/audit', icon: 'fa-history', label: 'Audit Trail' },
 ];
 
 export default function Sidebar() {
