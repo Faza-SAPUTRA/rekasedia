@@ -1,7 +1,0 @@
-fix: harden AuditLogPage against null/undefined crashes
-
-- Remove PageSkeleton dependency, use inline loading spinner
-- Add null-safe access on API response (logRes?.logs, stats?.by_action)
-- Add try-catch in formatDate
-- Use CSS fallback values for var() references
-- Fix pageBtnStyle from function to plain object
