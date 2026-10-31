@@ -588,6 +588,68 @@ export async function fetchLoans(): Promise<any[]> {
   return parseJsonResponse<any[]>(res, 'Gagal mengambil data peminjaman');
 }
 
+
+export interface LoanAvailability {
+  item: { id: number; name: string; stock: number; is_loanable: boolean };
+  active_bookings: Array<{ id: number; borrow_date: string; due_date: string; borrower_name: string }>;
+  total_active: number;
+}
+
+export async function fetchLoanAvailability(itemId: number): Promise<LoanAvailability> {
+  if (USE_MOCK) {
+    const items = readMockItems();
+    const item = items.find((i: any) => i.id === itemId);
+    const loans = readMockLoans().filter((l: any) => l.item_id === itemId && l.status === 'DIPINJAM');
+    return {
+      item: item || { id: itemId, name: 'Unknown', stock: 0, is_loanable: false },
+      active_bookings: loans.map((l: any) => ({
+        id: l.id,
+        borrow_date: l.borrow_date,
+        due_date: l.due_date,
+        borrower_name: l.borrower_name || 'User',
+      })),
+      total_active: loans.length,
+    };
+  }
+
+  const res = await fetch(`${API_BASE}/loans/availability?item_id=${itemId}`, { headers: authHeaders() });
+  return parseJsonResponse<LoanAvailability>(res, 'Gagal mengecek ketersediaan');
+}
+
+export async function createLoan(data: {
+  item_id: number;
+  borrower_id: number;
+  borrow_date: string;
+  due_date: string;
+  condition_note?: string;
+}): Promise<{ message: string; loan_id: number }> {
+  if (USE_MOCK) {
+    const items = readMockItems();
+    const item = items.find((i: any) => i.id === data.item_id);
+    const loans = readMockLoans();
+    const newLoan = {
+      id: Date.now(),
+      item_id: data.item_id,
+      item_name: item?.name || 'Unknown',
+      borrower_id: data.borrower_id,
+      borrower_name: 'User Mock',
+      borrow_date: data.borrow_date,
+      due_date: data.due_date,
+      status: 'DIPINJAM',
+      condition_note: data.condition_note || null,
+    };
+    writeMockLoans([newLoan, ...loans]);
+    return { message: `Peminjaman "${item?.name}" berhasil dibuat.`, loan_id: newLoan.id };
+  }
+
+  const res = await fetch(`${API_BASE}/loans`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(data),
+  });
+  return parseJsonResponse<{ message: string; loan_id: number }>(res, 'Gagal membuat peminjaman');
+}
+
 export async function returnLoan(id: number) {
   if (USE_MOCK) {
     const loans = readMockLoans();
@@ -775,4 +837,55 @@ export function isLoggedIn(): boolean {
     logout();
     return false;
   }
+}
+
+// --- Audit Logs ---
+export interface AuditLogEntry {
+  id: number;
+  created_at: string;
+  actor_id: number;
+  actor_role: string;
+  action_type: string;
+  table_affected: string;
+  record_id: number;
+  change_details: any;
+  ip_address: string;
+  actor_name?: string;
+}
+
+export interface AuditStats {
+  total_logs: number;
+  by_action: Array<{ action_type: string; count: number }>;
+  by_table: Array<{ table_affected: string; count: number }>;
+  recent_actors: Array<{ actor_id: number; actor_name: string; action_count: number }>;
+}
+
+export async function fetchAuditLogs(params?: {
+  page?: number;
+  limit?: number;
+  action_type?: string;
+  table_affected?: string;
+}): Promise<{ logs: AuditLogEntry[]; total: number; page: number; limit: number }> {
+  if (USE_MOCK) {
+    return { logs: [], total: 0, page: 1, limit: 50 };
+  }
+
+  const query = new URLSearchParams();
+  if (params?.page) query.set('page', String(params.page));
+  if (params?.limit) query.set('limit', String(params.limit));
+  if (params?.action_type) query.set('action_type', params.action_type);
+  if (params?.table_affected) query.set('table_affected', params.table_affected);
+
+  const qs = query.toString();
+  const res = await fetch(`${API_BASE}/audit${qs ? '?' + qs : ''}`, { headers: authHeaders() });
+  return parseJsonResponse(res, 'Gagal mengambil audit log');
+}
+
+export async function fetchAuditStats(): Promise<AuditStats> {
+  if (USE_MOCK) {
+    return { total_logs: 0, by_action: [], by_table: [], recent_actors: [] };
+  }
+
+  const res = await fetch(`${API_BASE}/audit/stats`, { headers: authHeaders() });
+  return parseJsonResponse<AuditStats>(res, 'Gagal mengambil statistik audit');
 }

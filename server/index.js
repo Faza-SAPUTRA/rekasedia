@@ -9,6 +9,7 @@ import itemRoutes from './routes/items.js';
 import requestRoutes from './routes/requests.js';
 import loanRoutes from './routes/loans.js';
 import reportRoutes from './routes/reports.js';
+import auditRoutes from './routes/audit.js';
 import { authenticateToken, requireCompletedPasswordChange } from './middleware/auth.js';
 
 const app = express();
@@ -24,6 +25,7 @@ app.use('/api/items', protectedApi, itemRoutes);
 app.use('/api/requests', protectedApi, requestRoutes);
 app.use('/api/loans', protectedApi, loanRoutes);
 app.use('/api/reports', protectedApi, reportRoutes);
+app.use('/api/audit', protectedApi, auditRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'RekaSedia API is running!' });
@@ -41,9 +43,14 @@ if (process.env.VERCEL !== '1') {
     console.log('   - POST /api/requests');
     console.log('   - PUT  /api/requests/:id');
     console.log('   - GET  /api/loans');
+    console.log('   - POST /api/loans             (booking baru)');
+    console.log('   - GET  /api/loans/availability (cek jadwal)');
     console.log('   - PUT  /api/loans/:id/return');
+    console.log('   - GET  /api/loans/due-reminders');
     console.log('   - GET  /api/reports');
     console.log('   - GET  /api/reports/stats');
+    console.log('   - GET  /api/audit              (audit trail)');
+    console.log('   - GET  /api/audit/stats');
   });
 }
 

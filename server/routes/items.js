@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import pool from '../db.js';
+import pool, { setRLSContext } from '../db.js';
+import { logAudit } from '../services/auditLogger.js';
 
 const router = Router();
 
@@ -159,6 +160,18 @@ router.post('/', async (req, res) => {
     );
 
     const item = await fetchItemById(rows[0].id);
+
+    // Audit log: item baru ditambahkan
+    logAudit({
+      actorId: req.user?.id,
+      actorRole: req.user?.role,
+      actionType: 'INSERT',
+      tableAffected: 'items',
+      recordId: rows[0].id,
+      changeDetails: { name: name.trim(), stock, unit, is_loanable: Boolean(is_loanable) },
+      ipAddress: req.ip,
+    });
+
     res.status(201).json(item);
   } catch (err) {
     console.error('Create item error:', err);
@@ -217,6 +230,18 @@ router.put('/:id', async (req, res) => {
     );
 
     const item = await fetchItemById(req.params.id);
+
+    // Audit log: item diperbarui
+    logAudit({
+      actorId: req.user?.id,
+      actorRole: req.user?.role,
+      actionType: 'UPDATE',
+      tableAffected: 'items',
+      recordId: parseInt(req.params.id),
+      changeDetails: { name: name.trim(), stock, unit, is_loanable: Boolean(is_loanable) },
+      ipAddress: req.ip,
+    });
+
     res.json(item);
   } catch (err) {
     console.error('Update item error:', err);
@@ -230,6 +255,18 @@ router.delete('/:id', async (req, res) => {
     if (rowCount === 0) {
       return res.status(404).json({ error: 'Barang tidak ditemukan.' });
     }
+
+    // Audit log: item dihapus
+    logAudit({
+      actorId: req.user?.id,
+      actorRole: req.user?.role,
+      actionType: 'DELETE',
+      tableAffected: 'items',
+      recordId: parseInt(req.params.id),
+      changeDetails: { deleted_id: parseInt(req.params.id) },
+      ipAddress: req.ip,
+    });
+
     res.json({ message: 'Barang berhasil dihapus.' });
   } catch (err) {
     console.error('Delete item error:', err);
