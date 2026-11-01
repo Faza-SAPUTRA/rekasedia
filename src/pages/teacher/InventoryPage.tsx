@@ -319,7 +319,7 @@ export default function TeacherInventoryPage({ classification = 'modal' }: Teach
       {/* Product Grid */}
       <div className={styles.productGrid}>
         {paginatedItems.map((item, index) => {
-          const isLow = item.stock <= 5;
+          const isLow = item.stock <= Number(item.min_stock ?? 5);
           const bgColors = [
             styles.bgPink,
             styles.bgMint,

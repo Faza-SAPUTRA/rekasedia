@@ -75,15 +75,22 @@ router.post('/', async (req, res) => {
     const notifItems = [];
 
     for (const item of items) {
-      // Generate req_code
-      const { rows: countResult } = await pool.query('SELECT COUNT(*) AS total FROM requests');
-      const nextNum = parseInt(countResult[0].total) + 1;
-      const req_code = `REQ-${String(nextNum).padStart(3, '0')}`;
+      const priority = String(item.priority || req.body.priority || 'REGULER').toUpperCase() === 'URGENT' ? 'URGENT' : 'REGULER';
+
+      // Generate req_code format REQ-YYYYMM-XXXX (urut per bulan)
+      const { rows: seqRows } = await pool.query(
+        `SELECT COUNT(*)::int AS total
+         FROM requests
+         WHERE to_char(request_date, 'YYYYMM') = to_char(CURRENT_DATE, 'YYYYMM')`
+      );
+      const period = await pool.query(`SELECT to_char(CURRENT_DATE, 'YYYYMM') AS period`);
+      const nextNum = Number(seqRows[0]?.total || 0) + 1;
+      const req_code = `REQ-${period.rows[0].period}-${String(nextNum).padStart(4, '0')}`;
 
       const result = await pool.query(
         `INSERT INTO requests (req_code, item_id, requester_id, quantity, request_date, status, priority)
-         VALUES ($1, $2, $3, $4, CURRENT_DATE, 'PENDING', 'REGULER') RETURNING id`,
-        [req_code, item.item_id, requester_id, item.quantity]
+         VALUES ($1, $2, $3, $4, CURRENT_DATE, 'PENDING', $5) RETURNING id`,
+        [req_code, item.item_id, requester_id, item.quantity, priority]
       );
 
       results.push({ id: result.rows[0].id, req_code });

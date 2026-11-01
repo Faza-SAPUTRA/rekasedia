@@ -261,7 +261,19 @@ export async function login(email: string, password: string): Promise<LoginRespo
   return parseJsonResponse<LoginResponse>(res, 'Login gagal');
 }
 
-export async function register(data: { full_name: string; email: string; password: string; role?: string; department?: string }): Promise<LoginResponse> {
+export interface RegisterResponse {
+  message: string;
+  user: {
+    id: number;
+    full_name: string;
+    email: string;
+    role: string;
+    department: string | null;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  };
+}
+
+export async function register(data: { full_name: string; email: string; password: string; nip?: string; role?: string; department?: string }): Promise<RegisterResponse> {
   if (USE_MOCK) {
     const normalizedEmail = data.email.trim().toLowerCase();
     const existingBaseUser = mockData.users.find((u) => u.email.toLowerCase() === normalizedEmail);
@@ -284,8 +296,8 @@ export async function register(data: { full_name: string; email: string; passwor
     writePendingUsers([newUser, ...readPendingUsers()]);
 
     return {
-      token: 'mock-jwt-token-new',
-      user: newUser
+      message: 'Registrasi berhasil. Akun menunggu persetujuan admin sebelum bisa digunakan.',
+      user: newUser,
     };
   }
 
@@ -294,7 +306,7 @@ export async function register(data: { full_name: string; email: string; passwor
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  return parseJsonResponse<LoginResponse>(res, 'Registrasi gagal');
+  return parseJsonResponse<RegisterResponse>(res, 'Registrasi gagal');
 }
 
 export async function forgotPassword(email: string): Promise<{ message: string; request_code: string }> {
@@ -391,7 +403,9 @@ export async function fetchPendingUsers(): Promise<PendingUser[]> {
   if (USE_MOCK) {
     return readPendingUsers().filter((user: PendingUser) => user.status === 'PENDING');
   }
-  return [];
+
+  const res = await fetch(`${API_BASE}/auth/pending-users`, { headers: authHeaders() });
+  return parseJsonResponse<PendingUser[]>(res, 'Gagal mengambil daftar akun menunggu persetujuan');
 }
 
 export async function updateUserApproval(id: number, status: 'APPROVED' | 'REJECTED') {
@@ -409,7 +423,13 @@ export async function updateUserApproval(id: number, status: 'APPROVED' | 'REJEC
 
     return { message: `Akun ${status === 'APPROVED' ? 'disetujui' : 'ditolak'} (MOCK)` };
   }
-  return { message: 'OK' };
+
+  const res = await fetch(`${API_BASE}/auth/users/${id}/approval`, {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify({ status }),
+  });
+  return parseJsonResponse<{ message: string }>(res, 'Gagal memproses persetujuan akun');
 }
 
 // --- Items ---

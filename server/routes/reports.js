@@ -164,12 +164,16 @@ router.get('/stats', async (req, res) => {
     const { rows: activeLoans } = await pool.query("SELECT COUNT(*)::int AS total FROM loans WHERE status = 'DIPINJAM'");
     const { rows: pendingRequests } = await pool.query("SELECT COUNT(*)::int AS total FROM requests WHERE status = 'PENDING'");
     const { rows: todayRequests } = await pool.query('SELECT COUNT(*)::int AS total FROM requests WHERE request_date = CURRENT_DATE');
-    const { rows: criticalStock } = await pool.query('SELECT COUNT(*)::int AS total FROM items WHERE stock <= 5 AND is_loanable = FALSE');
+    // Ambang stok kritis per barang memakai kolom min_stock (default 5).
+    await pool.query('ALTER TABLE items ADD COLUMN IF NOT EXISTS min_stock INT NOT NULL DEFAULT 5');
+    const { rows: criticalStock } = await pool.query(
+      'SELECT COUNT(*)::int AS total FROM items WHERE stock <= COALESCE(min_stock, 5) AND is_loanable = FALSE'
+    );
     const { rows: criticalItems } = await pool.query(`
       SELECT i.*, c.name AS category_name
       FROM items i
       JOIN categories c ON i.category_id = c.id
-      WHERE i.stock <= 5 AND i.is_loanable = FALSE
+      WHERE i.stock <= COALESCE(i.min_stock, 5) AND i.is_loanable = FALSE
       ORDER BY i.stock ASC
     `);
 

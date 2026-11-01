@@ -126,6 +126,7 @@ router.post('/', async (req, res) => {
       description = '',
       image_url = null,
       is_loanable = false,
+      min_stock = 5,
     } = req.body;
 
     if (!name?.trim()) {
@@ -144,8 +145,8 @@ router.post('/', async (req, res) => {
     }
 
     const { rows } = await pool.query(
-      `INSERT INTO items (name, sku, category_id, stock, unit, description, image_url, is_loanable)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO items (name, sku, category_id, stock, unit, description, image_url, is_loanable, min_stock)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING id`,
       [
         name.trim(),
@@ -156,6 +157,7 @@ router.post('/', async (req, res) => {
         description || null,
         image_url || null,
         Boolean(is_loanable),
+        Math.max(0, Number(min_stock) || 0),
       ]
     );
 
@@ -168,7 +170,7 @@ router.post('/', async (req, res) => {
       actionType: 'INSERT',
       tableAffected: 'items',
       recordId: rows[0].id,
-      changeDetails: { name: name.trim(), stock, unit, is_loanable: Boolean(is_loanable) },
+      changeDetails: { name: name.trim(), stock, unit, is_loanable: Boolean(is_loanable), min_stock },
       ipAddress: req.ip,
     });
 
@@ -196,6 +198,7 @@ router.put('/:id', async (req, res) => {
       description = existing.description,
       image_url = existing.image_url,
       is_loanable = existing.is_loanable,
+      min_stock = existing.min_stock ?? 5,
     } = req.body;
 
     const resolvedCategoryId = await resolveCategoryId(category_id, category_name) || existing.category_id;
@@ -214,8 +217,9 @@ router.put('/:id', async (req, res) => {
            description = $6,
            image_url = $7,
            is_loanable = $8,
+           min_stock = $9,
            updated_at = NOW()
-       WHERE id = $9`,
+       WHERE id = $10`,
       [
         name.trim(),
         String(sku || '').trim() || createSkuForItem(req.params.id),
@@ -225,6 +229,7 @@ router.put('/:id', async (req, res) => {
         description || null,
         image_url || null,
         Boolean(is_loanable),
+        Math.max(0, Number(min_stock) || 0),
         req.params.id,
       ]
     );
@@ -238,7 +243,7 @@ router.put('/:id', async (req, res) => {
       actionType: 'UPDATE',
       tableAffected: 'items',
       recordId: parseInt(req.params.id),
-      changeDetails: { name: name.trim(), stock, unit, is_loanable: Boolean(is_loanable) },
+      changeDetails: { name: name.trim(), stock, unit, is_loanable: Boolean(is_loanable), min_stock },
       ipAddress: req.ip,
     });
 

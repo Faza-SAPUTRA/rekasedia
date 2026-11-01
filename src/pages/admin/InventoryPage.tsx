@@ -24,6 +24,7 @@ type InventoryFormData = {
   description: string;
   image_url: string | null;
   is_loanable: boolean;
+  min_stock: number;
 };
 
 interface InventoryPageProps {
@@ -54,7 +55,8 @@ const emptyFormData = (): InventoryFormData => ({
   unit: 'Unit',
   description: '',
   image_url: null,
-  is_loanable: false
+  is_loanable: false,
+  min_stock: 5
 });
 
 function getClassificationLabel(item: { is_loanable?: boolean }) {
@@ -157,7 +159,7 @@ export default function InventoryPage({ classification = 'modal' }: InventoryPag
         statusFilter === 'Semua Status' || 
         (statusFilter === 'Stok Tersedia' && item.stock > 0) ||
         (statusFilter === 'Habis' && item.stock === 0) ||
-        (statusFilter === 'Stok Tipis' && item.stock > 0 && item.stock <= 5);
+        (statusFilter === 'Stok Tipis' && item.stock > 0 && item.stock <= Number(item.min_stock ?? 5));
 
       return matchesSearch && matchesCategory && matchesStatus;
     });
@@ -234,6 +236,7 @@ export default function InventoryPage({ classification = 'modal' }: InventoryPag
       description: item.description || '',
       image_url: item.image_url || null,
       is_loanable: Boolean(item.is_loanable),
+      min_stock: Number(item.min_stock ?? 5),
     });
     setImageError('');
     setActiveModal('edit');
@@ -290,6 +293,10 @@ export default function InventoryPage({ classification = 'modal' }: InventoryPag
 
   const handleStockChange = (value: string) => {
     setFormData({...formData, stock: Math.max(0, parseInt(value) || 0)});
+  };
+
+  const handleMinStockChange = (value: string) => {
+    setFormData({...formData, min_stock: Math.max(0, parseInt(value) || 0)});
   };
 
   const handleCategoryChange = (categoryName: string) => {
@@ -388,6 +395,10 @@ export default function InventoryPage({ classification = 'modal' }: InventoryPag
                   <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
                     <label>Stok Awal</label>
                     <input type="number" min="0" value={formData.stock} onChange={e => handleStockChange(e.target.value)} />
+                  </div>
+                  <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
+                    <label>Stok Minimum</label>
+                    <input type="number" min="0" value={formData.min_stock} onChange={e => handleMinStockChange(e.target.value)} />
                   </div>
                   <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
                     <label>Satuan</label>
@@ -611,7 +622,7 @@ export default function InventoryPage({ classification = 'modal' }: InventoryPag
           </thead>
           <tbody>
             {paginatedItems.map((item) => {
-              const isLow = item.stock > 0 && item.stock <= 5;
+              const isLow = item.stock > 0 && item.stock <= Number(item.min_stock ?? 5);
               const isEmpty = item.stock === 0;
 
               return (
