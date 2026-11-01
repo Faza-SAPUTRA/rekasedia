@@ -29,3 +29,5 @@ listUser.xlsx
 *.sw?
 .vercel
 VERCEL_ENV.txt
+
+.env*
