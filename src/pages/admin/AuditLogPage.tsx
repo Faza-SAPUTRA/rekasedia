@@ -139,7 +139,7 @@ export default function AuditLogPage() {
       </div>
 
       {/* Table */}
-      <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-lg, 12px)', border: '1px solid var(--border-color, #e5e7eb)', overflow: 'auto' }}>
+      <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-lg, 12px)', border: '1px solid var(--border-color, #e5e7eb)', overflowX: 'auto', overflowY: 'visible' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
           <thead>
             <tr style={{ background: 'var(--bg-color, #f9fafb)', borderBottom: '2px solid var(--border-color, #e5e7eb)' }}>
@@ -190,6 +190,7 @@ export default function AuditLogPage() {
                         fontSize: '0.75rem', background: 'var(--bg-color, #f9fafb)',
                         padding: '4px 8px', borderRadius: '4px', display: 'block',
                         whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                        maxHeight: '88px', overflow: 'hidden',
                       }}>
                         {typeof log.change_details === 'object'
                           ? JSON.stringify(log.change_details, null, 1)

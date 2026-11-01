@@ -893,12 +893,30 @@ export async function fetchAuditLogs(params?: {
   const query = new URLSearchParams();
   if (params?.page) query.set('page', String(params.page));
   if (params?.limit) query.set('limit', String(params.limit));
-  if (params?.action_type) query.set('action_type', params.action_type);
-  if (params?.table_affected) query.set('table_affected', params.table_affected);
+  // Backend membaca query `action` dan `table` (bukan action_type/table_affected).
+  if (params?.action_type) query.set('action', params.action_type);
+  if (params?.table_affected) query.set('table', params.table_affected);
 
   const qs = query.toString();
   const res = await fetch(`${API_BASE}/audit${qs ? '?' + qs : ''}`, { headers: authHeaders() });
-  return parseJsonResponse(res, 'Gagal mengambil audit log');
+
+  // Backend membalas { data, pagination } dengan kolom `timestamp`.
+  // Dinormalisasi di sini supaya komponen tetap memakai { logs, total } + created_at.
+  const payload = await parseJsonResponse<{
+    data?: any[];
+    pagination?: { total?: number; page?: number; limit?: number };
+  }>(res, 'Gagal mengambil audit log');
+
+  const rows = Array.isArray(payload?.data) ? payload.data : [];
+  return {
+    logs: rows.map((row) => ({
+      ...row,
+      created_at: row.created_at || row.timestamp,
+    })),
+    total: Number(payload?.pagination?.total ?? rows.length),
+    page: Number(payload?.pagination?.page ?? params?.page ?? 1),
+    limit: Number(payload?.pagination?.limit ?? params?.limit ?? 50),
+  };
 }
 
 export async function fetchAuditStats(): Promise<AuditStats> {
