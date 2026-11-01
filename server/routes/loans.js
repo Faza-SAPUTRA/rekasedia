@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import pool, { setRLSContext } from '../db.js';
 import { logAudit } from '../services/auditLogger.js';
-import { notifyNewLoan, notifyLoanDueReminder, ADMIN_CHAT_ID } from '../services/telegram.js';
+import { notifyNewLoan, notifyLoanDueReminder } from '../services/telegram.js';
 
 const router = Router();
 
@@ -234,7 +234,9 @@ router.get('/due-reminders', async (req, res) => {
     const { rows } = await pool.query(`
       SELECT l.id, l.due_date, l.borrower_id,
              i.name AS item_name,
-             u.full_name AS borrower_name
+             u.full_name AS borrower_name,
+             to_jsonb(u)->>'telegram_username' AS borrower_telegram_username,
+             to_jsonb(u)->>'telegram_chat_id' AS borrower_telegram_chat_id
       FROM loans l
       JOIN items i ON l.item_id = i.id
       JOIN users u ON l.borrower_id = u.id
@@ -246,7 +248,11 @@ router.get('/due-reminders', async (req, res) => {
     let sentCount = 0;
     for (const loan of rows) {
       await notifyLoanDueReminder(
-        ADMIN_CHAT_ID,
+        {
+          fullName: loan.borrower_name,
+          username: loan.borrower_telegram_username,
+          chatId: loan.borrower_telegram_chat_id,
+        },
         loan.borrower_name,
         loan.item_name,
         new Date(loan.due_date).toLocaleDateString('id-ID')
