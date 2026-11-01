@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import authRoutes from './routes/auth.js';
+import telegramRoutes from './routes/telegram.js';
 import itemRoutes from './routes/items.js';
 import requestRoutes from './routes/requests.js';
 import loanRoutes from './routes/loans.js';
@@ -20,6 +21,8 @@ app.use(cors());
 app.use(express.json({ limit: '4mb' }));
 
 app.use('/api/auth', authRoutes);
+// Webhook Telegram: tanpa JWT, diverifikasi lewat secret token
+app.use('/api/telegram', telegramRoutes);
 const protectedApi = [authenticateToken, requireCompletedPasswordChange];
 app.use('/api/items', protectedApi, itemRoutes);
 app.use('/api/requests', protectedApi, requestRoutes);

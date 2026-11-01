@@ -135,9 +135,13 @@ router.put('/:id', async (req, res) => {
 
     const { rows } = await client.query(
       `SELECT r.id, r.item_id, r.quantity, r.status, r.req_code, r.requester_id,
-              i.name AS item_name
+              i.name AS item_name,
+              u.full_name AS requester_name,
+              to_jsonb(u)->>'telegram_username' AS requester_telegram_username,
+              to_jsonb(u)->>'telegram_chat_id' AS requester_telegram_chat_id
        FROM requests r
        JOIN items i ON r.item_id = i.id
+       JOIN users u ON r.requester_id = u.id
        WHERE r.id = $1 FOR UPDATE`,
       [req.params.id]
     );
@@ -203,11 +207,16 @@ router.put('/:id', async (req, res) => {
 
     await client.query('COMMIT');
 
-    // Telegram: Notifikasi ke Guru pemohon
+    // Telegram: notifikasi guru pemohon — masuk ke grup guru dan di-tag
+    const requesterTeacher = {
+      fullName: request.requester_name,
+      username: request.requester_telegram_username,
+      chatId: request.requester_telegram_chat_id,
+    };
     if (status === 'APPROVED') {
-      notifyRequestApproved(null, request.req_code, request.item_name, request.quantity);
+      notifyRequestApproved(requesterTeacher, request.req_code, request.item_name, request.quantity);
     } else if (status === 'REJECTED') {
-      notifyRequestRejected(null, request.req_code, request.item_name);
+      notifyRequestRejected(requesterTeacher, request.req_code, request.item_name);
     }
 
     const messages = {
