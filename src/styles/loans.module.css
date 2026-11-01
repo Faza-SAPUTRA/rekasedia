@@ -32,6 +32,9 @@
   border-radius: var(--radius-lg);
   padding: 18px;
   transition: all var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .loanCard:hover {
@@ -42,9 +45,11 @@
 .loanCardContent {
   display: grid;
   grid-template-columns: 104px minmax(0, 1fr);
-  align-items: center;
+  align-items: start;
   gap: 16px;
   min-width: 0;
+  flex: 1;
+  margin-bottom: 14px;
 }
 
 .loanImage {
@@ -94,7 +99,12 @@
   color: var(--dark-text);
   margin-bottom: 6px;
   line-height: 1.35;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+  /* Judul panjang dipotong 2 baris supaya kartu tidak memanjang */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .loanDates {
