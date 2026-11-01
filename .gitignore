@@ -31,3 +31,4 @@ listUser.xlsx
 VERCEL_ENV.txt
 
 .env*
+.audit/

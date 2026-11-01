@@ -54,11 +54,12 @@ const RegisterPage: React.FC = () => {
         setErrors({});
 
         try {
-            await apiRegister({ 
-                full_name: fullName, 
-                email, 
+            await apiRegister({
+                full_name: fullName,
+                email,
                 password,
-                department: `NIP: ${nip}` // Storing NIP in department for simplicity or could be omitted
+                nip,
+                department: `NIP: ${nip}`
             });
             setIsSuccess(true);
 

@@ -53,6 +53,13 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Password sementara kedaluwarsa. Ajukan reset kembali.' });
     }
 
+    if (user.status === 'PENDING') {
+      return res.status(403).json({ error: 'Akun Anda masih menunggu persetujuan admin.' });
+    }
+    if (user.status === 'REJECTED') {
+      return res.status(403).json({ error: 'Pendaftaran akun Anda ditolak. Hubungi admin sekolah.' });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password_hash);
 
     if (!isMatch) {
@@ -80,16 +87,17 @@ router.post('/login', async (req, res) => {
 });
 
 // POST /api/auth/register
+// Akun guru baru dibuat dengan status PENDING: belum bisa login sampai admin menyetujui.
 router.post('/register', async (req, res) => {
   try {
-    const { full_name, email, password, role, department } = req.body;
+    const { full_name, email, password, nip, role, department } = req.body;
 
     if (!full_name || !email || !password) {
       return res.status(400).json({ error: 'Nama, email, dan password wajib diisi.' });
     }
 
     // Cek email sudah terdaftar
-    const { rows: existing } = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    const { rows: existing } = await pool.query('SELECT id FROM users WHERE LOWER(email) = $1', [String(email).trim().toLowerCase()]);
     if (existing.length > 0) {
       return res.status(409).json({ error: 'Email sudah terdaftar.' });
     }
@@ -99,21 +107,30 @@ router.post('/register', async (req, res) => {
     const password_hash = await bcrypt.hash(password, salt);
 
     const result = await pool.query(
-      'INSERT INTO users (full_name, email, password_hash, role, department) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-      [full_name, email, password_hash, role || 'guru', department || null]
+      `INSERT INTO users (full_name, email, nip, password_hash, role, department, status)
+       VALUES ($1, $2, $3, $4, $5, $6, 'PENDING') RETURNING id`,
+      [
+        full_name,
+        String(email).trim().toLowerCase(),
+        nip ? String(nip).trim() : null,
+        password_hash,
+        role === 'admin' ? 'guru' : (role || 'guru'),
+        department || null,
+      ]
     );
 
-    const newUser = {
-      id: result.rows[0].id,
-      full_name,
-      email,
-      role: role || 'guru',
-      department: department || null,
-    };
-
-    const token = generateToken(newUser);
-
-    res.status(201).json({ token, user: newUser });
+    // Sengaja tidak mengembalikan token: akun belum aktif.
+    res.status(201).json({
+      message: 'Registrasi berhasil. Akun menunggu persetujuan admin sebelum bisa digunakan.',
+      user: {
+        id: result.rows[0].id,
+        full_name,
+        email,
+        role: role || 'guru',
+        department: department || null,
+        status: 'PENDING',
+      },
+    });
   } catch (err) {
     console.error('Register error:', err);
     res.status(500).json({ error: 'Terjadi kesalahan server.' });
@@ -351,6 +368,61 @@ router.post('/change-password', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Change password error:', err);
     res.status(500).json({ error: 'Gagal memperbarui password.' });
+  }
+});
+
+// GET /api/auth/pending-users — antrean akun guru menunggu persetujuan (admin)
+router.get('/pending-users', authenticateToken, requireAdmin, async (_req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, full_name, email, nip, role, department, created_at
+       FROM users
+       WHERE status = 'PENDING' AND role = 'guru'
+       ORDER BY created_at ASC`
+    );
+    res.json(rows.map((row) => ({
+      ...row,
+      request_date: row.created_at,
+      status: 'PENDING',
+    })));
+  } catch (err) {
+    console.error('Get pending users error:', err);
+    res.status(500).json({ error: 'Gagal mengambil daftar akun menunggu persetujuan.' });
+  }
+});
+
+// PUT /api/auth/users/:id/approval — setujui/tolak akun guru (admin)
+router.put('/users/:id/approval', authenticateToken, requireAdmin, async (req, res) => {
+  const userId = Number(req.params.id);
+  const status = String(req.body.status || req.body.action || '').toUpperCase();
+
+  if (!Number.isInteger(userId) || !['APPROVED', 'REJECTED'].includes(status)) {
+    return res.status(400).json({ error: 'Permintaan atau status tidak valid.' });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `UPDATE users
+       SET status = $1,
+           approved_at = CURRENT_TIMESTAMP,
+           approved_by = $2,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $3 AND role = 'guru'
+       RETURNING id, full_name, email, status`,
+      [status, req.user.id, userId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Akun guru tidak ditemukan.' });
+    }
+
+    res.json({
+      message: `Akun ${rows[0].full_name} ${status === 'APPROVED' ? 'disetujui' : 'ditolak'}.`,
+      user: rows[0],
+    });
+  } catch (err) {
+    console.error('Update user approval error:', err);
+    res.status(500).json({ error: 'Gagal memproses persetujuan akun.' });
   }
 });
 
