@@ -47,7 +47,7 @@ router.post('/webhook', async (req, res) => {
     const { rows } = await pool.query(
       `UPDATE users
        SET telegram_chat_id = $1,
-           telegram_username = COALESCE($2, telegram_username),
+           telegram_username = $2,
            updated_at = CURRENT_TIMESTAMP
        WHERE nip = $3
        RETURNING id, full_name`,
