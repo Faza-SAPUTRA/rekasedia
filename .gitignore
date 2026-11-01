@@ -28,3 +28,4 @@ listUser.xlsx
 *.sln
 *.sw?
 .vercel
+VERCEL_ENV.txt

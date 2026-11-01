@@ -22,11 +22,29 @@ if (!token) {
 
 const base = `https://api.telegram.org/bot${token}`;
 
+// Webhook aktif memblokir getUpdates. Kalau ada, simpan URL-nya, lepas sementara,
+// lalu pasang kembali setelah penautan selesai (deploy Vercel tetap utuh).
 const webhook = await (await fetch(`${base}/getWebhookInfo`)).json();
-if (webhook.ok && webhook.result.url) {
-  console.error(`Webhook aktif (${webhook.result.url}). getUpdates tidak bisa dipakai.`);
-  console.error('Pakai endpoint webhook /api/telegram/webhook, atau hapus webhook dulu: deleteWebhook');
-  process.exit(1);
+const previousWebhookUrl = webhook.ok ? webhook.result.url || '' : '';
+const previousSecret = process.env.TELEGRAM_WEBHOOK_SECRET || '';
+
+if (previousWebhookUrl) {
+  console.log(`Webhook aktif: ${previousWebhookUrl} — dilepas sementara.`);
+  await fetch(`${base}/deleteWebhook`);
+}
+
+async function restoreWebhook() {
+  if (!previousWebhookUrl) return;
+  const body = { url: previousWebhookUrl, allowed_updates: ['message'] };
+  if (previousSecret) body.secret_token = previousSecret;
+  const res = await (
+    await fetch(`${base}/setWebhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+  ).json();
+  console.log(res.ok ? `Webhook dipasang kembali: ${previousWebhookUrl}` : `GAGAL memasang ulang webhook: ${JSON.stringify(res)}`);
 }
 
 const updates = await (await fetch(`${base}/getUpdates?limit=100&timeout=0`)).json();
@@ -89,4 +107,5 @@ const { rows: total } = await pool.query(
 );
 console.log(`Selesai. Tertaut baru: ${linked}, dilewati: ${skipped}. Total user punya chat_id: ${total[0].total}`);
 
+await restoreWebhook();
 await pool.end();
