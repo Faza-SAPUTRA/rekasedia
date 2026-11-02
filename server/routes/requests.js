@@ -6,6 +6,7 @@ import {
   notifyRequestApproved,
   notifyRequestRejected,
 } from '../services/telegram.js';
+import { requireAdmin } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -64,8 +65,13 @@ router.get('/', async (req, res) => {
 // POST /api/requests — Buat permintaan baru (dari Cart Teacher)
 router.post('/', async (req, res) => {
   try {
-    const { items, requester_id } = req.body;
+    const { items } = req.body;
     // items = [{ item_id, quantity }]
+
+    // Guru hanya boleh mengajukan atas namanya sendiri; admin boleh atas nama siapa pun.
+    const requester_id = req.user?.role === 'admin'
+      ? (req.body.requester_id || req.user?.id)
+      : req.user?.id;
 
     if (!items || items.length === 0 || !requester_id) {
       return res.status(400).json({ error: 'Data permintaan tidak valid.' });
@@ -125,7 +131,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT /api/requests/:id — Update status (Admin Approve/Reject)
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAdmin, async (req, res) => {
   const client = await pool.connect();
   try {
     const { status, reviewed_by } = req.body;

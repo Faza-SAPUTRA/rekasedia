@@ -69,11 +69,16 @@ router.get('/availability', async (req, res) => {
 router.post('/', async (req, res) => {
   const client = await pool.connect();
   try {
-    const { item_id, borrower_id, borrow_date, due_date, condition_note } = req.body;
+    const { item_id, borrow_date, due_date, condition_note } = req.body;
+
+    // Guru hanya boleh meminjam atas namanya sendiri; admin boleh atas nama siapa pun.
+    const borrower_id = req.user?.role === 'admin'
+      ? (req.body.borrower_id || req.user?.id)
+      : req.user?.id;
 
     // Validasi input
     if (!item_id || !borrower_id || !borrow_date || !due_date) {
-      return res.status(400).json({ error: 'Data peminjaman tidak lengkap. Wajib: item_id, borrower_id, borrow_date, due_date.' });
+      return res.status(400).json({ error: 'Data peminjaman tidak lengkap. Wajib: item_id, borrow_date, due_date.' });
     }
 
     if (new Date(borrow_date) > new Date(due_date)) {
@@ -187,6 +192,13 @@ router.put('/:id/return', async (req, res) => {
     }
 
     const loan = rows[0];
+
+    // Guru hanya boleh mengembalikan peminjaman miliknya sendiri
+    if (req.user?.role !== 'admin' && Number(loan.borrower_id) !== Number(req.user?.id)) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ error: 'Anda hanya dapat mengembalikan peminjaman milik sendiri.' });
+    }
+
     if (loan.status === 'DIKEMBALIKAN') {
       await client.query('ROLLBACK');
       return res.status(409).json({ error: 'Barang sudah dikembalikan sebelumnya.' });

@@ -36,6 +36,14 @@ export function generateToken(user) {
   );
 }
 
+// Middleware: hanya role admin yang boleh lewat
+export function requireAdmin(req, res, next) {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({ error: 'Akses hanya untuk admin Sarpras.' });
+  }
+  next();
+}
+
 export function requireCompletedPasswordChange(req, res, next) {
   if (req.user?.must_change_password) {
     return res.status(403).json({
