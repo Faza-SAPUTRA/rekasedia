@@ -40,7 +40,8 @@ export function formatMention(teacher) {
   if (chatId && /^-?\d+$/.test(chatId)) {
     return `<a href="tg://user?id=${chatId}">${name}</a>`;
   }
-  return name;
+  // Belum pernah /start NIP: tampilkan penanda supaya guru sadar perlu menautkan.
+  return `${name} <i>(belum menautkan Telegram)</i>`;
 }
 
 /**
@@ -107,8 +108,10 @@ export async function notifyTeacher(teacher, text) {
   if (teacher?.chatId) {
     return sendTelegramMessage(teacher.chatId, text);
   }
-  console.warn('[Telegram] Grup guru belum diset, notifikasi guru dialihkan ke DM admin.');
-  return sendTelegramMessage(ADMIN_CHAT_ID, text);
+  // Jangan pernah kirim notifikasi guru ke DM admin: itu bikin admin mengira
+  // pesan guru adalah pesan untuknya. Lebih baik tidak terkirim + tercatat di log.
+  console.error('[Telegram] TELEGRAM_TEACHER_GROUP_CHAT_ID belum diset — notifikasi guru tidak dikirim.');
+  return null;
 }
 
 /**
