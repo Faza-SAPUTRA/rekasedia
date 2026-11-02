@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool, { setRLSContext } from '../db.js';
 import { logAudit } from '../services/auditLogger.js';
+import { requireAdmin } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -114,7 +115,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+// Mutasi inventaris hanya untuk admin Sarpras
+router.post('/', requireAdmin, async (req, res) => {
   try {
     const {
       name,
@@ -181,7 +183,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAdmin, async (req, res) => {
   try {
     const existing = await fetchItemById(req.params.id);
     if (!existing) {
@@ -254,7 +256,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAdmin, async (req, res) => {
   try {
     const { rowCount } = await pool.query('DELETE FROM items WHERE id = $1', [req.params.id]);
     if (rowCount === 0) {
