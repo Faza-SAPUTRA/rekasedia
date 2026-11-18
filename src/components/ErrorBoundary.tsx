@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -53,7 +53,7 @@ class ErrorBoundary extends Component<Props, State> {
             <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
               Aplikasi mengalami error yang tidak terduga. Silakan muat ulang halaman atau kembali ke beranda.
             </p>
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <pre style={{
                 background: '#fef2f2',
                 padding: '0.75rem',
