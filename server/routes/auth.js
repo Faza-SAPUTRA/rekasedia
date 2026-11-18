@@ -96,6 +96,20 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Nama, email, dan password wajib diisi.' });
     }
 
+    // Validasi input
+    if (String(password).length < 8) {
+      return res.status(400).json({ error: 'Password minimal 8 karakter.' });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(String(email).trim())) {
+      return res.status(400).json({ error: 'Format email tidak valid.' });
+    }
+
+    if (String(full_name).trim().length < 3) {
+      return res.status(400).json({ error: 'Nama minimal 3 karakter.' });
+    }
+
     // Cek email sudah terdaftar
     const { rows: existing } = await pool.query('SELECT id FROM users WHERE LOWER(email) = $1', [String(email).trim().toLowerCase()]);
     if (existing.length > 0) {
@@ -114,7 +128,7 @@ router.post('/register', async (req, res) => {
         String(email).trim().toLowerCase(),
         nip ? String(nip).trim() : null,
         password_hash,
-        role === 'admin' ? 'guru' : (role || 'guru'),
+        'guru', // Force role to 'guru' — prevent role escalation via API
         department || null,
       ]
     );

@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = 'rekasedia_secret_key_2026';
+// JWT secret from environment variable — NEVER hardcode in production
+const JWT_SECRET = process.env.JWT_SECRET || 'rekasedia_secret_key_2026_fallback';
 
 // Middleware: verifikasi JWT token dari header Authorization
 export function authenticateToken(req, res, next) {

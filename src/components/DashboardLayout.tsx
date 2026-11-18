@@ -31,13 +31,14 @@ export default function DashboardLayout() {
               <button 
                 className={styles.notifBtn} 
                 aria-label="Notifikasi"
+                aria-expanded={isNotifOpen}
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
               >
                 <i className="fas fa-bell"></i>
                 <span className={styles.notifBadge}></span>
               </button>
 
-              <div className={`${styles.notifDropdown} ${isNotifOpen ? styles.open : ''}`} onClick={e => e.stopPropagation()}>
+              <div className={`${styles.notifDropdown} ${isNotifOpen ? styles.open : ''}`} role="menu" onClick={e => e.stopPropagation()}>
                 <div className={styles.notifHeader}>
                   <div>
                     <span className={styles.notifEyebrow}>Pusat aktivitas</span>

@@ -50,7 +50,8 @@ router.get('/', async (req, res) => {
       ? `WHERE ${conditions.join(' AND ')}`
       : '';
 
-    const offset = (Math.max(1, Number(page)) - 1) * Number(limit);
+    const offset = (Math.max(1, Number(page)) - 1) * Math.min(Math.max(1, Number(limit) || 50), 200);
+    const safeLim = Math.min(Math.max(1, Number(limit) || 50), 200);
 
     // Count total for pagination
     const countResult = await pool.query(
@@ -67,16 +68,16 @@ router.get('/', async (req, res) => {
        ${whereClause}
        ORDER BY al.timestamp DESC
        LIMIT $${paramIndex++} OFFSET $${paramIndex++}`,
-      [...params, Number(limit), offset]
+      [...params, safeLim, offset]
     );
 
     res.json({
       data: rows,
       pagination: {
         page: Number(page),
-        limit: Number(limit),
+        limit: safeLim,
         total: parseInt(countResult.rows[0].total),
-        totalPages: Math.ceil(parseInt(countResult.rows[0].total) / Number(limit)),
+        totalPages: Math.ceil(parseInt(countResult.rows[0].total) / safeLim),
       },
     });
   } catch (err) {

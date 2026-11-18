@@ -135,6 +135,17 @@ router.post('/', requireAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Nama barang wajib diisi.' });
     }
 
+    // String length limits
+    if (String(name).trim().length > 150) {
+      return res.status(400).json({ error: 'Nama barang maksimal 150 karakter.' });
+    }
+    if (description && String(description).length > 1000) {
+      return res.status(400).json({ error: 'Deskripsi maksimal 1000 karakter.' });
+    }
+    if (sku && String(sku).trim().length > 50) {
+      return res.status(400).json({ error: 'SKU maksimal 50 karakter.' });
+    }
+
     await ensureSkuColumnSupportsExistingData();
 
     const resolvedCategoryId = await resolveCategoryId(category_id, category_name);
@@ -204,6 +215,17 @@ router.put('/:id', requireAdmin, async (req, res) => {
     } = req.body;
 
     const resolvedCategoryId = await resolveCategoryId(category_id, category_name) || existing.category_id;
+
+    // String length limits
+    if (String(name).trim().length > 150) {
+      return res.status(400).json({ error: 'Nama barang maksimal 150 karakter.' });
+    }
+    if (description && String(description).length > 1000) {
+      return res.status(400).json({ error: 'Deskripsi maksimal 1000 karakter.' });
+    }
+    if (sku && String(sku).trim().length > 50) {
+      return res.status(400).json({ error: 'SKU maksimal 50 karakter.' });
+    }
 
     if (image_url) {
       await ensureImageColumnSupportsUploads();

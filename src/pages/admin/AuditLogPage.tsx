@@ -117,6 +117,7 @@ export default function AuditLogPage() {
           value={filterAction}
           onChange={(e) => { setFilterAction(e.target.value); setPage(1); }}
           style={selectStyle}
+          aria-label="Filter berdasarkan aksi"
         >
           <option value="">Semua Aksi</option>
           <option value="INSERT">Tambah</option>
@@ -127,6 +128,7 @@ export default function AuditLogPage() {
           value={filterTable}
           onChange={(e) => { setFilterTable(e.target.value); setPage(1); }}
           style={selectStyle}
+          aria-label="Filter berdasarkan tabel"
         >
           <option value="">Semua Tabel</option>
           <option value="items">Inventaris</option>

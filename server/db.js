@@ -11,10 +11,13 @@ if (!connectionString) {
   throw new Error('DATABASE_URL or SUPABASE_DB_URL must be configured.');
 }
 
+// In production, use proper SSL validation.
+// rejectUnauthorized: false only in development for self-signed certs.
+const isProduction = process.env.NODE_ENV === 'production';
 const pool = new Pool({
   connectionString,
   ssl: {
-    rejectUnauthorized: false
+    rejectUnauthorized: isProduction ? true : false
   }
 });
 

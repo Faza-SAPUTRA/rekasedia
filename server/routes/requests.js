@@ -81,6 +81,13 @@ router.post('/', async (req, res) => {
     const notifItems = [];
 
     for (const item of items) {
+      // Validasi quantity: harus integer positif, max 1000
+      const qty = Number(item.quantity);
+      if (!Number.isInteger(qty) || qty < 1 || qty > 1000) {
+        return res.status(400).json({ error: `Jumlah permintaan tidak valid (harus 1-1000). Diterima: ${item.quantity}` });
+      }
+      item.quantity = qty; // normalize
+
       const priority = String(item.priority || req.body.priority || 'REGULER').toUpperCase() === 'URGENT' ? 'URGENT' : 'REGULER';
 
       // Generate req_code format REQ-YYYYMM-XXXX (urut per bulan)

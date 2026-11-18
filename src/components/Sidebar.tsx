@@ -33,7 +33,7 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className={styles.nav}>
+      <nav className={styles.nav} aria-label="Navigasi utama">
         {navItems.map((item) => {
           const isActive =
             item.path === '/admin'
@@ -45,6 +45,7 @@ export default function Sidebar() {
               key={item.path}
               to={item.path}
               className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+              aria-current={isActive ? 'page' : undefined}
             >
               <span className={styles.navIcon}>
                 <i className={`fas ${item.icon}`}></i>
@@ -58,7 +59,7 @@ export default function Sidebar() {
       {/* Storage Section */}
       <div className={styles.storageSection}>
         <div className={styles.storageLabel}>Penyimpanan Terpakai</div>
-        <div className={styles.storageBarTrack}>
+        <div className={styles.storageBarTrack} role="progressbar" aria-valuenow={65} aria-valuemin={0} aria-valuemax={100} aria-label="Penyimpanan terpakai 65%">
           <div className={styles.storageBarFill} style={{ width: '65%' }}></div>
         </div>
         <div className={styles.storageText}>650 dari 1000 item</div>

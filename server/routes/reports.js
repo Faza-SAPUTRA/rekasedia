@@ -64,6 +64,11 @@ router.get('/teacher/:userId', async (req, res) => {
       return res.status(400).json({ error: 'User guru tidak valid.' });
     }
 
+    // IDOR protection: guru hanya bisa lihat laporan sendiri, admin bisa lihat semua
+    if (req.user?.role !== 'admin' && req.user?.id !== userId) {
+      return res.status(403).json({ error: 'Anda tidak memiliki akses ke laporan ini.' });
+    }
+
     const { rows: requestRows } = await pool.query(
       `
         SELECT

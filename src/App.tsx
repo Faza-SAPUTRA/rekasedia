@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import ErrorBoundary from './components/ErrorBoundary';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -23,47 +24,49 @@ import GuestRoute from './components/GuestRoute';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Guest-only routes: user aktif tidak dapat kembali ke halaman auth. */}
-        <Route element={<GuestRoute />}>
-          <Route path="/" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        </Route>
-
-        <Route element={<ProtectedRoute allowedRoles={['admin', 'guru']} />}>
-          <Route path="/change-password" element={<ChangePasswordPage />} />
-        </Route>
-        
-        {/* Admin Routes */}
-        <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-          <Route path="/admin" element={<DashboardLayout />}>
-            <Route index element={<DashboardPage />} />
-            <Route path="inventory" element={<Navigate to="barang-modal" replace />} />
-            <Route path="inventory/barang-modal" element={<InventoryPage classification="modal" />} />
-            <Route path="inventory/persediaan" element={<InventoryPage classification="persediaan" />} />
-            <Route path="loans" element={<AdminLoansPage />} />
-            <Route path="requests" element={<AdminRequestsPage />} />
-            <Route path="reports" element={<ReportsPage />} />
-            <Route path="audit" element={<AuditLogPage />} />
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Routes>
+          {/* Guest-only routes: user aktif tidak dapat kembali ke halaman auth. */}
+          <Route element={<GuestRoute />}>
+            <Route path="/" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           </Route>
-        </Route>
 
-        {/* Teacher Routes */}
-        <Route element={<ProtectedRoute allowedRoles={['guru']} />}>
-          <Route path="/teacher" element={<TeacherLayout />}>
-            <Route index element={<TeacherDashboardPage />} />
-            <Route path="inventory" element={<Navigate to="barang-modal" replace />} />
-            <Route path="inventory/barang-modal" element={<TeacherInventoryPage classification="modal" />} />
-            <Route path="inventory/persediaan" element={<TeacherInventoryPage classification="persediaan" />} />
-            <Route path="requests" element={<TeacherRequestsPage />} />
-            <Route path="loans" element={<TeacherLoansPage />} />
-            <Route path="reports" element={<TeacherReportsPage />} />
+          <Route element={<ProtectedRoute allowedRoles={['admin', 'guru']} />}>
+            <Route path="/change-password" element={<ChangePasswordPage />} />
           </Route>
-        </Route>
-      </Routes>
-    </BrowserRouter>
+          
+          {/* Admin Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+            <Route path="/admin" element={<DashboardLayout />}>
+              <Route index element={<DashboardPage />} />
+              <Route path="inventory" element={<Navigate to="barang-modal" replace />} />
+              <Route path="inventory/barang-modal" element={<InventoryPage classification="modal" />} />
+              <Route path="inventory/persediaan" element={<InventoryPage classification="persediaan" />} />
+              <Route path="loans" element={<AdminLoansPage />} />
+              <Route path="requests" element={<AdminRequestsPage />} />
+              <Route path="reports" element={<ReportsPage />} />
+              <Route path="audit" element={<AuditLogPage />} />
+            </Route>
+          </Route>
+
+          {/* Teacher Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['guru']} />}>
+            <Route path="/teacher" element={<TeacherLayout />}>
+              <Route index element={<TeacherDashboardPage />} />
+              <Route path="inventory" element={<Navigate to="barang-modal" replace />} />
+              <Route path="inventory/barang-modal" element={<TeacherInventoryPage classification="modal" />} />
+              <Route path="inventory/persediaan" element={<TeacherInventoryPage classification="persediaan" />} />
+              <Route path="requests" element={<TeacherRequestsPage />} />
+              <Route path="loans" element={<TeacherLoansPage />} />
+              <Route path="reports" element={<TeacherReportsPage />} />
+            </Route>
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 
