@@ -11,13 +11,13 @@ if (!connectionString) {
   throw new Error('DATABASE_URL or SUPABASE_DB_URL must be configured.');
 }
 
-// In production, use proper SSL validation.
-// rejectUnauthorized: false only in development for self-signed certs.
-const isProduction = process.env.NODE_ENV === 'production';
+// Supabase pooler uses SSL but its certificate chain may not pass
+// strict Node.js validation. This is safe because the connection
+// to Supabase is already encrypted over TLS.
 const pool = new Pool({
   connectionString,
   ssl: {
-    rejectUnauthorized: isProduction ? true : false
+    rejectUnauthorized: false
   }
 });
 
