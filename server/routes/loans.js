@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import pool, { setRLSContext } from '../db.js';
 import { logAudit } from '../services/auditLogger.js';
-import { notifyNewLoan, notifyLoanDueReminder } from '../services/telegram.js';
+import { notifyNewLoan, notifyLoanDueReminder, notifyOverdueLoans } from '../services/telegram.js';
 
 const router = Router();
 
@@ -233,6 +233,70 @@ router.put('/:id/return', async (req, res) => {
     res.status(500).json({ error: 'Gagal mengembalikan barang.' });
   } finally {
     client.release();
+  }
+});
+
+// GET /api/loans/overdue — Peminjaman yang belum dikembalikan (melewati due_date)
+router.get('/overdue', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT l.id, l.item_id, l.borrower_id, l.borrow_date, l.due_date, l.status,
+             i.name AS item_name,
+             i.image_url AS item_image,
+             u.full_name AS borrower_name,
+             u.email AS borrower_email,
+             (CURRENT_DATE - l.due_date::date) AS days_overdue
+      FROM loans l
+      JOIN items i ON l.item_id = i.id
+      JOIN users u ON l.borrower_id = u.id
+      WHERE l.status = 'DIPINJAM'
+        AND l.due_date < CURRENT_DATE
+      ORDER BY l.due_date ASC
+    `);
+
+    res.json(rows);
+  } catch (err) {
+    console.error('Get overdue loans error:', err);
+    res.status(500).json({ error: 'Gagal mengambil data peminjaman terlambat.' });
+  }
+});
+
+// POST /api/loans/overdue/notify — Kirim notifikasi overdue ke grup Telegram
+router.post('/overdue/notify', async (req, res) => {
+  try {
+    if (req.user?.role !== 'admin') {
+      return res.status(403).json({ error: 'Akses hanya untuk admin.' });
+    }
+
+    const { rows } = await pool.query(`
+      SELECT l.id, l.due_date,
+             i.name AS item_name,
+             u.full_name AS borrower_name,
+             to_jsonb(u)->>'telegram_username' AS borrower_telegram_username,
+             to_jsonb(u)->>'telegram_chat_id' AS borrower_telegram_chat_id,
+             (CURRENT_DATE - l.due_date::date) AS days_overdue
+      FROM loans l
+      JOIN items i ON l.item_id = i.id
+      JOIN users u ON l.borrower_id = u.id
+      WHERE l.status = 'DIPINJAM'
+        AND l.due_date < CURRENT_DATE
+      ORDER BY l.due_date ASC
+    `);
+
+    if (rows.length === 0) {
+      return res.json({ message: 'Tidak ada peminjaman terlambat.', sent: false });
+    }
+
+    await notifyOverdueLoans(rows);
+
+    res.json({
+      message: `Notifikasi ${rows.length} peminjaman terlambat berhasil dikirim ke grup Telegram.`,
+      sent: true,
+      count: rows.length,
+    });
+  } catch (err) {
+    console.error('Notify overdue error:', err);
+    res.status(500).json({ error: 'Gagal mengirim notifikasi.' });
   }
 });
 

@@ -686,6 +686,51 @@ export async function returnLoan(id: number) {
   return parseJsonResponse(res, 'Gagal mengembalikan barang');
 }
 
+export interface OverdueLoan {
+  id: number;
+  item_id: number;
+  borrower_id: number;
+  borrow_date: string;
+  due_date: string;
+  status: string;
+  item_name: string;
+  item_image?: string;
+  borrower_name: string;
+  borrower_email: string;
+  days_overdue: number;
+}
+
+export async function fetchOverdueLoans(): Promise<OverdueLoan[]> {
+  if (USE_MOCK) {
+    const today = new Date();
+    return readMockLoans()
+      .filter((loan: any) => {
+        if (loan.status !== 'DIPINJAM') return false;
+        const dueDate = new Date(loan.due_date);
+        return dueDate < today;
+      })
+      .map((loan: any) => ({
+        ...loan,
+        days_overdue: Math.floor((today.getTime() - new Date(loan.due_date).getTime()) / (1000 * 60 * 60 * 24)),
+      }));
+  }
+
+  const res = await fetch(`${API_BASE}/loans/overdue`, { headers: authHeaders() });
+  return parseJsonResponse<OverdueLoan[]>(res, 'Gagal mengambil data peminjaman terlambat');
+}
+
+export async function sendOverdueNotification(): Promise<{ message: string; sent: boolean; count?: number }> {
+  if (USE_MOCK) {
+    return { message: 'Notifikasi berhasil dikirim (MOCK)', sent: true, count: 0 };
+  }
+
+  const res = await fetch(`${API_BASE}/loans/overdue/notify`, {
+    method: 'POST',
+    headers: authHeaders(),
+  });
+  return parseJsonResponse(res, 'Gagal mengirim notifikasi');
+}
+
 // --- Reports & Stats ---
 export async function fetchReports(): Promise<any[]> {
   if (USE_MOCK) return mockData.monthlyReports;
@@ -701,6 +746,7 @@ export interface DashboardStats {
   todayRequests: number;
   criticalStockCount: number;
   criticalItems: Array<{ id: number; name: string; stock: number; category_name: string; unit: string; image_url?: string }>;
+  overdueLoansCount: number;
 }
 
 export async function fetchStats(): Promise<DashboardStats> {
@@ -721,7 +767,12 @@ export async function fetchStats(): Promise<DashboardStats> {
         stock: i.stock,
         category_name: i.category_name,
         unit: i.unit
-      }))
+      })),
+      overdueLoansCount: readMockLoans().filter((loan: any) => {
+        if (loan.status !== 'DIPINJAM') return false;
+        const dueDate = new Date(loan.due_date);
+        return dueDate < new Date();
+      }).length,
     };
   }
 
@@ -875,9 +926,11 @@ export interface AuditLogEntry {
 
 export interface AuditStats {
   total_logs: number;
-  by_action: Array<{ action_type: string; count: number }>;
-  by_table: Array<{ table_affected: string; count: number }>;
-  recent_actors: Array<{ actor_id: number; actor_name: string; action_count: number }>;
+  total_inserts: number;
+  total_updates: number;
+  total_deletes: number;
+  today_count: number;
+  week_count: number;
 }
 
 export async function fetchAuditLogs(params?: {
@@ -921,9 +974,17 @@ export async function fetchAuditLogs(params?: {
 
 export async function fetchAuditStats(): Promise<AuditStats> {
   if (USE_MOCK) {
-    return { total_logs: 0, by_action: [], by_table: [], recent_actors: [] };
+    return { total_logs: 0, total_inserts: 0, total_updates: 0, total_deletes: 0, today_count: 0, week_count: 0 };
   }
 
   const res = await fetch(`${API_BASE}/audit/stats`, { headers: authHeaders() });
-  return parseJsonResponse<AuditStats>(res, 'Gagal mengambil statistik audit');
+  const raw = await parseJsonResponse<any>(res, 'Gagal mengambil statistik audit');
+  return {
+    total_logs: Number(raw.total_logs ?? 0),
+    total_inserts: Number(raw.total_inserts ?? 0),
+    total_updates: Number(raw.total_updates ?? 0),
+    total_deletes: Number(raw.total_deletes ?? 0),
+    today_count: Number(raw.today_count ?? 0),
+    week_count: Number(raw.week_count ?? 0),
+  };
 }

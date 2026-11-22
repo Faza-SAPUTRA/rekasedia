@@ -197,4 +197,44 @@ export async function notifyNewLoan(borrowerName, itemName, borrowDate, dueDate)
   return sendToAdmin(text);
 }
 
+/**
+ * Notifikasi ke Grup Guru & Admin: Daftar peminjaman yang terlambat dikembalikan
+ * @param {Array<{borrower_name: string, item_name: string, due_date: string, days_overdue: number, borrower_telegram_username?: string, borrower_telegram_chat_id?: string}>} overdueLoans
+ */
+export async function notifyOverdueLoans(overdueLoans) {
+  if (!overdueLoans || overdueLoans.length === 0) return null;
+
+  const loanLines = overdueLoans.map((loan) => {
+    const teacher = {
+      fullName: loan.borrower_name,
+      username: loan.borrower_telegram_username,
+      chatId: loan.borrower_telegram_chat_id,
+    };
+    const dueDate = new Date(loan.due_date).toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    });
+    return `• ${escapeHtml(loan.item_name)} — ${formatMention(teacher)}\n  Jatuh tempo: ${dueDate} (${loan.days_overdue} hari terlambat)`;
+  }).join('\n\n');
+
+  const text =
+    `🚨 <b>Peringatan: Barang Belum Dikembalikan</b>\n\n` +
+    `Terdapat <b>${overdueLoans.length}</b> peminjaman yang melewati batas waktu pengembalian:\n\n` +
+    `${loanLines}\n\n` +
+    `Harap segera mengembalikan ke ruang Sarpras.`;
+
+  // Kirim ke grup guru
+  if (TEACHER_GROUP_CHAT_ID) {
+    await sendTelegramMessage(TEACHER_GROUP_CHAT_ID, text);
+  }
+
+  // Kirim juga ke admin
+  if (ADMIN_CHAT_ID) {
+    await sendToAdmin(text);
+  }
+
+  return { sent: true, count: overdueLoans.length };
+}
+
 export { ADMIN_CHAT_ID, TEACHER_GROUP_CHAT_ID };

@@ -15,10 +15,13 @@ import {
   updateUserApproval,
   fetchPasswordResetRequests,
   processPasswordResetRequest,
+  fetchOverdueLoans,
+  sendOverdueNotification,
   type DashboardStats,
   type PendingUser,
   type PasswordResetRequest,
   type PasswordResetCredential,
+  type OverdueLoan,
 } from '../../services/api';
 import styles from '../../styles/adminDashboard.module.css';
 import Modal from '../../components/Modal';
@@ -75,11 +78,13 @@ export default function DashboardPage() {
   const [reqs, setReqs] = useState<any[]>([]);
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [passwordResetRequests, setPasswordResetRequests] = useState<PasswordResetRequest[]>([]);
+  const [overdueLoans, setOverdueLoans] = useState<OverdueLoan[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
   const [processingUserAction, setProcessingUserAction] = useState<string | null>(null);
   const [processingResetAction, setProcessingResetAction] = useState<string | null>(null);
+  const [sendingOverdueNotif, setSendingOverdueNotif] = useState(false);
   const [resetCredential, setResetCredential] = useState<PasswordResetCredential | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   
@@ -93,16 +98,18 @@ export default function DashboardPage() {
 
   const loadData = async () => {
     try {
-      const [statsData, reqsData, pendingUsersData, resetRequestsData] = await Promise.all([
+      const [statsData, reqsData, pendingUsersData, resetRequestsData, overdueData] = await Promise.all([
         fetchStats(),
         fetchRequests(),
         fetchPendingUsers(),
         fetchPasswordResetRequests(),
+        fetchOverdueLoans(),
       ]);
       setStats(statsData);
       setReqs(reqsData.slice(0, 5));
       setPendingUsers(pendingUsersData);
       setPasswordResetRequests(resetRequestsData);
+      setOverdueLoans(overdueData);
     } catch (err) {
       console.error('Gagal mengambil data dashboard', err);
     } finally {
@@ -164,6 +171,19 @@ export default function DashboardPage() {
       setErrorMessage(err instanceof Error ? err.message : 'Gagal memproses reset password.');
     } finally {
       setProcessingResetAction(null);
+    }
+  };
+
+  const handleSendOverdueNotif = async () => {
+    if (sendingOverdueNotif) return;
+    setSendingOverdueNotif(true);
+    try {
+      const result = await sendOverdueNotification();
+      alert(result.message);
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : 'Gagal mengirim notifikasi.');
+    } finally {
+      setSendingOverdueNotif(false);
     }
   };
 
@@ -244,6 +264,54 @@ export default function DashboardPage() {
           <div className={styles.statSubtitle}>Pemeriksaan dokumen</div>
         </div>
       </div>
+
+      {/* Overdue Loans Warning */}
+      {overdueLoans.length > 0 && (
+        <>
+          <div className={styles.sectionHeader}>
+            <h3 className={styles.sectionTitle}>
+              <i className="fas fa-clock" style={{ color: 'var(--error-red)', marginRight: 8 }}></i>
+              Barang Belum Dikembalikan
+            </h3>
+            <div className={styles.actionBtns}>
+              <span className={styles.sectionCount} style={{ background: 'var(--badge-red-bg)', color: 'var(--error-red)' }}>
+                {overdueLoans.length} Terlambat
+              </span>
+              <LoadingButton
+                className={styles.btnApprove}
+                onClick={handleSendOverdueNotif}
+                isLoading={sendingOverdueNotif}
+                loadingText="Mengirim..."
+                style={{ fontSize: 12, padding: '6px 14px' }}
+              >
+                <i className="fab fa-telegram-plane" style={{ marginRight: 6 }}></i>
+                Kirim Notifikasi Telegram
+              </LoadingButton>
+            </div>
+          </div>
+
+          <div className={styles.approvalPanel}>
+            {overdueLoans.map((loan) => (
+              <div key={loan.id} className={styles.approvalItem}>
+                <div className={styles.approvalAvatar} style={{ background: 'var(--badge-red-bg)', color: 'var(--error-red)' }}>
+                  <i className="fas fa-undo-alt"></i>
+                </div>
+                <div className={styles.approvalInfo}>
+                  <strong>{loan.item_name}</strong>
+                  <span>Peminjam: {loan.borrower_name}</span>
+                  <small>
+                    Jatuh tempo: {formatCompactDate(loan.due_date)} •{' '}
+                    <span style={{ color: 'var(--error-red)', fontWeight: 700 }}>
+                      {loan.days_overdue} hari terlambat
+                    </span>
+                  </small>
+                </div>
+                <span className={styles.criticalBadge}>Terlambat</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       {/* New Account Approvals */}
       <div className={styles.sectionHeader}>

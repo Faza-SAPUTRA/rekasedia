@@ -181,6 +181,10 @@ router.get('/stats', async (req, res) => {
       WHERE i.stock <= COALESCE(i.min_stock, 5) AND i.is_loanable = FALSE
       ORDER BY i.stock ASC
     `);
+    // Hitung peminjaman terlambat (overdue)
+    const { rows: overdueLoans } = await pool.query(
+      "SELECT COUNT(*)::int AS total FROM loans WHERE status = 'DIPINJAM' AND due_date < CURRENT_DATE"
+    );
 
     res.json({
       totalItems: totalItems[0].total,
@@ -189,6 +193,7 @@ router.get('/stats', async (req, res) => {
       todayRequests: todayRequests[0].total,
       criticalStockCount: criticalStock[0].total,
       criticalItems,
+      overdueLoansCount: overdueLoans[0].total,
     });
   } catch (err) {
     console.error('Get stats error:', err);
