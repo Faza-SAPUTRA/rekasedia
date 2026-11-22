@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import CustomSelect from '../../components/CustomSelect';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -190,6 +190,39 @@ function downloadTextFile(filename: string, content: string, type = 'text/csv;ch
   URL.revokeObjectURL(url);
 }
 
+// --- Breadcrumb types ---
+type ViewLevel = 'semester' | 'month';
+
+interface BreadcrumbItem {
+  label: string;
+  level: ViewLevel;
+  monthIndex?: number;
+}
+
+// --- Status badge helper ---
+function getStatusBadge(rate: number) {
+  if (rate >= 80) return { label: 'Tinggi', color: '#dc2626', bg: '#fef2f2' };
+  if (rate >= 40) return { label: 'Sedang', color: '#d97706', bg: '#fffbeb' };
+  return { label: 'Rendah', color: '#16a34a', bg: '#f0fdf4' };
+}
+
+// --- Monthly detail from requests ---
+function getMonthlyRequestDetails(allRequests: any[], monthOrder: number) {
+  return allRequests
+    .filter((r) => {
+      const d = normalizeDate(r.request_date || r.created_at);
+      return d && d.getMonth() + 1 === monthOrder;
+    })
+    .map((r) => ({
+      code: r.req_code || '-',
+      item: r.item_name || '-',
+      requester: r.requester_name || 'Guru',
+      qty: Number(r.quantity) || 0,
+      status: r.status,
+      date: formatReportDate(r.request_date || r.created_at),
+    }));
+}
+
 export default function ReportsPage() {
   const [reports, setReports] = useState<any[]>([]);
   const [items, setItems] = useState<any[]>([]);
@@ -200,6 +233,11 @@ export default function ReportsPage() {
   // Modal State
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [selectedSemester, setSelectedSemester] = useState('ganjil-2025');
+
+  // Breadcrumb navigation state
+  const [viewLevel, setViewLevel] = useState<ViewLevel>('semester');
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
   const closeExportModal = () => {
     setIsExportOpen(false);
@@ -228,10 +266,7 @@ export default function ReportsPage() {
   }, []);
 
   const totalItems = reports.reduce((sum, r) => sum + r.total_items_ordered, 0);
-  const totalAssets = reports.reduce(
-    (sum, r) => sum + r.total_assets_borrowed,
-    0
-  );
+  const totalAssets = reports.reduce((sum, r) => sum + r.total_assets_borrowed, 0);
 
   const receiptRows = buildReceiptRows(items);
   const expenditureRows = buildExpenditureRows(requests);
@@ -242,6 +277,63 @@ export default function ReportsPage() {
   const receiptSummaryValue = receiptTotalValue || receiptTotalQuantity;
   const expenditureSummaryValue = expenditureTotalValue || expenditureTotalQuantity;
 
+  // Breadcrumb path
+  const breadcrumbs = useMemo<BreadcrumbItem[]>(() => {
+    const crumbs: BreadcrumbItem[] = [
+      { label: selectedSemester === 'ganjil-2025' ? 'Semester Ganjil 2025/2026' : 'Semester Genap 2024/2025', level: 'semester' },
+    ];
+    if (viewLevel === 'month' && selectedMonth !== null) {
+      const monthReport = reports.find((r) => r.month_order === selectedMonth);
+      crumbs.push({
+        label: monthReport?.month_name || `Bulan ${selectedMonth}`,
+        level: 'month',
+        monthIndex: selectedMonth,
+      });
+    }
+    return crumbs;
+  }, [viewLevel, selectedMonth, selectedSemester, reports]);
+
+  // Selected month data
+  const selectedMonthReport = useMemo(() => {
+    if (selectedMonth === null) return null;
+    return reports.find((r) => r.month_order === selectedMonth) || null;
+  }, [selectedMonth, reports]);
+
+  const monthRequests = useMemo(() => {
+    if (selectedMonth === null) return [];
+    return getMonthlyRequestDetails(requests, selectedMonth);
+  }, [selectedMonth, requests]);
+
+  // Highest month for highlight
+  const peakMonth = useMemo(() => {
+    if (reports.length === 0) return null;
+    return reports.reduce((max, r) =>
+      r.total_items_ordered > (max?.total_items_ordered || 0) ? r : max, reports[0]);
+  }, [reports]);
+
+  // Navigation functions
+  const navigateToMonth = (monthOrder: number) => {
+    setSelectedMonth(monthOrder);
+    setViewLevel('month');
+    setExpandedRows(new Set());
+  };
+
+  const navigateToSemester = () => {
+    setViewLevel('semester');
+    setSelectedMonth(null);
+    setExpandedRows(new Set());
+  };
+
+  const toggleExpandRow = (index: number) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
+
+  // --- Export ---
   const handleExportCSV = () => {
     const receiptBook = createBookRows(
       'BUKU PENERIMAAN PERSEDIAAN',
@@ -288,7 +380,7 @@ export default function ReportsPage() {
   };
 
   if (isLoading) {
-      return <PageSkeleton variant="reports" rows={6} />;
+    return <PageSkeleton variant="reports" rows={6} />;
   }
 
   // Chart data
@@ -298,14 +390,18 @@ export default function ReportsPage() {
       {
         label: 'Total Item (ATK)',
         data: reports.map((r) => r.total_items_ordered),
-        backgroundColor: '#8A9E8A',
+        backgroundColor: reports.map((r) =>
+          selectedMonth === r.month_order ? '#5a7a5a' : '#8A9E8A'
+        ),
         borderRadius: 6,
         barThickness: 24,
       },
       {
         label: 'Total Peminjaman Aset',
         data: reports.map((r) => r.total_assets_borrowed),
-        backgroundColor: '#2D2D2D',
+        backgroundColor: reports.map((r) =>
+          selectedMonth === r.month_order ? '#1a1a1a' : '#2D2D2D'
+        ),
         borderRadius: 6,
         barThickness: 24,
       },
@@ -315,6 +411,13 @@ export default function ReportsPage() {
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    onClick: (_event: any, elements: any[]) => {
+      if (elements.length > 0) {
+        const idx = elements[0].index;
+        const month = reports[idx];
+        if (month) navigateToMonth(month.month_order);
+      }
+    },
     plugins: {
       legend: { display: false },
       tooltip: { enabled: true },
@@ -329,6 +432,14 @@ export default function ReportsPage() {
         ticks: { display: false },
       },
     },
+  };
+
+  // --- Status badge for requests ---
+  const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
+    PENDING: { label: 'Menunggu', color: '#d97706', bg: '#fffbeb' },
+    APPROVED: { label: 'Disetujui', color: '#16a34a', bg: '#f0fdf4' },
+    REJECTED: { label: 'Ditolak', color: '#dc2626', bg: '#fef2f2' },
+    COMPLETED: { label: 'Selesai', color: '#2563eb', bg: '#eff6ff' },
   };
 
   return (
@@ -351,64 +462,429 @@ export default function ReportsPage() {
       {/* Semester Selector */}
       <div className={styles.semesterSection}>
         <div className={styles.semesterLabel}>Pilih Semester</div>
-        <CustomSelect 
+        <CustomSelect
           options={[
             { value: 'ganjil-2025', label: 'Semester Ganjil 2025/2026' },
             { value: 'genap-2024', label: 'Semester Genap 2024/2025' }
           ]}
           value={selectedSemester}
-          onChange={setSelectedSemester}
+          onChange={(val) => { setSelectedSemester(val); navigateToSemester(); }}
           className={styles.semesterSelect}
         />
       </div>
 
-      {/* Data Table */}
-      <div className={styles.reportTable}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>BULAN</th>
-              <th>TOTAL ITEM PESANAN (ATK)</th>
-              <th>TOTAL PEMINJAMAN ASET</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reports.map((report) => (
-              <tr key={report.id}>
-                <td className={styles.monthCell}>{report.month_name}</td>
-                <td>
-                  <span className={styles.dotIndicator}>
-                    <span className={styles.dot}></span>
-                    {report.total_items_ordered} Items
-                  </span>
-                </td>
-                <td>{report.total_assets_borrowed} Aset</td>
-              </tr>
-            ))}
-            {reports.length === 0 && (
-              <tr className={styles.emptyRow}>
-                <td colSpan={3}>
-                  <div className={styles.emptyState}>
-                    <div className={styles.emptyIcon}>
-                      <i className="fas fa-database"></i>
-                    </div>
-                    <div>
-                      <strong>Data laporan belum tersedia</strong>
-                      <span>{loadError || 'Backend akan mengisi data contoh otomatis saat endpoint laporan tersambung ke Supabase.'}</span>
-                    </div>
-                  </div>
-                </td>
-              </tr>
+      {/* Breadcrumb Navigation */}
+      <div className={styles.breadcrumb}>
+        {breadcrumbs.map((crumb, i) => (
+          <span key={i} className={styles.breadcrumbItem}>
+            {i > 0 && <i className="fas fa-chevron-right" style={{ fontSize: '10px', margin: '0 10px', color: 'var(--light-text)' }}></i>}
+            {i < breadcrumbs.length - 1 ? (
+              <button
+                className={styles.breadcrumbLink}
+                onClick={() => {
+                  if (crumb.level === 'semester') navigateToSemester();
+                }}
+              >
+                {crumb.label}
+              </button>
+            ) : (
+              <span className={styles.breadcrumbCurrent}>{crumb.label}</span>
             )}
-            {/* Total Row */}
-            <tr className={styles.totalRow}>
-              <td className={styles.totalLabel}>TOTAL SEMESTER</td>
-              <td className={styles.totalValue}>{totalItems} Items</td>
-              <td className={styles.totalValue}>{totalAssets} Aset</td>
-            </tr>
-          </tbody>
-        </table>
+          </span>
+        ))}
       </div>
+
+      {/* === SEMESTER VIEW === */}
+      {viewLevel === 'semester' && (
+        <>
+          {/* Stats Cards */}
+          <div className={styles.statsRow}>
+            <div className={styles.statCard}>
+              <div className={styles.statIcon} style={{ background: '#f0fdf4', color: '#16a34a' }}>
+                <i className="fas fa-box-open"></i>
+              </div>
+              <div>
+                <div className={styles.statValue}>{totalItems}</div>
+                <div className={styles.statLabel}>Total Item ATK</div>
+              </div>
+            </div>
+            <div className={styles.statCard}>
+              <div className={styles.statIcon} style={{ background: '#eff6ff', color: '#2563eb' }}>
+                <i className="fas fa-handshake"></i>
+              </div>
+              <div>
+                <div className={styles.statValue}>{totalAssets}</div>
+                <div className={styles.statLabel}>Total Peminjaman</div>
+              </div>
+            </div>
+            <div className={styles.statCard}>
+              <div className={styles.statIcon} style={{ background: '#fef3c7', color: '#d97706' }}>
+                <i className="fas fa-calendar-check"></i>
+              </div>
+              <div>
+                <div className={styles.statValue}>{reports.length}</div>
+                <div className={styles.statLabel}>Bulan Tercatat</div>
+              </div>
+            </div>
+            <div className={styles.statCard}>
+              <div className={styles.statIcon} style={{ background: '#fce7f3', color: '#db2777' }}>
+                <i className="fas fa-fire"></i>
+              </div>
+              <div>
+                <div className={styles.statValue}>{peakMonth?.month_name || '-'}</div>
+                <div className={styles.statLabel}>Bulan Tertinggi</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Advanced Data Table */}
+          <div className={styles.reportTable}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th style={{ width: '40px' }}></th>
+                  <th>BULAN</th>
+                  <th>TOTAL ITEM PESANAN (ATK)</th>
+                  <th>TOTAL PEMINJAMAN ASET</th>
+                  <th>RATA-RATA / HARI</th>
+                  <th>INTENSITAS</th>
+                  <th style={{ width: '60px' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {reports.map((report) => {
+                  const avgPerDay = (report.total_items_ordered / 30).toFixed(1);
+                  const usageRate = totalItems > 0
+                    ? Math.round((report.total_items_ordered / totalItems) * 100)
+                    : 0;
+                  const badge = getStatusBadge(usageRate);
+                  const barWidth = totalItems > 0
+                    ? Math.max(4, (report.total_items_ordered / Math.max(...reports.map((r: any) => r.total_items_ordered))) * 100)
+                    : 0;
+
+                  return (
+                    <tr
+                      key={report.id}
+                      onClick={() => navigateToMonth(report.month_order)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <td style={{ textAlign: 'center', color: 'var(--light-text)', fontSize: '12px' }}>
+                        {report.month_order}
+                      </td>
+                      <td className={styles.monthCell}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {report.month_name}
+                          {peakMonth?.month_order === report.month_order && (
+                            <span style={{
+                              fontSize: '9px',
+                              padding: '2px 6px',
+                              borderRadius: '99px',
+                              background: '#fef3c7',
+                              color: '#92400e',
+                              fontWeight: 700,
+                              letterSpacing: '0.03em',
+                            }}>PEAK</span>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{
+                            width: '80px',
+                            height: '6px',
+                            borderRadius: '99px',
+                            background: '#f0ede8',
+                            overflow: 'hidden',
+                            flexShrink: 0,
+                          }}>
+                            <div style={{
+                              width: `${barWidth}%`,
+                              height: '100%',
+                              borderRadius: '99px',
+                              background: 'var(--sage-green)',
+                              transition: 'width 0.5s ease',
+                            }} />
+                          </div>
+                          <span style={{ fontWeight: 600, fontSize: '14px' }}>
+                            {report.total_items_ordered}
+                          </span>
+                          <span style={{ color: 'var(--light-text)', fontSize: '12px' }}>items</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span style={{ fontWeight: 600 }}>{report.total_assets_borrowed}</span>
+                        <span style={{ color: 'var(--light-text)', fontSize: '12px', marginLeft: '4px' }}>aset</span>
+                      </td>
+                      <td>
+                        <span style={{ color: 'var(--medium-text)', fontSize: '13px' }}>
+                          ~{avgPerDay} item/hari
+                        </span>
+                      </td>
+                      <td>
+                        <span style={{
+                          display: 'inline-block',
+                          padding: '3px 10px',
+                          borderRadius: '99px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          color: badge.color,
+                          background: badge.bg,
+                        }}>
+                          {badge.label} ({usageRate}%)
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <i className="fas fa-chevron-right" style={{ fontSize: '11px', color: 'var(--light-text)' }}></i>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {reports.length === 0 && (
+                  <tr className={styles.emptyRow}>
+                    <td colSpan={7}>
+                      <div className={styles.emptyState}>
+                        <div className={styles.emptyIcon}>
+                          <i className="fas fa-database"></i>
+                        </div>
+                        <div>
+                          <strong>Data laporan belum tersedia</strong>
+                          <span>{loadError || 'Backend akan mengisi data contoh otomatis saat endpoint laporan tersambung ke Supabase.'}</span>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                {/* Total Row */}
+                <tr className={styles.totalRow}>
+                  <td></td>
+                  <td className={styles.totalLabel}>TOTAL SEMESTER</td>
+                  <td className={styles.totalValue}>{totalItems} Items</td>
+                  <td className={styles.totalValue}>{totalAssets} Aset</td>
+                  <td className={styles.totalValue}>~{(totalItems / 180).toFixed(1)} / hari</td>
+                  <td colSpan={2}></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {/* === MONTH DETAIL VIEW === */}
+      {viewLevel === 'month' && selectedMonthReport && (
+        <>
+          {/* Month Stats */}
+          <div className={styles.statsRow}>
+            <div className={styles.statCard}>
+              <div className={styles.statIcon} style={{ background: '#f0fdf4', color: '#16a34a' }}>
+                <i className="fas fa-box-open"></i>
+              </div>
+              <div>
+                <div className={styles.statValue}>{selectedMonthReport.total_items_ordered}</div>
+                <div className={styles.statLabel}>Item ATK Bulan Ini</div>
+              </div>
+            </div>
+            <div className={styles.statCard}>
+              <div className={styles.statIcon} style={{ background: '#eff6ff', color: '#2563eb' }}>
+                <i className="fas fa-handshake"></i>
+              </div>
+              <div>
+                <div className={styles.statValue}>{selectedMonthReport.total_assets_borrowed}</div>
+                <div className={styles.statLabel}>Peminjaman Aset</div>
+              </div>
+            </div>
+            <div className={styles.statCard}>
+              <div className={styles.statIcon} style={{ background: '#fef3c7', color: '#d97706' }}>
+                <i className="fas fa-file-alt"></i>
+              </div>
+              <div>
+                <div className={styles.statValue}>{monthRequests.length}</div>
+                <div className={styles.statLabel}>Total Transaksi</div>
+              </div>
+            </div>
+            <div className={styles.statCard}>
+              <div className={styles.statIcon} style={{ background: '#fce7f3', color: '#db2777' }}>
+                <i className="fas fa-percentage"></i>
+              </div>
+              <div>
+                <div className={styles.statValue}>
+                  {totalItems > 0 ? Math.round((selectedMonthReport.total_items_ordered / totalItems) * 100) : 0}%
+                </div>
+                <div className={styles.statLabel}>Dari Total Semester</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Detail Transaction Table */}
+          <div className={styles.reportTable}>
+            <div style={{
+              padding: '16px 24px',
+              background: '#F7F5F0',
+              borderBottom: '1px solid var(--border-color)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <div>
+                <strong style={{ fontSize: '15px', color: 'var(--dark-text)' }}>
+                  Detail Transaksi — {selectedMonthReport.month_name}
+                </strong>
+                <span style={{ fontSize: '12px', color: 'var(--gray-text)', marginLeft: '12px' }}>
+                  {monthRequests.length} transaksi ditemukan
+                </span>
+              </div>
+              <button
+                onClick={navigateToSemester}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-color)',
+                  background: 'white',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  color: 'var(--medium-text)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <i className="fas fa-arrow-left" style={{ fontSize: '10px' }}></i>
+                Kembali
+              </button>
+            </div>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th style={{ width: '40px' }}>#</th>
+                  <th>KODE</th>
+                  <th>BARANG</th>
+                  <th>PEMOHON</th>
+                  <th>JUMLAH</th>
+                  <th>TANGGAL</th>
+                  <th>STATUS</th>
+                  <th style={{ width: '40px' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {monthRequests.length === 0 ? (
+                  <tr className={styles.emptyRow}>
+                    <td colSpan={8}>
+                      <div className={styles.emptyState}>
+                        <div className={styles.emptyIcon}>
+                          <i className="fas fa-inbox"></i>
+                        </div>
+                        <div>
+                          <strong>Belum ada transaksi bulan ini</strong>
+                          <span>Data transaksi akan muncul setelah ada permintaan ATK yang diproses.</span>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  monthRequests.map((req, idx) => {
+                    const sc = statusConfig[req.status] || statusConfig.PENDING;
+                    const isExpanded = expandedRows.has(idx);
+                    return (
+                      <>
+                        <tr
+                          key={idx}
+                          onClick={() => toggleExpandRow(idx)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <td style={{ textAlign: 'center', color: 'var(--light-text)', fontSize: '12px' }}>
+                            {idx + 1}
+                          </td>
+                          <td>
+                            <span style={{
+                              fontFamily: 'monospace',
+                              fontSize: '12px',
+                              padding: '2px 8px',
+                              background: '#f5f5f4',
+                              borderRadius: '4px',
+                              color: 'var(--dark-text)',
+                              fontWeight: 600,
+                            }}>{req.code}</span>
+                          </td>
+                          <td style={{ fontWeight: 600 }}>{req.item}</td>
+                          <td style={{ color: 'var(--medium-text)' }}>{req.requester}</td>
+                          <td>
+                            <span style={{ fontWeight: 700, fontSize: '14px' }}>{req.qty}</span>
+                            <span style={{ color: 'var(--light-text)', fontSize: '12px', marginLeft: '4px' }}>unit</span>
+                          </td>
+                          <td style={{ color: 'var(--gray-text)', fontSize: '13px' }}>{req.date}</td>
+                          <td>
+                            <span style={{
+                              display: 'inline-block',
+                              padding: '3px 10px',
+                              borderRadius: '99px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              color: sc.color,
+                              background: sc.bg,
+                            }}>
+                              {sc.label}
+                            </span>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <i className={`fas fa-chevron-${isExpanded ? 'up' : 'down'}`}
+                              style={{ fontSize: '10px', color: 'var(--light-text)', transition: 'transform 0.2s' }}></i>
+                          </td>
+                        </tr>
+                        {isExpanded && (
+                          <tr key={`detail-${idx}`} style={{ background: '#FAFAF8' }}>
+                            <td colSpan={8} style={{ padding: '0 24px 16px 56px' }}>
+                              <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(3, 1fr)',
+                                gap: '16px',
+                                fontSize: '12px',
+                                color: 'var(--gray-text)',
+                                paddingTop: '8px',
+                                borderTop: '1px dashed var(--border-color)',
+                              }}>
+                                <div>
+                                  <div style={{ fontWeight: 700, color: 'var(--medium-text)', marginBottom: '2px' }}>Kode Permintaan</div>
+                                  <div style={{ fontFamily: 'monospace' }}>{req.code}</div>
+                                </div>
+                                <div>
+                                  <div style={{ fontWeight: 700, color: 'var(--medium-text)', marginBottom: '2px' }}>Pemohon</div>
+                                  <div>{req.requester}</div>
+                                </div>
+                                <div>
+                                  <div style={{ fontWeight: 700, color: 'var(--medium-text)', marginBottom: '2px' }}>Tanggal Pengajuan</div>
+                                  <div>{req.date}</div>
+                                </div>
+                                <div>
+                                  <div style={{ fontWeight: 700, color: 'var(--medium-text)', marginBottom: '2px' }}>Barang</div>
+                                  <div>{req.item}</div>
+                                </div>
+                                <div>
+                                  <div style={{ fontWeight: 700, color: 'var(--medium-text)', marginBottom: '2px' }}>Jumlah</div>
+                                  <div>{req.qty} unit</div>
+                                </div>
+                                <div>
+                                  <div style={{ fontWeight: 700, color: 'var(--medium-text)', marginBottom: '2px' }}>Status</div>
+                                  <span style={{
+                                    padding: '2px 8px',
+                                    borderRadius: '99px',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    color: sc.color,
+                                    background: sc.bg,
+                                  }}>{sc.label}</span>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
       {/* Trend Section */}
       <div className={styles.trendSection}>
@@ -430,6 +906,12 @@ export default function ReportsPage() {
           <div className={styles.chartArea}>
             <Bar data={chartData} options={chartOptions} />
           </div>
+          {viewLevel === 'semester' && (
+            <div style={{ textAlign: 'center', marginTop: '8px', fontSize: '11px', color: 'var(--light-text)' }}>
+              <i className="fas fa-mouse-pointer" style={{ marginRight: '4px' }}></i>
+              Klik bar chart untuk melihat detail bulan
+            </div>
+          )}
         </div>
 
         {/* Analysis */}
@@ -437,12 +919,23 @@ export default function ReportsPage() {
           <div className={styles.analysisIcon}>
             <i className="fas fa-chart-line"></i>
           </div>
-          <h3>Analisis Tren</h3>
-          <p>
-            Puncak penggunaan inventaris terjadi pada bulan <strong>Maret</strong>. Hal
-            ini dikarenakan tingginya permintaan ATK untuk persiapan{' '}
-            <u>Ujian Sekolah</u> dan administrasi semesteran.
-          </p>
+          <h3>{viewLevel === 'month' ? `Analisis ${selectedMonthReport?.month_name}` : 'Analisis Tren'}</h3>
+          {viewLevel === 'month' && selectedMonthReport ? (
+            <p>
+              Bulan <strong>{selectedMonthReport.month_name}</strong> mencatat{' '}
+              <strong>{selectedMonthReport.total_items_ordered} item</strong> pesanan ATK
+              dan <strong>{selectedMonthReport.total_assets_borrowed} aset</strong> dipinjam.
+              {selectedMonthReport.total_items_ordered === peakMonth?.total_items_ordered && (
+                <> Ini adalah <u>bulan puncak</u> penggunaan inventaris semester ini.</>
+              )}
+            </p>
+          ) : (
+            <p>
+              Puncak penggunaan inventaris terjadi pada bulan <strong>{peakMonth?.month_name || '-'}</strong>. Hal
+              ini dikarenakan tingginya permintaan ATK untuk persiapan{' '}
+              <u>Ujian Sekolah</u> dan administrasi semesteran.
+            </p>
+          )}
           <p className={styles.analysisMeta}>
             Data diperbarui secara otomatis berdasarkan laporan bulanan yang masuk.
           </p>
@@ -458,7 +951,7 @@ export default function ReportsPage() {
           <div className={styles.summaryContent}>
             <h4>Tren Penggunaan</h4>
             <p>
-              Puncak penggunaan inventaris terjadi pada bulan Maret untuk persiapan ujian
+              Puncak penggunaan inventaris terjadi pada bulan {peakMonth?.month_name || 'Maret'} untuk persiapan ujian
               sekolah.
             </p>
           </div>
@@ -491,24 +984,24 @@ export default function ReportsPage() {
             Unduh buku persediaan dengan format Buku Penerimaan dan Buku Pengeluaran.
           </p>
           <div className="globalModalBtns" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <button 
-              className="globalModalBtnConfirm" 
+            <button
+              className="globalModalBtnConfirm"
               onClick={handleExportXLSX}
               style={{ backgroundColor: '#1d6f42', borderColor: '#1d6f42' }}
             >
               <i className="fas fa-file-excel" style={{ marginRight: '8px' }}></i>
               Unduh Excel 2 Sheet (.xlsx)
             </button>
-            <button 
-              className="globalModalBtnConfirm" 
+            <button
+              className="globalModalBtnConfirm"
               onClick={handleExportCSV}
               style={{ backgroundColor: '#2196F3', borderColor: '#2196F3' }}
             >
               <i className="fas fa-file-csv" style={{ marginRight: '8px' }}></i>
-              Unduh CSV Penerimaan & Pengeluaran
+              Unduh CSV Penerimaan &amp; Pengeluaran
             </button>
-            <button 
-              className="globalModalBtnCancel" 
+            <button
+              className="globalModalBtnCancel"
               onClick={closeExportModal}
             >
               Batal
