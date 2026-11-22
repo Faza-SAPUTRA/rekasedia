@@ -542,7 +542,7 @@ export async function createRequest(items: { item_id: number; quantity: number }
   return parseJsonResponse(res, 'Gagal membuat permintaan');
 }
 
-export async function updateRequestStatus(id: number, status: 'APPROVED' | 'REJECTED' | 'COMPLETED', reviewed_by?: number) {
+export async function updateRequestStatus(id: number, status: 'APPROVED' | 'REJECTED' | 'COMPLETED', reviewed_by?: number, evidence_photo?: string) {
   if (USE_MOCK) {
     const existing = readMockRequests();
     const targetRequest = existing.find((request: any) => request.id === id);
@@ -586,7 +586,7 @@ export async function updateRequestStatus(id: number, status: 'APPROVED' | 'REJE
   const res = await fetch(`${API_BASE}/requests/${id}`, {
     method: 'PUT',
     headers: authHeaders(),
-    body: JSON.stringify({ status, reviewed_by }),
+    body: JSON.stringify({ status, reviewed_by, ...(evidence_photo ? { evidence_photo } : {}) }),
   });
   return parseJsonResponse(res, 'Gagal mengupdate permintaan');
 }

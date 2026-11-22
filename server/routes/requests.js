@@ -180,9 +180,19 @@ router.put('/:id', requireAdmin, async (req, res) => {
         return res.status(409).json({ error: 'Hanya permintaan siap diambil yang dapat diselesaikan.' });
       }
 
+      // Evidence photo is required for COMPLETED
+      const { evidence_photo } = req.body;
+      if (!evidence_photo) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Foto bukti pengambilan wajib dilampirkan.' });
+      }
+
+      // Ensure column exists
+      await client.query('ALTER TABLE requests ADD COLUMN IF NOT EXISTS evidence_photo TEXT DEFAULT NULL');
+
       await client.query(
-        "UPDATE requests SET status = 'COMPLETED', completed_at = NOW() WHERE id = $1",
-        [req.params.id]
+        "UPDATE requests SET status = 'COMPLETED', completed_at = NOW(), evidence_photo = $2 WHERE id = $1",
+        [req.params.id, evidence_photo]
       );
     } else {
       if (request.status !== 'PENDING') {
