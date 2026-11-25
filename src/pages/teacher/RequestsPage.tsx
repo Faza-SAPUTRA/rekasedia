@@ -136,9 +136,19 @@ export default function TeacherRequestsPage() {
                 </div>
                 <div className={styles.cardContent}>
                   <div className={styles.itemList}>{req.quantity}x {req.item_name}</div>
+                  {req.borrow_date && req.due_date && (
+                    <div style={{ fontSize: '13px', color: '#4b6b58', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <i className="fas fa-calendar-alt"></i>
+                      <span>Jadwal Pinjam: {formatDate(req.borrow_date)} — {formatDate(req.due_date)}</span>
+                    </div>
+                  )}
                   <div className={styles.destination}>
                     <i className="fas fa-map-marker-alt"></i>
-                    {req.status === 'COMPLETED' ? 'Barang sudah diambil' : 'Pengambilan di Ruang Sarpras'}
+                    {req.status === 'COMPLETED'
+                      ? ((req.borrow_date && req.due_date) || req.is_loanable
+                        ? 'Barang sudah diambil — cek menu Peminjaman Aset untuk pengembalian'
+                        : 'Barang sudah diambil')
+                      : 'Pengambilan di Ruang Sarpras'}
                   </div>
                 </div>
               </div>

@@ -503,9 +503,19 @@ export async function fetchRequests(): Promise<any[]> {
   return parseJsonResponse<any[]>(res, 'Gagal mengambil data permintaan');
 }
 
-export async function createRequest(items: { item_id: number; quantity: number }[], requester_id: number) {
+export interface RequestScheduleInput {
+  borrow_date?: string;
+  due_date?: string;
+  notes?: string;
+}
+
+export async function createRequest(
+  items: { item_id: number; quantity: number }[],
+  requester_id: number,
+  schedule?: RequestScheduleInput
+) {
   if (USE_MOCK) {
-    console.log('[MOCK] Create request:', items);
+    console.log('[MOCK] Create request:', items, schedule);
     const existing = readMockRequests();
     const inventoryItems = readMockItems();
     const requester = [...mockData.users, ...readApprovedUsers()].find((user) => user.id === requester_id);
@@ -520,11 +530,15 @@ export async function createRequest(items: { item_id: number; quantity: number }
           req_code: `REQ-MOCK-${timestamp.toString().slice(-4)}`,
           item_id: requestedItem.item_id,
           item_name: item?.name || 'Unknown Item',
+          is_loanable: Boolean(item?.is_loanable),
           requester_id,
           requester_name: requester?.full_name || 'User Mock',
           requester_role: requester?.department || requester?.role || 'Guru',
           quantity: requestedItem.quantity,
           request_date: today,
+          borrow_date: schedule?.borrow_date || null,
+          due_date: schedule?.due_date || null,
+          notes: schedule?.notes || null,
           status: 'PENDING',
           priority: item?.stock <= 5 ? 'URGENT' : 'REGULER'
       };
@@ -537,7 +551,13 @@ export async function createRequest(items: { item_id: number; quantity: number }
   const res = await fetch(`${API_BASE}/requests`, {
     method: 'POST',
     headers: authHeaders(),
-    body: JSON.stringify({ items, requester_id }),
+    body: JSON.stringify({
+      items,
+      requester_id,
+      ...(schedule?.borrow_date ? { borrow_date: schedule.borrow_date } : {}),
+      ...(schedule?.due_date ? { due_date: schedule.due_date } : {}),
+      ...(schedule?.notes ? { notes: schedule.notes } : {}),
+    }),
   });
   return parseJsonResponse(res, 'Gagal membuat permintaan');
 }
@@ -578,6 +598,38 @@ export async function updateRequestStatus(id: number, status: 'APPROVED' | 'REJE
           : item
       );
       writeMockItems(updatedItems);
+    }
+
+    if (status === 'COMPLETED') {
+      const itemInfo = readMockItems().find((item: any) => item.id === targetRequest.item_id);
+      const shouldCreateLoan = Boolean(
+        (targetRequest.borrow_date && targetRequest.due_date) ||
+        targetRequest.is_loanable ||
+        itemInfo?.is_loanable
+      );
+      if (shouldCreateLoan) {
+        const existingLoans = readMockLoans();
+        if (!existingLoans.some((loan: any) => loan.request_id === targetRequest.id)) {
+          const today = new Date();
+          const defaultDue = new Date(today);
+          defaultDue.setDate(defaultDue.getDate() + 3);
+          const newLoan = {
+            id: Date.now(),
+            request_id: targetRequest.id,
+            item_id: targetRequest.item_id,
+            item_name: targetRequest.item_name || itemInfo?.name || 'Unknown',
+            item_image: itemInfo?.image_url || null,
+            borrower_id: targetRequest.requester_id,
+            borrower_name: targetRequest.requester_name || 'User Mock',
+            borrow_date: targetRequest.borrow_date || formatMockDate(today),
+            due_date: targetRequest.due_date || formatMockDate(defaultDue),
+            quantity: targetRequest.quantity || 1,
+            status: 'DIPINJAM',
+            condition_note: targetRequest.notes || `Dari permintaan ${targetRequest.req_code}`,
+          };
+          writeMockLoans([newLoan, ...existingLoans]);
+        }
+      }
     }
 
     return { message: 'Status diupdate (MOCK)' };
@@ -673,9 +725,16 @@ export async function createLoan(data: {
 export async function returnLoan(id: number) {
   if (USE_MOCK) {
     const loans = readMockLoans();
+    const target = loans.find((loan: any) => loan.id === id);
     writeMockLoans(loans.map((loan: any) => (
       loan.id === id ? { ...loan, status: 'DIKEMBALIKAN', returned_at: formatMockDate(new Date()) } : loan
     )));
+    if (target?.request_id) {
+      const returnQty = Math.max(1, Number(target.quantity || 1));
+      writeMockItems(readMockItems().map((item: any) => (
+        item.id === target.item_id ? { ...item, stock: item.stock + returnQty } : item
+      )));
+    }
     return { message: 'Barang dikembalikan (MOCK)' };
   }
 

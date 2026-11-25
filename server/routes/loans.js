@@ -211,6 +211,16 @@ router.put('/:id/return', async (req, res) => {
       [req.params.id]
     );
 
+    // Jika peminjaman ini berasal dari permintaan yang mengurangi stok saat APPROVED,
+    // kembalikan stok item ketika barang dikembalikan.
+    if (loan.request_id) {
+      const returnQty = Math.max(1, Number(loan.quantity || 1));
+      await client.query(
+        'UPDATE items SET stock = stock + $1, updated_at = NOW() WHERE id = $2',
+        [returnQty, loan.item_id]
+      );
+    }
+
     // Audit log
     await logAudit({
       actorId: req.user?.id,

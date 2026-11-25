@@ -304,16 +304,22 @@ export async function notifyTeacher(teacher, text) {
 /**
  * Notifikasi ke Admin (DM): Permintaan ATK baru diajukan Guru
  */
-export async function notifyNewRequest(requesterName, items) {
+export async function notifyNewRequest(requesterName, items, schedule = null) {
   const itemList = items
     .map((item) => `- ${escapeHtml(item.item_name)} x${item.quantity}`)
     .join('\n');
 
+  const scheduleLine =
+    schedule?.borrow_date && schedule?.due_date
+      ? `\nJadwal Pinjam: <b>${escapeHtml(schedule.borrow_date)}</b> s/d <b>${escapeHtml(schedule.due_date)}</b>\n`
+      : '\n';
+
   const text =
-    `📦 <b>Permintaan ATK Baru</b>\n\n` +
+    `📦 <b>Permintaan Barang Baru</b>\n\n` +
     `Dari: <b>${escapeHtml(requesterName)}</b>\n` +
-    `Barang:\n${itemList}\n\n` +
-    `Silakan buka dashboard admin untuk mereview.`;
+    `Barang:\n${itemList}` +
+    scheduleLine +
+    `\nSilakan buka dashboard admin untuk mereview.`;
 
   return sendToAdmin(text);
 }

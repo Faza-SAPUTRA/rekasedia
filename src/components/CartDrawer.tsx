@@ -8,6 +8,7 @@ export interface CartItem {
   category: string;
   image_url?: string | null;
   quantity: number;
+  is_loanable?: boolean;
 }
 
 interface CartDrawerProps {

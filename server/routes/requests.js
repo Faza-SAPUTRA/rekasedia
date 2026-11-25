@@ -11,6 +11,24 @@ import { requireAdmin } from '../middleware/auth.js';
 const router = Router();
 
 let completedStatusReady;
+let scheduleSchemaReady;
+
+async function ensureScheduleSchema(queryable = pool) {
+  if (!scheduleSchemaReady) {
+    scheduleSchemaReady = (async () => {
+      await queryable.query(`
+        ALTER TABLE requests ADD COLUMN IF NOT EXISTS borrow_date DATE DEFAULT NULL;
+        ALTER TABLE requests ADD COLUMN IF NOT EXISTS due_date DATE DEFAULT NULL;
+        ALTER TABLE loans ADD COLUMN IF NOT EXISTS request_id INT DEFAULT NULL;
+        ALTER TABLE loans ADD COLUMN IF NOT EXISTS quantity INT DEFAULT 1;
+      `);
+    })().catch((error) => {
+      scheduleSchemaReady = undefined;
+      throw error;
+    });
+  }
+  return scheduleSchemaReady;
+}
 
 async function ensureCompletedStatusSupport(client) {
   if (!completedStatusReady) {
@@ -41,10 +59,12 @@ async function ensureCompletedStatusSupport(client) {
 // GET /api/requests — Semua permintaan + nama barang & pemohon
 router.get('/', async (req, res) => {
   try {
+    await ensureScheduleSchema();
     const { rows } = await pool.query(`
       SELECT r.*, 
              i.name AS item_name, 
              i.unit AS unit,
+             i.is_loanable AS is_loanable,
              i.description AS item_description,
              c.name AS category_name,
              u.full_name AS requester_name, 
@@ -65,7 +85,8 @@ router.get('/', async (req, res) => {
 // POST /api/requests — Buat permintaan baru (dari Cart Teacher)
 router.post('/', async (req, res) => {
   try {
-    const { items } = req.body;
+    await ensureScheduleSchema();
+    const { items, borrow_date, due_date, notes } = req.body;
     // items = [{ item_id, quantity }]
 
     // Guru hanya boleh mengajukan atas namanya sendiri; admin boleh atas nama siapa pun.
@@ -75,6 +96,18 @@ router.post('/', async (req, res) => {
 
     if (!items || items.length === 0 || !requester_id) {
       return res.status(400).json({ error: 'Data permintaan tidak valid.' });
+    }
+
+    const cleanBorrowDate = borrow_date ? String(borrow_date).trim() : null;
+    const cleanDueDate = due_date ? String(due_date).trim() : null;
+    const cleanNotes = notes ? String(notes).trim() : null;
+
+    if ((cleanBorrowDate && !cleanDueDate) || (!cleanBorrowDate && cleanDueDate)) {
+      return res.status(400).json({ error: 'Tanggal pinjam dan batas kembali harus diisi keduanya.' });
+    }
+
+    if (cleanBorrowDate && cleanDueDate && new Date(cleanBorrowDate) > new Date(cleanDueDate)) {
+      return res.status(400).json({ error: 'Tanggal pinjam tidak boleh melebihi batas kembali.' });
     }
 
     const results = [];
@@ -89,6 +122,9 @@ router.post('/', async (req, res) => {
       item.quantity = qty; // normalize
 
       const priority = String(item.priority || req.body.priority || 'REGULER').toUpperCase() === 'URGENT' ? 'URGENT' : 'REGULER';
+      const itemBorrowDate = item.borrow_date ? String(item.borrow_date).trim() : cleanBorrowDate;
+      const itemDueDate = item.due_date ? String(item.due_date).trim() : cleanDueDate;
+      const itemNotes = item.notes ? String(item.notes).trim() : cleanNotes;
 
       // Generate req_code format REQ-YYYYMM-XXXX (urut per bulan)
       const { rows: seqRows } = await pool.query(
@@ -101,9 +137,9 @@ router.post('/', async (req, res) => {
       const req_code = `REQ-${period.rows[0].period}-${String(nextNum).padStart(4, '0')}`;
 
       const result = await pool.query(
-        `INSERT INTO requests (req_code, item_id, requester_id, quantity, request_date, status, priority)
-         VALUES ($1, $2, $3, $4, CURRENT_DATE, 'PENDING', $5) RETURNING id`,
-        [req_code, item.item_id, requester_id, item.quantity, priority]
+        `INSERT INTO requests (req_code, item_id, requester_id, quantity, request_date, status, priority, borrow_date, due_date, notes)
+         VALUES ($1, $2, $3, $4, CURRENT_DATE, 'PENDING', $5, $6, $7, $8) RETURNING id`,
+        [req_code, item.item_id, requester_id, item.quantity, priority, itemBorrowDate, itemDueDate, itemNotes]
       );
 
       results.push({ id: result.rows[0].id, req_code });
@@ -115,7 +151,12 @@ router.post('/', async (req, res) => {
         actionType: 'INSERT',
         tableAffected: 'requests',
         recordId: result.rows[0].id,
-        changeDetails: { req_code, item_id: item.item_id, quantity: item.quantity },
+        changeDetails: {
+          req_code,
+          item_id: item.item_id,
+          quantity: item.quantity,
+          ...(itemBorrowDate && itemDueDate ? { borrow_date: itemBorrowDate, due_date: itemDueDate } : {}),
+        },
         ipAddress: req.ip,
       });
 
@@ -128,7 +169,11 @@ router.post('/', async (req, res) => {
 
     // Telegram: Notifikasi ke Admin tentang permintaan baru
     const requesterName = req.user?.full_name || 'Guru';
-    await notifyNewRequest(requesterName, notifItems).catch((err) =>
+    await notifyNewRequest(
+      requesterName,
+      notifItems,
+      cleanBorrowDate && cleanDueDate ? { borrow_date: cleanBorrowDate, due_date: cleanDueDate } : null
+    ).catch((err) =>
       console.error('[Telegram] notifyNewRequest error:', err.message)
     );
 
@@ -149,6 +194,7 @@ router.put('/:id', requireAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Status permintaan tidak valid.' });
     }
 
+    await ensureScheduleSchema();
     await client.query('BEGIN');
     await setRLSContext(client, req.user);
     if (status === 'COMPLETED') {
@@ -157,7 +203,9 @@ router.put('/:id', requireAdmin, async (req, res) => {
 
     const { rows } = await client.query(
       `SELECT r.id, r.item_id, r.quantity, r.status, r.req_code, r.requester_id,
+              r.borrow_date, r.due_date, r.notes,
               i.name AS item_name,
+              i.is_loanable AS is_loanable,
               u.full_name AS requester_name,
               to_jsonb(u)->>'telegram_username' AS requester_telegram_username,
               to_jsonb(u)->>'telegram_chat_id' AS requester_telegram_chat_id
@@ -175,6 +223,7 @@ router.put('/:id', requireAdmin, async (req, res) => {
     }
 
     const oldStatus = request.status;
+    let loanCreated = false;
 
     if (status === 'COMPLETED') {
       if (request.status !== 'APPROVED') {
@@ -196,6 +245,59 @@ router.put('/:id', requireAdmin, async (req, res) => {
         "UPDATE requests SET status = 'COMPLETED', completed_at = NOW(), evidence_photo = $2 WHERE id = $1",
         [req.params.id, evidence_photo]
       );
+
+      // Jika barang modal (is_loanable) ATAU user mengisi jadwal pinjam opsional,
+      // otomatis buat catatan di tabel `loans` supaya bisa dikembalikan dari halaman Peminjaman Aset.
+      const shouldCreateLoan = Boolean((request.borrow_date && request.due_date) || request.is_loanable);
+      if (shouldCreateLoan) {
+        const { rows: existingLoan } = await client.query(
+          'SELECT id FROM loans WHERE request_id = $1 LIMIT 1',
+          [request.id]
+        );
+        if (existingLoan.length === 0) {
+          const { rows: insertedLoan } = await client.query(
+            `INSERT INTO loans (item_id, borrower_id, borrow_date, due_date, status, condition_note, request_id, quantity)
+             VALUES (
+               $1,
+               $2,
+               COALESCE($3::date, CURRENT_DATE),
+               COALESCE($4::date, CURRENT_DATE + INTERVAL '3 days'),
+               'DIPINJAM',
+               $5,
+               $6,
+               $7
+             )
+             RETURNING id`,
+            [
+              request.item_id,
+              request.requester_id,
+              request.borrow_date || null,
+              request.due_date || null,
+              request.notes || `Dari permintaan ${request.req_code}`,
+              request.id,
+              request.quantity || 1,
+            ]
+          );
+
+          await logAudit({
+            actorId: req.user?.id || reviewed_by,
+            actorRole: req.user?.role || 'admin',
+            actionType: 'INSERT',
+            tableAffected: 'loans',
+            recordId: insertedLoan[0].id,
+            changeDetails: {
+              from_request: request.req_code,
+              item_name: request.item_name,
+              quantity: request.quantity || 1,
+              borrow_date: request.borrow_date || 'today',
+              due_date: request.due_date || '+3 days',
+            },
+            ipAddress: req.ip,
+            client,
+          });
+          loanCreated = true;
+        }
+      }
     } else {
       if (request.status !== 'PENDING') {
         await client.query('ROLLBACK');
@@ -258,9 +360,11 @@ router.put('/:id', requireAdmin, async (req, res) => {
     const messages = {
       APPROVED: 'Permintaan berhasil disetujui.',
       REJECTED: 'Permintaan berhasil ditolak.',
-      COMPLETED: 'Barang berhasil ditandai sudah diambil.',
+      COMPLETED: loanCreated
+        ? 'Barang sudah diambil dan otomatis tercatat di Peminjaman Aset.'
+        : 'Barang berhasil ditandai sudah diambil.',
     };
-    res.json({ message: messages[status] });
+    res.json({ message: messages[status], loan_created: loanCreated });
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('Update request error:', err);

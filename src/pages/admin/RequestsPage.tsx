@@ -186,7 +186,18 @@ export default function AdminRequestsPage() {
                   <span className={styles.reqCode}>{req.req_code}</span>
                 </td>
                 <td className={styles.itemName}>
-                  {req.quantity}x {req.item_name}
+                  <div>{req.quantity}x {req.item_name}</div>
+                  {req.borrow_date && req.due_date && (
+                    <div style={{ fontSize: '11.5px', color: '#4b6b58', fontWeight: 500, marginTop: '3px' }}>
+                      <i className="fas fa-calendar-alt" style={{ marginRight: '5px' }}></i>
+                      Pinjam: {new Date(req.borrow_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} — {new Date(req.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </div>
+                  )}
+                  {req.notes && (
+                    <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 400, marginTop: '2px' }}>
+                      Catatan: {req.notes}
+                    </div>
+                  )}
                 </td>
                 <td>
                   <div className={styles.requesterInfo}>
