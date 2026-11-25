@@ -1,5 +1,5 @@
 /**
- * Skrip sekali jalan untuk memasang webhook bot Telegram.
+ * Skrip sekali jalan untuk memasang webhook & daftar command menu bot Telegram.
  * Pakai: node server/setup_telegram_webhook.js <APP_BASE_URL>
  */
 import 'dotenv/config';
@@ -27,5 +27,20 @@ const response = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, 
   body: JSON.stringify(body),
 });
 const result = await response.json();
-console.log(JSON.stringify({ webhookUrl, ...result }, null, 2));
+
+// Daftarkan menu command (/) di Telegram agar /tautkan, /status, /batal muncul otomatis
+const cmdResponse = await fetch(`https://api.telegram.org/bot${token}/setMyCommands`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    commands: [
+      { command: 'tautkan', description: 'Tautkan akun RekaSedia (Admin / Guru) dengan email login' },
+      { command: 'status', description: 'Cek akun RekaSedia yang sedang tertaut' },
+      { command: 'batal', description: 'Batalkan proses penautan akun' },
+    ],
+  }),
+});
+const cmdResult = await cmdResponse.json();
+
+console.log(JSON.stringify({ webhookUrl, webhook: result, commands: cmdResult }, null, 2));
 if (!result.ok) process.exit(1);

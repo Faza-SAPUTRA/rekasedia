@@ -156,7 +156,9 @@ router.post('/', async (req, res) => {
 
     // Telegram: Notifikasi ke Admin tentang peminjaman baru
     const borrowerName = req.user?.full_name || 'Guru';
-    notifyNewLoan(borrowerName, item.name, borrow_date, due_date);
+    await notifyNewLoan(borrowerName, item.name, borrow_date, due_date).catch((err) =>
+      console.error('[Telegram] notifyNewLoan error:', err.message)
+    );
 
     res.status(201).json({
       message: `Peminjaman "${item.name}" berhasil dibuat.`,

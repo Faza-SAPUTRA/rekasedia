@@ -128,7 +128,9 @@ router.post('/', async (req, res) => {
 
     // Telegram: Notifikasi ke Admin tentang permintaan baru
     const requesterName = req.user?.full_name || 'Guru';
-    notifyNewRequest(requesterName, notifItems);
+    await notifyNewRequest(requesterName, notifItems).catch((err) =>
+      console.error('[Telegram] notifyNewRequest error:', err.message)
+    );
 
     res.status(201).json({ message: 'Permintaan berhasil dikirim!', requests: results });
   } catch (err) {
@@ -244,9 +246,13 @@ router.put('/:id', requireAdmin, async (req, res) => {
       chatId: request.requester_telegram_chat_id,
     };
     if (status === 'APPROVED') {
-      notifyRequestApproved(requesterTeacher, request.req_code, request.item_name, request.quantity);
+      await notifyRequestApproved(requesterTeacher, request.req_code, request.item_name, request.quantity).catch((err) =>
+        console.error('[Telegram] notifyRequestApproved error:', err.message)
+      );
     } else if (status === 'REJECTED') {
-      notifyRequestRejected(requesterTeacher, request.req_code, request.item_name);
+      await notifyRequestRejected(requesterTeacher, request.req_code, request.item_name).catch((err) =>
+        console.error('[Telegram] notifyRequestRejected error:', err.message)
+      );
     }
 
     const messages = {
