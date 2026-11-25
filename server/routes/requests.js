@@ -121,9 +121,19 @@ router.post('/', async (req, res) => {
       }
       item.quantity = qty; // normalize
 
+      // Cek info barang (nama & klasifikasi is_loanable)
+      const { rows: itemInfo } = await pool.query('SELECT name, is_loanable FROM items WHERE id = $1', [item.item_id]);
+      const isLoanable = Boolean(itemInfo[0]?.is_loanable);
+
       const priority = String(item.priority || req.body.priority || 'REGULER').toUpperCase() === 'URGENT' ? 'URGENT' : 'REGULER';
-      const itemBorrowDate = item.borrow_date ? String(item.borrow_date).trim() : cleanBorrowDate;
-      const itemDueDate = item.due_date ? String(item.due_date).trim() : cleanDueDate;
+      // Jadwal pinjam/kembali hanya berlaku untuk Barang Modal (is_loanable = true).
+      // Barang Persediaan cukup tracking status tanpa tanggal kembali.
+      const itemBorrowDate = isLoanable
+        ? (item.borrow_date ? String(item.borrow_date).trim() : cleanBorrowDate)
+        : null;
+      const itemDueDate = isLoanable
+        ? (item.due_date ? String(item.due_date).trim() : cleanDueDate)
+        : null;
       const itemNotes = item.notes ? String(item.notes).trim() : cleanNotes;
 
       // Generate req_code format REQ-YYYYMM-XXXX (urut per bulan)
@@ -161,7 +171,6 @@ router.post('/', async (req, res) => {
       });
 
       // Kumpulkan data untuk notifikasi Telegram
-      const { rows: itemInfo } = await pool.query('SELECT name FROM items WHERE id = $1', [item.item_id]);
       if (itemInfo.length > 0) {
         notifItems.push({ item_name: itemInfo[0].name, quantity: item.quantity });
       }
@@ -246,9 +255,9 @@ router.put('/:id', requireAdmin, async (req, res) => {
         [req.params.id, evidence_photo]
       );
 
-      // Jika barang modal (is_loanable) ATAU user mengisi jadwal pinjam opsional,
-      // otomatis buat catatan di tabel `loans` supaya bisa dikembalikan dari halaman Peminjaman Aset.
-      const shouldCreateLoan = Boolean((request.borrow_date && request.due_date) || request.is_loanable);
+      // Hanya Barang Modal (is_loanable = true) yang otomatis masuk ke tabel `loans`
+      // agar memiliki batas pengembalian & wajib dikembalikan via Admin Sarpras.
+      const shouldCreateLoan = Boolean(request.is_loanable);
       if (shouldCreateLoan) {
         const { rows: existingLoan } = await client.query(
           'SELECT id FROM loans WHERE request_id = $1 LIMIT 1',

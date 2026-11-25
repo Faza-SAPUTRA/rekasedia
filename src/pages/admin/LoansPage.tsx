@@ -171,6 +171,7 @@ export default function LoansPage() {
     if (!q) return base;
     return base.filter(
       (loan) =>
+        String(loan.req_code || '').toLowerCase().includes(q) ||
         String(loan.item_name || '').toLowerCase().includes(q) ||
         String(loan.borrower_name || '').toLowerCase().includes(q) ||
         String(loan.condition_note || '').toLowerCase().includes(q)
@@ -287,6 +288,9 @@ export default function LoansPage() {
                         />
                       </div>
                       <div>
+                        <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--sage-dark)', marginBottom: '2px' }}>
+                          {loan.req_code || `LOAN-${String(loan.id).padStart(4, '0')}`}
+                        </div>
                         <div className={styles.assetTitle}>
                           {loan.quantity && loan.quantity > 1 ? `${loan.quantity}x ` : ''}
                           {loan.item_name}

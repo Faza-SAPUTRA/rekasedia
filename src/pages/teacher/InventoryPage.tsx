@@ -175,7 +175,8 @@ export default function TeacherInventoryPage({ classification = 'modal' }: Teach
   const handleConfirmSubmit = async () => {
     if (isSubmittingRequest) return;
 
-    if (useBorrowSchedule) {
+    const hasModalItem = cartItems.some((item) => item.is_loanable);
+    if (hasModalItem && useBorrowSchedule) {
       if (!borrowDate || !dueDate) {
         setErrorMessage('Tanggal pinjam dan batas kembali wajib diisi jika jadwal peminjaman diaktifkan.');
         return;
@@ -192,7 +193,7 @@ export default function TeacherInventoryPage({ classification = 'modal' }: Teach
       if (!user) throw new Error('Not logged in');
       
       const payload = cartItems.map(i => ({ item_id: i.id, quantity: i.quantity }));
-      const schedule = useBorrowSchedule
+      const schedule = hasModalItem && useBorrowSchedule
         ? {
             borrow_date: borrowDate,
             due_date: dueDate,
@@ -449,90 +450,90 @@ export default function TeacherInventoryPage({ classification = 'modal' }: Teach
               ))}
             </div>
 
-            {/* Optional Borrow Schedule Toggle */}
-            <div style={{
-              background: 'var(--white)',
-              border: useBorrowSchedule ? '1.5px solid #5B7A6A' : '1px solid rgba(0,0,0,0.08)',
-              borderRadius: '12px',
-              padding: '14px 16px',
-              marginBottom: '20px',
-              textAlign: 'left',
-              transition: 'border-color 0.2s',
-            }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
-                <input
-                  type="checkbox"
-                  checked={useBorrowSchedule}
-                  onChange={(e) => setUseBorrowSchedule(e.target.checked)}
-                  style={{ width: '16px', height: '16px', accentColor: '#5B7A6A', cursor: 'pointer' }}
-                />
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '13.5px', color: '#2B342C' }}>
-                    <i className="fas fa-calendar-alt" style={{ marginRight: '6px', color: '#5B7A6A' }}></i>
-                    Pinjam dengan tanggal tertentu (opsional)
-                  </div>
-                  <div style={{ fontSize: '11.5px', color: '#6b7280', marginTop: '2px' }}>
-                    Aktifkan bila ingin menentukan tanggal pinjam &amp; batas pengembalian.
-                  </div>
-                </div>
-              </label>
-
-              {useBorrowSchedule && (
-                <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#2B342C', marginBottom: '4px' }}>
-                        Tanggal Pinjam *
-                      </label>
-                      <input
-                        type="date"
-                        value={borrowDate}
-                        min={getTodayStr()}
-                        onChange={(e) => {
-                          const nextBorrow = e.target.value;
-                          setBorrowDate(nextBorrow);
-                          if (dueDate && nextBorrow > dueDate) {
-                            setDueDate(nextBorrow);
-                          }
-                        }}
-                        style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '13px', boxSizing: 'border-box' }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#2B342C', marginBottom: '4px' }}>
-                        Batas Kembali *
-                      </label>
-                      <input
-                        type="date"
-                        value={dueDate}
-                        min={borrowDate || getTodayStr()}
-                        onChange={(e) => setDueDate(e.target.value)}
-                        style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '13px', boxSizing: 'border-box' }}
-                      />
-                    </div>
-                  </div>
+            {/* Optional Borrow Schedule Toggle — hanya untuk Barang Modal (aset yang dikembalikan) */}
+            {cartItems.some((item) => item.is_loanable) && (
+              <div style={{
+                background: 'var(--white)',
+                border: useBorrowSchedule ? '1.5px solid #5B7A6A' : '1px solid rgba(0,0,0,0.08)',
+                borderRadius: '12px',
+                padding: '14px 16px',
+                marginBottom: '20px',
+                textAlign: 'left',
+                transition: 'border-color 0.2s',
+              }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={useBorrowSchedule}
+                    onChange={(e) => setUseBorrowSchedule(e.target.checked)}
+                    style={{ width: '16px', height: '16px', accentColor: '#5B7A6A', cursor: 'pointer' }}
+                  />
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#2B342C', marginBottom: '4px' }}>
-                      Catatan / Tujuan (opsional)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Contoh: untuk presentasi kelas 10-A"
-                      value={scheduleNotes}
-                      onChange={(e) => setScheduleNotes(e.target.value)}
-                      style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '13px', boxSizing: 'border-box' }}
-                    />
+                    <div style={{ fontWeight: 600, fontSize: '13.5px', color: '#2B342C' }}>
+                      <i className="fas fa-calendar-alt" style={{ marginRight: '6px', color: '#5B7A6A' }}></i>
+                      Atur tanggal pinjam &amp; kembali (opsional)
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: '#6b7280', marginTop: '2px' }}>
+                      Aktifkan bila ingin menentukan tanggal pinjam &amp; batas pengembalian Barang Modal.
+                    </div>
                   </div>
-                </div>
-              )}
+                </label>
 
-              {(useBorrowSchedule || cartItems.some((item) => item.is_loanable)) && (
+                {useBorrowSchedule && (
+                  <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#2B342C', marginBottom: '4px' }}>
+                          Tanggal Pinjam *
+                        </label>
+                        <input
+                          type="date"
+                          value={borrowDate}
+                          min={getTodayStr()}
+                          onChange={(e) => {
+                            const nextBorrow = e.target.value;
+                            setBorrowDate(nextBorrow);
+                            if (dueDate && nextBorrow > dueDate) {
+                              setDueDate(nextBorrow);
+                            }
+                          }}
+                          style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '13px', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#2B342C', marginBottom: '4px' }}>
+                          Batas Kembali *
+                        </label>
+                        <input
+                          type="date"
+                          value={dueDate}
+                          min={borrowDate || getTodayStr()}
+                          onChange={(e) => setDueDate(e.target.value)}
+                          style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '13px', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#2B342C', marginBottom: '4px' }}>
+                        Catatan / Tujuan (opsional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Contoh: untuk presentasi kelas 10-A"
+                        value={scheduleNotes}
+                        onChange={(e) => setScheduleNotes(e.target.value)}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '13px', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div style={{ marginTop: '10px', fontSize: '11.5px', color: '#4b6b58', background: '#EBF3EE', padding: '8px 10px', borderRadius: '8px' }}>
                   <i className="fas fa-info-circle" style={{ marginRight: '6px' }}></i>
-                  Setelah diambil (status <strong>Selesai</strong>), barang otomatis tercatat di menu <strong>Pesanan → Peminjaman Aset</strong> dan pengembaliannya dikonfirmasi oleh Admin Sarpras.
+                  Barang Modal akan muncul di tab <strong>Pesanan → Peminjaman Aset</strong> dan wajib dikembalikan melalui Admin Sarpras.
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderTop: '2px solid rgba(0,0,0,0.03)', paddingTop: '18px' }}>
               <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '1px', color: '#8A9E8A', textTransform: 'uppercase' }}>RINGKASAN</span>

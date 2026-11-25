@@ -525,19 +525,20 @@ export async function createRequest(
       const item = inventoryItems.find((inventoryItem: any) => inventoryItem.id === requestedItem.item_id);
       const timestamp = Date.now() + index;
 
+      const isLoanable = Boolean(item?.is_loanable);
       return {
           id: timestamp,
           req_code: `REQ-MOCK-${timestamp.toString().slice(-4)}`,
           item_id: requestedItem.item_id,
           item_name: item?.name || 'Unknown Item',
-          is_loanable: Boolean(item?.is_loanable),
+          is_loanable: isLoanable,
           requester_id,
           requester_name: requester?.full_name || 'User Mock',
           requester_role: requester?.department || requester?.role || 'Guru',
           quantity: requestedItem.quantity,
           request_date: today,
-          borrow_date: schedule?.borrow_date || null,
-          due_date: schedule?.due_date || null,
+          borrow_date: isLoanable ? (schedule?.borrow_date || null) : null,
+          due_date: isLoanable ? (schedule?.due_date || null) : null,
           notes: schedule?.notes || null,
           status: 'PENDING',
           priority: item?.stock <= 5 ? 'URGENT' : 'REGULER'
@@ -602,11 +603,7 @@ export async function updateRequestStatus(id: number, status: 'APPROVED' | 'REJE
 
     if (status === 'COMPLETED') {
       const itemInfo = readMockItems().find((item: any) => item.id === targetRequest.item_id);
-      const shouldCreateLoan = Boolean(
-        (targetRequest.borrow_date && targetRequest.due_date) ||
-        targetRequest.is_loanable ||
-        itemInfo?.is_loanable
-      );
+      const shouldCreateLoan = Boolean(targetRequest.is_loanable || itemInfo?.is_loanable);
       if (shouldCreateLoan) {
         const existingLoans = readMockLoans();
         if (!existingLoans.some((loan: any) => loan.request_id === targetRequest.id)) {
