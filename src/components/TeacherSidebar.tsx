@@ -13,7 +13,6 @@ const navItems: NavItemDef[] = [
   { path: '/teacher/inventory/barang-modal', icon: 'fa-chair', label: 'Barang Modal' },
   { path: '/teacher/inventory/persediaan', icon: 'fa-box-open', label: 'Persediaan' },
   { path: '/teacher/requests', icon: 'fa-shopping-basket', label: 'Pesanan' },
-  { path: '/teacher/loans', icon: 'fa-clipboard-list', label: 'Peminjaman' },
   { path: '/teacher/reports', icon: 'fa-file-alt', label: 'Laporan' },
 ];
 

@@ -304,11 +304,176 @@
   align-items: center;
   gap: 16px;
   transition: all var(--transition-normal);
+  cursor: pointer;
 }
 
 .loanCard:hover {
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
+}
+
+.cardFooterHint {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--cream-dark);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.evidenceTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #E8F0EA;
+  color: var(--sage-dark);
+  font-weight: 600;
+  font-size: 11.5px;
+}
+
+.detailHint {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--sage-dark);
+  font-weight: 600;
+}
+
+.loanRightCol {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.detailBox {
+  text-align: left;
+  width: 100%;
+}
+
+.detailHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--cream-dark);
+}
+
+.detailItemHero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--cream);
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+}
+
+.detailItemThumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.detailItemThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detailMetaGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
+  margin-bottom: 18px;
+}
+
+.detailMetaItem {
+  background: #FAFAF8;
+  border: 1px solid var(--cream-dark);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.detailMetaLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 3px;
+}
+
+.detailMetaValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dark-text);
+}
+
+.evidenceSection {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--cream-dark);
+}
+
+.evidenceSectionTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--dark-text);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.evidencePreviewImg {
+  width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: #FAFAF8;
+  display: block;
+}
+
+.evidenceEmpty {
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px dashed var(--border-color);
+  background: #FAFAF8;
+  color: var(--gray-text);
+  font-size: 12.5px;
+  text-align: center;
+}
+
+.loanInfoBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #F4F7F4;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--medium-text);
+}
+
+.loanInfoBanner i {
+  color: var(--sage-dark);
+  font-size: 15px;
+  flex-shrink: 0;
 }
 
 .loanThumb {

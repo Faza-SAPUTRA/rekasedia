@@ -8,8 +8,7 @@ const pageTitles: Record<string, string> = {
   '/teacher/inventory': 'Inventaris',
   '/teacher/inventory/barang-modal': 'Barang Modal',
   '/teacher/inventory/persediaan': 'Persediaan',
-  '/teacher/requests': 'Status Pesanan Saya',
-  '/teacher/loans': 'Peminjaman',
+  '/teacher/requests': 'Pesanan & Peminjaman',
   '/teacher/reports': 'Laporan Tersimpan',
 };
 

@@ -722,12 +722,20 @@ export async function createLoan(data: {
   return parseJsonResponse<{ message: string; loan_id: number }>(res, 'Gagal membuat peminjaman');
 }
 
-export async function returnLoan(id: number) {
+export async function returnLoan(id: number, return_evidence_photo?: string) {
   if (USE_MOCK) {
     const loans = readMockLoans();
     const target = loans.find((loan: any) => loan.id === id);
     writeMockLoans(loans.map((loan: any) => (
-      loan.id === id ? { ...loan, status: 'DIKEMBALIKAN', returned_at: formatMockDate(new Date()) } : loan
+      loan.id === id
+        ? {
+            ...loan,
+            status: 'DIKEMBALIKAN',
+            return_date: formatMockDate(new Date()),
+            returned_at: formatMockDate(new Date()),
+            ...(return_evidence_photo ? { return_evidence_photo } : {}),
+          }
+        : loan
     )));
     if (target?.request_id) {
       const returnQty = Math.max(1, Number(target.quantity || 1));
@@ -741,6 +749,7 @@ export async function returnLoan(id: number) {
   const res = await fetch(`${API_BASE}/loans/${id}/return`, {
     method: 'PUT',
     headers: authHeaders(),
+    body: JSON.stringify(return_evidence_photo ? { return_evidence_photo } : {}),
   });
   return parseJsonResponse(res, 'Gagal mengembalikan barang');
 }

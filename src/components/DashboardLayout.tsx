@@ -9,7 +9,9 @@ const pageTitles: Record<string, string> = {
   '/admin/inventory/barang-modal': 'Barang Modal',
   '/admin/inventory/persediaan': 'Persediaan',
   '/admin/requests': 'Permintaan Masuk',
+  '/admin/loans': 'Manajemen Peminjaman',
   '/admin/reports': 'Laporan',
+  '/admin/audit': 'Audit Trail',
 };
 
 export default function DashboardLayout() {

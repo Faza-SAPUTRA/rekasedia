@@ -2,21 +2,45 @@ import { Router } from 'express';
 import pool, { setRLSContext } from '../db.js';
 import { logAudit } from '../services/auditLogger.js';
 import { notifyNewLoan, notifyLoanDueReminder, notifyOverdueLoans } from '../services/telegram.js';
+import { requireAdmin } from '../middleware/auth.js';
 
 const router = Router();
 
-// GET /api/loans — Semua peminjaman + nama barang & peminjam
+let loanColumnsReady;
+
+async function ensureLoanColumns() {
+  if (!loanColumnsReady) {
+    loanColumnsReady = (async () => {
+      await pool.query(`
+        ALTER TABLE loans ADD COLUMN IF NOT EXISTS request_id INT DEFAULT NULL;
+        ALTER TABLE loans ADD COLUMN IF NOT EXISTS quantity INT DEFAULT 1;
+        ALTER TABLE loans ADD COLUMN IF NOT EXISTS return_evidence_photo TEXT DEFAULT NULL;
+        ALTER TABLE requests ADD COLUMN IF NOT EXISTS evidence_photo TEXT DEFAULT NULL;
+      `);
+    })().catch((error) => {
+      loanColumnsReady = undefined;
+      throw error;
+    });
+  }
+  return loanColumnsReady;
+}
+
+// GET /api/loans — Semua peminjaman + nama barang, peminjam & bukti foto
 router.get('/', async (req, res) => {
   try {
+    await ensureLoanColumns();
     const { rows } = await pool.query(`
       SELECT l.*, 
              i.name AS item_name,
              i.image_url AS item_image,
-             u.full_name AS borrower_name
+             u.full_name AS borrower_name,
+             r.req_code AS req_code,
+             r.evidence_photo AS pickup_evidence_photo
       FROM loans l
       JOIN items i ON l.item_id = i.id
       JOIN users u ON l.borrower_id = u.id
-      ORDER BY l.borrow_date DESC
+      LEFT JOIN requests r ON l.request_id = r.id
+      ORDER BY l.borrow_date DESC, l.id DESC
     `);
     res.json(rows);
   } catch (err) {
@@ -173,10 +197,17 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /api/loans/:id/return — Kembalikan barang
-router.put('/:id/return', async (req, res) => {
+// PUT /api/loans/:id/return — Kembalikan barang (hanya Admin Sarpras + wajib bukti foto)
+router.put('/:id/return', requireAdmin, async (req, res) => {
   const client = await pool.connect();
   try {
+    await ensureLoanColumns();
+    const { return_evidence_photo } = req.body || {};
+
+    if (!return_evidence_photo) {
+      return res.status(400).json({ error: 'Foto bukti pengembalian wajib dilampirkan.' });
+    }
+
     await client.query('BEGIN');
     await setRLSContext(client, req.user);
 
@@ -195,20 +226,14 @@ router.put('/:id/return', async (req, res) => {
 
     const loan = rows[0];
 
-    // Guru hanya boleh mengembalikan peminjaman miliknya sendiri
-    if (req.user?.role !== 'admin' && Number(loan.borrower_id) !== Number(req.user?.id)) {
-      await client.query('ROLLBACK');
-      return res.status(403).json({ error: 'Anda hanya dapat mengembalikan peminjaman milik sendiri.' });
-    }
-
     if (loan.status === 'DIKEMBALIKAN') {
       await client.query('ROLLBACK');
       return res.status(409).json({ error: 'Barang sudah dikembalikan sebelumnya.' });
     }
 
     await client.query(
-      "UPDATE loans SET status = 'DIKEMBALIKAN', return_date = CURRENT_DATE WHERE id = $1",
-      [req.params.id]
+      "UPDATE loans SET status = 'DIKEMBALIKAN', return_date = CURRENT_DATE, return_evidence_photo = $2 WHERE id = $1",
+      [req.params.id, return_evidence_photo]
     );
 
     // Jika peminjaman ini berasal dari permintaan yang mengurangi stok saat APPROVED,

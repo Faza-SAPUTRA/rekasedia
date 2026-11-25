@@ -16,7 +16,6 @@ import TeacherLayout from './components/TeacherLayout';
 import TeacherDashboardPage from './pages/teacher/DashboardPage';
 import TeacherInventoryPage from './pages/teacher/InventoryPage';
 import TeacherRequestsPage from './pages/teacher/RequestsPage';
-import TeacherLoansPage from './pages/teacher/LoansPage';
 import TeacherReportsPage from './pages/teacher/ReportsPage';
 
 import ProtectedRoute from './components/ProtectedRoute';
@@ -60,7 +59,7 @@ function App() {
               <Route path="inventory/barang-modal" element={<TeacherInventoryPage classification="modal" />} />
               <Route path="inventory/persediaan" element={<TeacherInventoryPage classification="persediaan" />} />
               <Route path="requests" element={<TeacherRequestsPage />} />
-              <Route path="loans" element={<TeacherLoansPage />} />
+              <Route path="loans" element={<Navigate to="/teacher/requests" replace />} />
               <Route path="reports" element={<TeacherReportsPage />} />
             </Route>
           </Route>

@@ -529,7 +529,7 @@ export default function TeacherInventoryPage({ classification = 'modal' }: Teach
               {(useBorrowSchedule || cartItems.some((item) => item.is_loanable)) && (
                 <div style={{ marginTop: '10px', fontSize: '11.5px', color: '#4b6b58', background: '#EBF3EE', padding: '8px 10px', borderRadius: '8px' }}>
                   <i className="fas fa-info-circle" style={{ marginRight: '6px' }}></i>
-                  Setelah diambil (status <strong>Selesai</strong>), barang otomatis masuk ke menu <strong>Peminjaman Aset</strong> agar bisa dikembalikan.
+                  Setelah diambil (status <strong>Selesai</strong>), barang otomatis tercatat di menu <strong>Pesanan → Peminjaman Aset</strong> dan pengembaliannya dikonfirmasi oleh Admin Sarpras.
                 </div>
               )}
             </div>

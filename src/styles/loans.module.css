@@ -22,8 +22,385 @@
 
 .loanGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(440px, 100%), 1fr));
   gap: 18px;
+}
+
+/* ============================================
+   Admin Loans — Summary, Toolbar & Clean Table
+   ============================================ */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.summaryCard {
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.summaryIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.summaryIconActive {
+  background: #E8F0EA;
+  color: var(--sage-dark);
+}
+
+.summaryIconOverdue {
+  background: #FEECEC;
+  color: #C84B31;
+}
+
+.summaryIconDone {
+  background: #E6F6EC;
+  color: #1F8A4C;
+}
+
+.summaryLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-text);
+  margin-bottom: 2px;
+}
+
+.summaryValue {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--dark-text);
+  line-height: 1.1;
+}
+
+.adminToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.tabsContainer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--white);
+  padding: 6px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+  max-width: 100%;
+  scrollbar-width: none;
+}
+
+.tabsContainer::-webkit-scrollbar {
+  display: none;
+}
+
+.tabBtn {
+  appearance: none;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--medium-text);
+  border: 1px solid transparent;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.tabBtn:hover:not(.tabBtnActive) {
+  color: var(--dark-text);
+  background: var(--cream);
+}
+
+.tabBtnActive {
+  background: var(--sage-green);
+  color: var(--white);
+  box-shadow: 0 4px 10px rgba(138, 158, 138, 0.24);
+}
+
+.tabBadge {
+  min-width: 22px;
+  height: 19px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cream);
+  color: var(--dark-text);
+}
+
+.tabBtnActive .tabBadge {
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--white);
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0 14px;
+  height: 44px;
+  min-width: 260px;
+  flex: 0 1 320px;
+  box-shadow: var(--shadow-sm);
+}
+
+.searchBox i {
+  color: var(--light-text);
+  font-size: 13px;
+}
+
+.searchBox input {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  font-size: 13.5px;
+  color: var(--dark-text);
+}
+
+.tableWrapper {
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  box-shadow: var(--shadow-sm);
+}
+
+.adminTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.adminTable thead th {
+  background: var(--table-header-bg);
+  color: var(--table-header-text);
+  padding: 14px 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.adminTable tbody tr {
+  border-bottom: 1px solid var(--cream-dark);
+  transition: background var(--transition-fast);
+}
+
+.adminTable tbody tr:last-child {
+  border-bottom: none;
+}
+
+.adminTable tbody tr:hover {
+  background: var(--cream);
+}
+
+.adminTable tbody td {
+  padding: 14px 20px;
+  font-size: 13.5px;
+  color: var(--dark-text);
+  vertical-align: middle;
+}
+
+.assetCell {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.assetThumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--cream);
+  flex-shrink: 0;
+  border: 1px solid var(--border-color);
+}
+
+.assetThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.assetTitle {
+  font-weight: 600;
+  color: var(--dark-text);
+  line-height: 1.35;
+}
+
+.assetNote {
+  font-size: 12px;
+  color: var(--gray-text);
+  margin-top: 2px;
+}
+
+.borrowerCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: var(--dark-text);
+}
+
+.borrowerAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #EBF2EC;
+  color: var(--sage-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.scheduleRange {
+  font-weight: 500;
+  color: var(--dark-text);
+  white-space: nowrap;
+}
+
+.scheduleSub {
+  font-size: 11.5px;
+  margin-top: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.scheduleSubDanger {
+  color: #C84B31;
+  font-weight: 600;
+}
+
+.scheduleSubWarn {
+  color: #B45309;
+  font-weight: 600;
+}
+
+.scheduleSubMuted {
+  color: var(--gray-text);
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.statusActive {
+  background: #E8F0EA;
+  color: #3E634D;
+}
+
+.statusOverdue {
+  background: #FEECEC;
+  color: #C84B31;
+}
+
+.statusReturned {
+  background: #F1F5F2;
+  color: #64748B;
+}
+
+.tableActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 9px;
+  border: none;
+  background: var(--sage-green);
+  color: var(--white);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 6px rgba(91, 122, 106, 0.2);
+}
+
+.tableActionBtn:hover {
+  background: var(--sage-green-hover);
+  transform: translateY(-1px);
+}
+
+.tableDoneLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: #1F8A4C;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.emptyTableState {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--gray-text);
+}
+
+.emptyTableState i {
+  font-size: 32px;
+  opacity: 0.35;
+  margin-bottom: 10px;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .searchBox {
+    width: 100%;
+    flex: 1 1 100%;
+  }
 }
 
 .loanCard {
